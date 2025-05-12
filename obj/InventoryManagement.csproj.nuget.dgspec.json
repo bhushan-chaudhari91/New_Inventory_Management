@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\InventoryManagement.csproj": {}
+    "D:\\MitrozTech_Dotnet_Projects\\Inventory_management\\New_Inventory_Management\\InventoryManagement.csproj": {}
   },
   "projects": {
-    "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\InventoryManagement.csproj": {
+    "D:\\MitrozTech_Dotnet_Projects\\Inventory_management\\New_Inventory_Management\\InventoryManagement.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\InventoryManagement.csproj",
+        "projectUniqueName": "D:\\MitrozTech_Dotnet_Projects\\Inventory_management\\New_Inventory_Management\\InventoryManagement.csproj",
         "projectName": "InventoryManagement",
-        "projectPath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\InventoryManagement.csproj",
-        "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
-        "outputPath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\obj\\",
+        "projectPath": "D:\\MitrozTech_Dotnet_Projects\\Inventory_management\\New_Inventory_Management\\InventoryManagement.csproj",
+        "packagesPath": "C:\\Users\\DELL-PC\\.nuget\\packages\\",
+        "outputPath": "D:\\MitrozTech_Dotnet_Projects\\Inventory_management\\New_Inventory_Management\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\DELL\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\DELL-PC\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
