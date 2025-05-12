@@ -1,0 +1,92 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|d:\\mitroz 2025 all projects\\inventory managment project\\mvc\\inventorymanagement\\views\\inventory\\stockin.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|solutionrelative:views\\inventory\\stockin.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|d:\\mitroz 2025 all projects\\inventory managment project\\mvc\\inventorymanagement\\controllers\\inventorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|solutionrelative:controllers\\inventorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|d:\\mitroz 2025 all projects\\inventory managment project\\mvc\\inventorymanagement\\views\\master\\product.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|solutionrelative:views\\master\\product.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|d:\\mitroz 2025 all projects\\inventory managment project\\mvc\\inventorymanagement\\controllers\\mastercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{06D1463A-37E5-449C-BE27-6FC756A14759}|InventoryManagement.csproj|solutionrelative:controllers\\mastercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Product.cshtml",
+              "DocumentMoniker": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Views\\Master\\Product.cshtml",
+              "RelativeDocumentMoniker": "Views\\Master\\Product.cshtml",
+              "ToolTip": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Views\\Master\\Product.cshtml",
+              "RelativeToolTip": "Views\\Master\\Product.cshtml",
+              "ViewState": "AgIAALgBAAAAAAAAAAAswLUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-12T06:25:21.615Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MasterController.cs",
+              "DocumentMoniker": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Controllers\\MasterController.cs",
+              "RelativeDocumentMoniker": "Controllers\\MasterController.cs",
+              "ToolTip": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Controllers\\MasterController.cs",
+              "RelativeToolTip": "Controllers\\MasterController.cs",
+              "ViewState": "AgIAAMgCAAAAAAAAAAAuwP4CAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-12T06:25:11.94Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "StockIn.cshtml",
+              "DocumentMoniker": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Views\\Inventory\\StockIn.cshtml",
+              "RelativeDocumentMoniker": "Views\\Inventory\\StockIn.cshtml",
+              "ToolTip": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Views\\Inventory\\StockIn.cshtml",
+              "RelativeToolTip": "Views\\Inventory\\StockIn.cshtml",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAACAAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-08T10:42:53.948Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "InventoryController.cs",
+              "DocumentMoniker": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Controllers\\InventoryController.cs",
+              "RelativeDocumentMoniker": "Controllers\\InventoryController.cs",
+              "ToolTip": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\Controllers\\InventoryController.cs",
+              "RelativeToolTip": "Controllers\\InventoryController.cs",
+              "ViewState": "AgIAAOUCAADAmJmZmZkhwPcCAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-08T10:42:00.807Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

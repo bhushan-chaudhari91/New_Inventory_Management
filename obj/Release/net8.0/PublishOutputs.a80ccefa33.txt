@@ -1,0 +1,12 @@
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\InventoryManagement.exe
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\appsettings.Development.json
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\appsettings.json
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\InventoryManagement.dll
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\InventoryManagement.runtimeconfig.json
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\InventoryManagement.pdb
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\Microsoft.EntityFrameworkCore.dll
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\MySqlConnector.dll
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\Pomelo.EntityFrameworkCore.MySql.dll
+C:\Project 2025\InventoryManagement\obj\Release\net8.0\PubTmp\Out\InventoryManagement.deps.json

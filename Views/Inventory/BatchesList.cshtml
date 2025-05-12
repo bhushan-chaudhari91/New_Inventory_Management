@@ -1,0 +1,377 @@
+﻿@using InventoryManagement.ViewModels
+@* @model List<BatchSummaryViewModel> *@
+@model BatchListViewModel
+
+@{
+    var pagination = Model.Pagination;
+    int totalOrders = pagination.TotalRecords;
+    int currentPage = pagination.CurrentPage;
+    int pageSize = pagination.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+    string serchquery = pagination.SearchTerm;
+   
+}
+
+@* Start Code For Pagination CSS for Html Table *@
+<style>
+    .custom-pagination .page-item .page-link {
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        margin-left: 2px;
+    }
+
+    .custom-pagination .page-item.active .page-link {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .custom-pagination .page-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+        .custom-pagination .page-link:hover {
+            background-color: #f1f1f1;
+        }
+</style>
+@* End Code For Pagination CSS for Html Table *@
+
+<style>
+    .btn-pill {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    min-width: 120px;
+    background-color: #f0f4fb;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-weight: 600;
+    color: #0d6efd;
+    font-size: 30px;
+    }
+
+    .btn-pill .count {
+    color: #f6a623; /* golden number */
+    margin-right: 0.4rem;
+    font-weight: bold;
+    }
+
+    .btn-pill.active {
+    border: 2px solid #0d6efd; /* border-box on active */
+    background-color: #ffffff;
+    }
+</style>
+
+<div class="main-content">
+
+
+    <div class="row" style="margin-bottom: -30px;">
+        <div class="col-md-12 grid-margin">
+            <div class="d-flex justify-content-between flex-wrap">
+                <div class="d-flex align-items-end flex-wrap">
+                    <div class="mr-md-3 mr-xl-5">
+                        <h2>Batches</h2>
+
+                    </div>
+
+                </div>
+                @* <div class="d-flex justify-content-between align-items-end flex-wrap">
+                    <a asp-action="StockIn" class="btn btn-primary mr-3 mt-2 mt-xl-0">Stock In</a>
+                    <a asp-action="StockOut" class="btn btn-success mt-2 mt-xl-0">Stock Out</a>
+                </div> *@
+
+            </div>
+            <hr />
+        </div>
+    </div>
+
+
+
+    <div class="row">
+        <div class="col-md-12 grid-margin">
+            <div class="d-flex justify-content-start flex-wrap">
+                <button type="button" id="productBtn"
+                class="btn-pill"
+                onclick="setActive(this); window.location.href='/Inventory/InventoryList';">
+                    <span class="count">@ViewBag.ProductCount</span> Products
+                </button>
+
+                <button type="button" id="batchBtn"
+                        class="btn-pill active"
+                onclick="setActive(this); window.location.href='/Inventory/BatchesList';">
+                    <span class="count">@ViewBag.BatchCount</span> Batches
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        function setActive(clickedButton) {
+        // Remove "active" class from both buttons
+        document.getElementById("productBtn").classList.remove("active");
+        document.getElementById("batchBtn").classList.remove("active");
+
+        // Add "active" to the clicked one
+        clickedButton.classList.add("active");
+        }
+    </script>
+
+
+    <div class="row" style="margin-top:30px">
+        <div class="col-sm-12 col-md-6" style="padding: 0px 32px;">
+            <div class="dataTables_length">
+                <label style="font-weight: normal;text-align: left;white-space: nowrap;">
+                    Show
+                    <select id="rowQuantity" onchange="updateRowQuantity()" class="custom-select custom-select-sm form-control form-control-sm" style=" width: 65px; padding: 0px 9px; display: inline-block; height: 32px; border-radius: 20px; border: 1px solid #5e5a5a; color: #0c0b0b;">
+                        @if (pageSize == 10)
+                        {
+                            <option value="10" selected>10</option>
+                        }
+                        else
+                        {
+                            <option value="10">10</option>
+                        }
+
+                        @if (pageSize == 25)
+                        {
+                            <option value="25" selected>25</option>
+                        }
+                        else
+                        {
+                            <option value="25">25</option>
+                        }
+
+                        @if (pageSize == 50)
+                        {
+                            <option value="50" selected>50</option>
+                        }
+                        else
+                        {
+                            <option value="50">50</option>
+                        }
+
+                        @if (pageSize == 100)
+                        {
+                            <option value="100" selected>100</option>
+                        }
+                        else
+                        {
+                            <option value="100">100</option>
+                        }
+
+                    </select>entries
+                </label>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-6">
+            <div id="example_filter" class="dataTables_filter" style="text-align: right;">
+                <label>
+                    Search:<input type="search" id="searchQuery" value="@serchquery" oninput="searchfilterquery();" style="margin-left:.5em;display: inline-block;width: auto;height: 30px; border-radius: 20px; border: 1px solid #5e5a5a;" class="form-control form-control-sm" placeholder="" aria-controls="example">
+                </label>
+
+                <form asp-controller="Inventory" asp-action="ExportBatchesToExcel" method="post" style="display: inline;">
+                    <input type="hidden" name="searchTerm" value="@Model.Pagination.SearchTerm" />
+                    <button type="submit" class="btn btn-success mt-2 mt-xl-0">
+                        Export to Excel
+                    </button>
+                </form>
+
+
+            </div>
+        </div>
+
+    </div>
+
+    @if (!string.IsNullOrEmpty(serchquery))
+    {
+
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                var searchInput = $('#searchQuery');
+                searchInput.focus();
+
+
+                var val = searchInput.val();
+                searchInput.val('').val(val);
+            });
+        </script>
+    }
+
+
+
+    <div class="table-container">
+
+        @if (Model != null && Model.Batches.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Batch ID</th>
+                        <th>Date</th>
+                        <th>Products Count</th>
+                        <th>Total Quantity</th>
+                        @* <th>Warehouse Count</th> *@
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int SrNo = 1;
+                    }
+
+                    @foreach (var batch in Model.Batches)
+                    {
+                        <tr>
+                            <td>@SrNo</td>
+                            <td>@batch.BatchNo</td>
+                            <td>@batch.Date?.ToString("dd/MM/yyyy")</td>
+                            <td>@batch.ProductsCount</td>
+                            <td>@batch.TotalQuantity.ToString("0")</td>
+                           @*  <td>@batch.WarehouseCount</td> *@
+                            <td><a asp-controller="Inventory" asp-action="BatchDetails" asp-route-BatchNo="@batch.BatchNo" class="view-link">View</a></td>
+                        </tr>
+                        SrNo++;
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No records found.</p>
+        }
+    </div>
+
+    <div class="custom-pagination" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 1rem 0;">
+        <div class="col-sm-12 col-md-5">
+            @if (totalOrders > pageSize)
+            {
+                <div class="dataTables_info" id="example_info" role="status" aria-live="polite" style="margin-top: -15px;">
+                    Showing @pageSize of @totalOrders entries
+                </div>
+            }
+            else
+            {
+                <div class="dataTables_info" id="example_info" role="status" aria-live="polite" style="margin-top: -15px;">
+                    Showing @totalOrders of @totalOrders entries
+                </div>
+            }
+
+        </div>
+        <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers" id="MainOrderTable_paginate" style="margin: 0;white-space: nowrap;text-align: right;">
+                <ul class="pagination" style="margin: 2px 0;white-space: nowrap;justify-content: flex-end;">
+
+                    <li class="paginate_button page-item previous @(currentPage == 1 ? "disabled" : "")">
+                        @if (currentPage == 1)
+                        {
+                            <a class="page-link disabled" tabindex="-1">Previous</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("BatchesList", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                        }
+                    </li>
+
+                    @if (totalPages > 5)
+                    {
+                        // Display the first page
+                        if (currentPage > 3)
+                        {
+                            <li class="paginate_button page-item">
+                                <a href="@Url.Action("BatchesList", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                            </li>
+                            if (currentPage > 4)
+                            {
+                                <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
+                            }
+                        }
+
+                        // Display current page and adjacent pages
+                        for (int i = Math.Max(2, currentPage - 2); i <= Math.Min(totalPages - 1, currentPage + 2); i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <li class="paginate_button page-item active">
+                                    <a href="#" class="page-link" aria-current="page">@i</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="paginate_button page-item">
+                                    <a href="@Url.Action("BatchesList", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                </li>
+                            }
+                        }
+
+                        // Display the last page
+                        if (currentPage < totalPages - 2)
+                        {
+                            if (currentPage < totalPages - 3)
+                            {
+                                <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            <li class="paginate_button page-item">
+                                <a href="@Url.Action("BatchesList", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        // Display all page buttons if total pages are 5 or fewer
+                        for (int i = 1; i <= totalPages; i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <li class="paginate_button page-item active">
+                                    <a href="#" class="page-link" aria-current="page">@i</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="paginate_button page-item">
+                                    <a href="@Url.Action("BatchesList", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                </li>
+                            }
+                        }
+                    }
+
+
+                    <li class="paginate_button page-item next @(currentPage == totalPages ? "disabled" : "")">
+                        @if (currentPage == totalPages)
+                        {
+                            <a class="page-link disabled" tabindex="-1">Next</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("BatchesList", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                        }
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    function searchfilterquery() {
+        var searchQuery = document.getElementById('searchQuery').value;
+        var pageSize = document.getElementById('rowQuantity').value;
+        window.location.href = `/Inventory/BatchesList?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+
+    function updateRowQuantity() {
+        var pageSize = document.getElementById('rowQuantity').value;
+        var searchQuery = document.getElementById('searchQuery').value;
+        window.location.href = `/Inventory/BatchesList?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+</script>

@@ -1,0 +1,136 @@
+﻿@model InventoryManagement.ViewModels.ProductViewModel
+
+<style>
+    .form-control, .dataTables_wrapper select {
+        border: 1px solid #545151;
+        font-weight: 400;
+        font-size: 0.875rem;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="card shadow rounded">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Edit Product</h5>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="EditProduct" method="post">
+                <input type="hidden" asp-for="ProductId" />
+
+                <div class="row mb-3">
+                    <div class="form-group col-md-4">
+                        <label asp-for="ProductName" class="form-label fw-semibold">Product Name</label>
+                        <input asp-for="ProductName" class="form-control" />
+                        <span asp-validation-for="ProductName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label asp-for="SkuIdName" class="form-label fw-semibold">SKU Name</label>
+                        <input asp-for="SkuIdName" class="form-control" />
+                        <span asp-validation-for="SkuIdName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label asp-for="LowStockQuantity" class="form-label fw-semibold">Low Stock Quantity</label>
+                        <input asp-for="LowStockQuantity" class="form-control" />
+                        <span asp-validation-for="LowStockQuantity" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="form-group col-md-12">
+                        <label class="form-label fw-semibold">Product Aliases</label>
+                        <div id="aliasContainer" class="row">
+                            @for (int i = 0; i < (Model.AliasNames?.Count ?? 0); i++)
+                            {
+                                <div class="col-md-6 mb-2">
+                                    <input type="text" name="AliasNames[@i]" value="@Model.AliasNames[i]" class="form-control" />
+                                </div>
+                            }
+                            @if (Model.AliasNames == null || Model.AliasNames.Count == 0)
+                            {
+                                <div class="col-md-6 mb-2">
+                                    <input type="text" name="AliasNames[0]" class="form-control" />
+                                </div>
+                            }
+                        </div>
+                        <a href="#" class="btn btn-outline-secondary btn-sm mt-1" id="addAliasBtn">+ Add Alias</a>
+                    </div>
+                </div>
+
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-success">💾 Save Changes</button>
+                    <a asp-action="Product" class="btn btn-secondary" style="margin-left: 15px;">↩ Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('addAliasBtn').addEventListener('click', function (e) {
+            e.preventDefault();
+            const container = document.getElementById('aliasContainer');
+            const count = container.querySelectorAll('input').length;
+            const newInput = document.createElement('div');
+            newInput.classList.add('mb-2');
+            newInput.innerHTML = `<input type="text" name="AliasNames[${count}]" class="form-control" />`;
+            container.appendChild(newInput);
+        });
+    </script>
+}
+
+
+@* <form asp-action="EditProduct" method="post">
+    <input type="hidden" asp-for="ProductId" />
+
+    <div class="row">
+        <div class="form-group col-md-4">
+            <label asp-for="ProductName" class="form-label">Product Name</label>
+            <input asp-for="ProductName" class="form-control" />
+            <span asp-validation-for="ProductName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-4">
+            <label asp-for="SkuIdName" class="form-label">SKU Name</label>
+            <input asp-for="SkuIdName" class="form-control" />
+            <span asp-validation-for="SkuIdName" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group col-md-4">
+            <label asp-for="LowStockQuantity" class="form-label">Low Stock Quantity</label>
+            <input asp-for="LowStockQuantity" class="form-control" />
+            <span asp-validation-for="LowStockQuantity" class="text-danger"></span>
+        </div>
+    </div>
+
+
+
+    <div class="row">
+        <div class="form-group col-md-4">
+            <label>Product Aliases</label>
+            <div id="aliasContainer">
+                @for (int i = 0; i < (Model.AliasNames?.Count ?? 0); i++)
+                {
+                    <div class="mb-2">
+                        <input type="text" name="AliasNames[@i]" value="@Model.AliasNames[i]" class="form-control" />
+                    </div>
+                }
+                @if (Model.AliasNames == null || Model.AliasNames.Count == 0)
+                {
+                    <div class="mb-2">
+                        <input type="text" name="AliasNames[0]" class="form-control" />
+                    </div>
+                }
+            </div>
+            <a href="#" class="btn btn-sm btn-link" id="addAliasBtn">Add Alias</a>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a asp-action="Product" class="btn btn-secondary">Cancel</a>
+</form> *@

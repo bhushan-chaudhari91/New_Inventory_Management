@@ -1,0 +1,363 @@
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\appsettings.Development.json
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\appsettings.json
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\InventoryManagement.staticwebassets.endpoints.json
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\InventoryManagement.staticwebassets.runtime.json
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\InventoryManagement.exe
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\InventoryManagement.deps.json
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\InventoryManagement.runtimeconfig.json
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\InventoryManagement.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\InventoryManagement.pdb
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Humanizer.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.Workspaces.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Design.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Microsoft.Extensions.DependencyModel.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Mono.TextTemplating.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\MySqlConnector.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\System.CodeDom.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\System.Composition.AttributedModel.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\System.Composition.Convention.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\System.Composition.Hosting.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\System.Composition.Runtime.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\System.Composition.TypedParts.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.csproj.AssemblyReference.cache
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.GeneratedMSBuildEditorConfig.editorconfig
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.AssemblyInfoInputs.cache
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.AssemblyInfo.cs
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.csproj.CoreCompileInputs.cache
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.MvcApplicationPartsAssemblyInfo.cache
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.RazorAssemblyInfo.cache
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.RazorAssemblyInfo.cs
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\scopedcss\bundle\InventoryManagement.styles.css
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\scopedcss\projectbundle\InventoryManagement.bundle.scp.css
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets.build.json
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets.development.json
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.InventoryManagement.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.InventoryManagement.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.build.InventoryManagement.props
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.InventoryManagement.props
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.InventoryManagement.props
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\Inventor.F96114ED.Up2Date
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.dll
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\refint\InventoryManagement.dll
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.pdb
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\InventoryManagement.genruntimeconfig.cache
+C:\Project 2025\InventoryManagement\obj\Debug\net8.0\ref\InventoryManagement.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\appsettings.Development.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\appsettings.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.staticwebassets.runtime.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.staticwebassets.endpoints.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.exe
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.deps.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.runtimeconfig.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.pdb
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ClosedXML.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ClosedXML.Parser.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Dapper.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\DocumentFormat.OpenXml.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\DocumentFormat.OpenXml.Framework.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\EPPlus.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\EPPlus.Interfaces.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ExcelNumberFormat.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Humanizer.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.Workspaces.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Design.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Json.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Extensions.DependencyModel.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.IO.RecyclableMemoryStream.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Mono.TextTemplating.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\MySqlConnector.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\RBush.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\SixLabors.Fonts.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.CodeDom.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.AttributedModel.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.Convention.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.Hosting.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.Runtime.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.TypedParts.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.IO.Packaging.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\System.Security.Cryptography.Xml.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.csproj.AssemblyReference.cache
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.GeneratedMSBuildEditorConfig.editorconfig
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.AssemblyInfoInputs.cache
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.AssemblyInfo.cs
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.csproj.CoreCompileInputs.cache
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.MvcApplicationPartsAssemblyInfo.cache
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.RazorAssemblyInfo.cache
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.RazorAssemblyInfo.cs
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\scopedcss\bundle\InventoryManagement.styles.css
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\scopedcss\projectbundle\InventoryManagement.bundle.scp.css
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.build.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.development.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.InventoryManagement.Microsoft.AspNetCore.StaticWebAssets.props
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.InventoryManagement.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.build.InventoryManagement.props
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.InventoryManagement.props
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.InventoryManagement.props
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.pack.json
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\Inventor.F96114ED.Up2Date
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\refint\InventoryManagement.dll
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.pdb
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.genruntimeconfig.cache
+D:\Mitroz All Project\Inventory Management MVC\InventoryManagement\obj\Debug\net8.0\ref\InventoryManagement.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\appsettings.Development.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\appsettings.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.staticwebassets.runtime.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.staticwebassets.endpoints.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.exe
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.deps.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.runtimeconfig.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\InventoryManagement.pdb
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ClosedXML.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ClosedXML.Parser.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Dapper.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\DocumentFormat.OpenXml.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\DocumentFormat.OpenXml.Framework.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\EPPlus.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\EPPlus.Interfaces.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ExcelNumberFormat.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Humanizer.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.CodeAnalysis.Workspaces.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Design.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Json.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Extensions.DependencyModel.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.IO.RecyclableMemoryStream.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Mono.TextTemplating.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\MySqlConnector.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\RBush.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\SixLabors.Fonts.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.CodeDom.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.AttributedModel.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.Convention.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.Hosting.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.Runtime.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Composition.TypedParts.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Drawing.Common.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Private.Windows.Core.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.IO.Packaging.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\System.Security.Cryptography.Xml.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zxing.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\fr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\it\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ja\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ko\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pl\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\pt-BR\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\ru\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.csproj.AssemblyReference.cache
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.GeneratedMSBuildEditorConfig.editorconfig
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.AssemblyInfoInputs.cache
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.AssemblyInfo.cs
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.csproj.CoreCompileInputs.cache
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.MvcApplicationPartsAssemblyInfo.cache
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.RazorAssemblyInfo.cache
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.RazorAssemblyInfo.cs
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\scopedcss\bundle\InventoryManagement.styles.css
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\scopedcss\projectbundle\InventoryManagement.bundle.scp.css
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.build.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.development.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.InventoryManagement.Microsoft.AspNetCore.StaticWebAssets.props
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.InventoryManagement.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.build.InventoryManagement.props
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.InventoryManagement.props
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.InventoryManagement.props
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.pack.json
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\Inventor.F96114ED.Up2Date
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\refint\InventoryManagement.dll
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.pdb
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\InventoryManagement.genruntimeconfig.cache
+D:\Mitroz 2025 All Projects\Inventory Managment Project\MVC\InventoryManagement\obj\Debug\net8.0\ref\InventoryManagement.dll

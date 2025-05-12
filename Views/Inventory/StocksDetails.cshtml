@@ -1,0 +1,400 @@
+﻿@using InventoryManagement.ViewModels;
+@model StockDetailsViewModel
+
+@{
+    var pagination = Model.Pagination;
+    int totalOrders = pagination.TotalRecords;
+    int currentPage = pagination.CurrentPage;
+    int pageSize = pagination.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+    string serchquery = pagination.SearchTerm;
+    int stockInId = Model.StockInId;
+    int fkProjectId = Model.FkProjectId;
+}
+
+@* Start Code For Pagination CSS for Html Table *@
+<style>
+    .custom-pagination .page-item .page-link {
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        margin-left: 2px;
+    }
+
+    .custom-pagination .page-item.active .page-link {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .custom-pagination .page-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+        .custom-pagination .page-link:hover {
+            background-color: #f1f1f1;
+        }
+</style>
+@* End Code For Pagination CSS for Html Table *@
+
+
+<div class="main-content">
+
+
+    <div class="col-6">
+        <div class="card mb-4" style="background-color: #f0f7ff; border: none; border-radius: .75rem;">
+            <div class="card-body d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h5 class="mb-1 text-primary">@Model.ProductName</h5>
+                    <small class="text-warning">@Model.SKUName</small>
+                    <div class="mt-2">
+                        @foreach (var alias in Model.AliasNames.Split(','))
+                        {
+                            <span class="badge rounded-pill bg-success me-1">@alias.Trim()</span>
+                        }
+ 
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-1"
+                         style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
+                        <span class="h4 text-primary mb-0">60</span>
+                    </div>
+                    <small class="text-primary">Total Stock</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+   @*<div class="row">
+        <div class="col-md-12 grid-margin">
+            <div class="d-flex justify-content-between flex-wrap">
+                <div class="d-flex align-items-end flex-wrap">
+                    <div class="mr-md-3 mr-xl-5">
+                       <h2>@Model.ProductName (@Model.AliasNames)</h2>
+
+                    </div>
+
+                </div>
+               
+            </div>
+        </div>
+    </div>*@
+
+
+    <div class="row" style="margin-top:30px">
+        <div class="col-sm-12 col-md-6" style="padding: 0px 32px;">
+            <div class="dataTables_length">
+                <label style="font-weight: normal;text-align: left;white-space: nowrap;">
+                    Show
+                    <select id="rowQuantity" onchange="updateRowQuantity()" class="custom-select custom-select-sm form-control form-control-sm" style=" width: 65px; padding: 0px 9px; display: inline-block; height: 32px; border-radius: 20px; border: 1px solid #5e5a5a; color: #0c0b0b;">
+                        @if (pageSize == 10)
+                        {
+                            <option value="10" selected>10</option>
+                        }
+                        else
+                        {
+                            <option value="10">10</option>
+                        }
+
+                        @if (pageSize == 25)
+                        {
+                            <option value="25" selected>25</option>
+                        }
+                        else
+                        {
+                            <option value="25">25</option>
+                        }
+
+                        @if (pageSize == 50)
+                        {
+                            <option value="50" selected>50</option>
+                        }
+                        else
+                        {
+                            <option value="50">50</option>
+                        }
+
+                        @if (pageSize == 100)
+                        {
+                            <option value="100" selected>100</option>
+                        }
+                        else
+                        {
+                            <option value="100">100</option>
+                        }
+
+                    </select>entries
+                </label>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-6">
+            <div id="example_filter" class="dataTables_filter" style="text-align: right;">
+                <label>
+                    Search:<input type="search" id="searchQuery" value="@serchquery" oninput="searchfilterquery();" style="margin-left:.5em;display: inline-block;width: auto;height: 30px; border-radius: 20px; border: 1px solid #5e5a5a;" class="form-control form-control-sm" placeholder="" aria-controls="example">
+                </label>
+
+                <form asp-action="ExportStockDetailsToExcel" method="post" style="display: inline;">
+                    <input type="hidden" name="id" value="@Model.StockInId" />
+                    <input type="hidden" name="productId" value="@Model.FkProjectId" />
+                    <input type="hidden" name="searchTerm" value="@Model.Pagination.SearchTerm" />
+                    <button type="submit" class="btn btn-success mt-2 mt-xl-0">
+                        Export to Excel
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+    @if (!string.IsNullOrEmpty(serchquery))
+    {
+
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                var searchInput = $('#searchQuery');
+                searchInput.focus();
+
+
+                var val = searchInput.val();
+                searchInput.val('').val(val);
+            });
+        </script>
+    }
+   
+
+    <div class="table-container">
+       
+        
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sr.No</th>
+                        <th>Date</th>
+                        <th>Product Name</th>
+                        <th>Batch ID</th>
+                        <th>Status</th>
+                        <th>Supplier Name</th>
+                        <th>Quantity</th>
+                        <th>Location</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.CombinedStockList)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.Date.ToShortDateString()</td>
+                            <td>@item.ProductName</td>
+                            <td>@item.BatchNo</td>
+                            <td>
+                                @if (item.Status == "Stock In")
+                                {
+                                    <span class="badge bg-success">Stock In</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Stock Out</span>
+                                }
+                            </td>
+                            <td>@item.SupplierName</td>
+                            <td>@item.Quantity</td>
+                            @* <td>@item.LocationName / @item.RoomName / @item.RackName</td> *@
+                            <td>
+                                @{
+                                    var fullText = $"{item.LocationName} / {item.RoomName} / {item.RackName}";
+                                    var words1 = fullText.Split(' ');
+                                    var lines1 = new List<string>();
+                                    var currentLine1 = "";
+
+                                    foreach (var word in words1)
+                                    {
+                                        if ((currentLine1.Length + word.Length + (currentLine1 == "" ? 0 : 1)) <= 25)
+                                        {
+                                            currentLine1 += (currentLine1 == "" ? "" : " ") + word;
+                                        }
+                                        else
+                                        {
+                                            lines1.Add(currentLine1);
+                                            currentLine1 = word;
+                                        }
+                                    }
+
+                                    if (!string.IsNullOrEmpty(currentLine1))
+                                    {
+                                        lines1.Add(currentLine1);
+                                    }
+
+                                    foreach (var line in lines1)
+                                    {
+                                        @line
+
+                                        <br />
+                                    }
+                                }
+                            </td>
+                            
+                            
+                           
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        
+    </div>
+
+    <div class="custom-pagination" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 1rem 0;">
+        <div class="col-sm-12 col-md-5">
+            @if (totalOrders > pageSize)
+            {
+                <div class="dataTables_info" id="example_info" role="status" aria-live="polite" style="margin-top: -15px;">
+                    Showing @pageSize of @totalOrders entries
+                </div>
+            }
+            else
+            {
+                <div class="dataTables_info" id="example_info" role="status" aria-live="polite" style="margin-top: -15px;">
+                    Showing @totalOrders of @totalOrders entries
+                </div>
+            }
+
+        </div>
+        <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers" id="MainOrderTable_paginate" style="margin: 0;white-space: nowrap;text-align: right;">
+                <ul class="pagination" style="margin: 2px 0;white-space: nowrap;justify-content: flex-end;">
+
+                    <li class="paginate_button page-item previous @(currentPage == 1 ? "disabled" : "")">
+                        @if (currentPage == 1)
+                        {
+                            <a class="page-link disabled" tabindex="-1">Previous</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("StocksDetails", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                        }
+                    </li>
+
+                    @if (totalPages > 5)
+                    {
+                        // Display the first page
+                        if (currentPage > 3)
+                        {
+                            <li class="paginate_button page-item">
+                                <a href="@Url.Action("StocksDetails", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                            </li>
+                            if (currentPage > 4)
+                            {
+                                <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
+                            }
+                        }
+
+                        // Display current page and adjacent pages
+                        for (int i = Math.Max(2, currentPage - 2); i <= Math.Min(totalPages - 1, currentPage + 2); i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <li class="paginate_button page-item active">
+                                    <a href="#" class="page-link" aria-current="page">@i</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="paginate_button page-item">
+                                    <a href="@Url.Action("StocksDetails", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                </li>
+                            }
+                        }
+
+                        // Display the last page
+                        if (currentPage < totalPages - 2)
+                        {
+                            if (currentPage < totalPages - 3)
+                            {
+                                <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            <li class="paginate_button page-item">
+                                <a href="@Url.Action("StocksDetails", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        // Display all page buttons if total pages are 5 or fewer
+                        for (int i = 1; i <= totalPages; i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <li class="paginate_button page-item active">
+                                    <a href="#" class="page-link" aria-current="page">@i</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="paginate_button page-item">
+                                    <a href="@Url.Action("StocksDetails", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                </li>
+                            }
+                        }
+                    }
+
+
+                    <li class="paginate_button page-item next @(currentPage == totalPages ? "disabled" : "")">
+                        @if (currentPage == totalPages)
+                        {
+                            <a class="page-link disabled" tabindex="-1">Next</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("StocksDetails", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                        }
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+@* <script>
+    function searchfilterquery() {
+        var searchQuery = document.getElementById('searchQuery').value;
+        var pageSize = document.getElementById('rowQuantity').value;
+        window.location.href = `/Inventory/StocksDetails?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+
+    function updateRowQuantity() {
+        var pageSize = document.getElementById('rowQuantity').value;
+        var searchQuery = document.getElementById('searchQuery').value;
+        window.location.href = `/Inventory/StocksDetails?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+</script> *@
+
+<script>
+    function searchfilterquery() {
+        var searchQuery = document.getElementById('searchQuery').value;
+        var pageSize = document.getElementById('rowQuantity').value;
+        var stockInId = '@stockInId';
+        var fkProjectId = '@fkProjectId';
+
+        window.location.href = `/Inventory/StocksDetails?id=${stockInId}&productId=${fkProjectId}&searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+
+    function updateRowQuantity() {
+        var pageSize = document.getElementById('rowQuantity').value;
+        var searchQuery = document.getElementById('searchQuery').value;
+        var stockInId = '@stockInId';
+        var fkProjectId = '@fkProjectId';
+
+        window.location.href = `/Inventory/StocksDetails?id=${stockInId}&productId=${fkProjectId}&searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+</script>

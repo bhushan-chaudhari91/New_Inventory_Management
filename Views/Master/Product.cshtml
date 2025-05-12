@@ -1,0 +1,485 @@
+﻿@* @model List<InventoryManagement.ViewModels.ProductViewModel> *@
+@model InventoryManagement.ViewModels.ProductListViewModel
+
+@{
+    var pagination = Model.Pagination;
+    int totalOrders = pagination.TotalRecords;
+    int currentPage = pagination.CurrentPage;
+    int pageSize = pagination.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+    string serchquery = pagination.SearchTerm;
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    .view-link i {
+        color: #17a2b8;
+    }
+
+    .edit-link i {
+        color: #28a745;
+    }
+
+    .delete-link i {
+        color: #dc3545;
+    }
+
+</style>
+
+<style>
+    .custom-pagination .page-item .page-link {
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        margin-left: 2px;
+    }
+
+    .custom-pagination .page-item.active .page-link {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .custom-pagination .page-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+        .custom-pagination .page-link:hover {
+            background-color: #f1f1f1;
+        }
+</style>
+
+
+<div class="main-content">
+
+    <div class="row">
+        <div class="col-md-12 grid-margin">
+            <div class="d-flex justify-content-between flex-wrap">
+                <div class="d-flex align-items-end flex-wrap">
+                    <div class="mr-md-3 mr-xl-5">
+                        <h2>Product List</h2>
+
+                    </div>
+
+                </div>
+                <div class="d-flex justify-content-between align-items-end flex-wrap">
+
+                    <button class="btn btn-primary mr-3 mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#productFormModal">Add Product</button>
+                    <a asp-action="BarcodePrint" asp-controller="Master" class="btn btn-primary mt-2 mt-xl-0">Print Barcode</a>
+
+                    @* <form asp-action="ProductExportToExcel" asp-controller="Master" method="get" style="display: inline;">
+                        <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
+                        <button type="submit" class="btn btn-success mt-2 mt-xl-0">
+                            Export to Excel
+                        </button>
+                    </form> *@
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:30px">
+        <div class="col-sm-12 col-md-6" style="padding: 0px 32px;">
+            <div class="dataTables_length">
+                <label style="font-weight: normal;text-align: left;white-space: nowrap;">
+                    Show
+                    <select id="rowQuantity" onchange="updateRowQuantity()" class="custom-select custom-select-sm form-control form-control-sm" style=" width: 65px; padding: 0px 9px; display: inline-block; height: 32px; border-radius: 20px; border: 1px solid #5e5a5a; color: #0c0b0b;">
+                        @if (pageSize == 10)
+                        {
+                            <option value="10" selected>10</option>
+                        }
+                        else
+                        {
+                            <option value="10">10</option>
+                        }
+
+                        @if (pageSize == 25)
+                        {
+                            <option value="25" selected>25</option>
+                        }
+                        else
+                        {
+                            <option value="25">25</option>
+                        }
+
+                        @if (pageSize == 50)
+                        {
+                            <option value="50" selected>50</option>
+                        }
+                        else
+                        {
+                            <option value="50">50</option>
+                        }
+
+                        @if (pageSize == 100)
+                        {
+                            <option value="100" selected>100</option>
+                        }
+                        else
+                        {
+                            <option value="100">100</option>
+                        }
+
+                    </select>entries
+                </label>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-6">
+            <div id="example_filter" class="dataTables_filter" style="text-align: right;">
+                <label>
+                    Search:<input type="search" id="searchQuery" value="@serchquery" oninput="searchfilterquery();" style="margin-left:.5em;display: inline-block;width: auto;height: 30px; border-radius: 20px; border: 1px solid #5e5a5a;" class="form-control form-control-sm" placeholder="" aria-controls="example">
+                </label>
+                <form asp-action="ProductExportToExcel" asp-controller="Master" method="get" style="display: inline;">
+                    <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
+                    <button type="submit" class="btn btn-success mt-2 mt-xl-0">
+                        Export to Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    @if (!string.IsNullOrEmpty(serchquery))
+    {
+
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                var searchInput = $('#searchQuery');
+                searchInput.focus();
+
+
+                var val = searchInput.val();
+                searchInput.val('').val(val);
+            });
+        </script>
+    }
+
+
+    <div class="table-container">
+        @if (Model != null && Model.Products.Any())
+        {
+            int SrNo = pageSize * (currentPage - 1);
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Product Name</th>
+                        <th>SKU Name</th>
+                        <th>Alias Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in Model.Products)
+                    {
+                        SrNo++;
+                        <tr>
+
+                            <td>@SrNo</td>
+                            <td>@item.ProductName</td>
+                            <td>@item.SkuIdName</td>
+
+                            <td>
+                                @if (item.AliasNames != null && item.AliasNames.Any())
+                                {
+                                    var aliasString = string.Join(", ", item.AliasNames);
+                                    var words = aliasString.Split(' ');
+                                    var lines = new List<string>();
+                                    var currentLine = "";
+
+                                    foreach (var word in words)
+                                    {
+                                        if ((currentLine.Length + word.Length + (currentLine == "" ? 0 : 1)) <= 25)
+                                        {
+                                            currentLine += (currentLine == "" ? "" : " ") + word;
+                                        }
+                                        else
+                                        {
+                                            lines.Add(currentLine);
+                                            currentLine = word;
+                                        }
+                                    }
+
+                                    if (!string.IsNullOrEmpty(currentLine))
+                                    {
+                                        lines.Add(currentLine);
+                                    }
+
+                                    foreach (var line in lines)
+                                    {
+                                        @line
+
+                                        <br />
+                                    }
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+
+
+
+                            <td>
+
+                                <a asp-action="EditProduct" asp-route-id="@item.ProductId" class="edit-link text-green-600 hover:underline" title="Edit" style="color: black;">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+
+                                @* &nbsp;|&nbsp;
+                                <a href="#" class="delete-link text-red-600 hover:underline" onclick="openDeleteModal(@item.ProductId)" title="Delete" style="color: black;">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </a> *@
+                            </td>
+                        </tr>
+
+
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No records found.</p>
+        }
+
+    </div>
+
+    <div class="custom-pagination" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 1rem 0;">
+        <div class="col-sm-12 col-md-5">
+            @if (totalOrders > pageSize)
+            {
+                <div class="dataTables_info" id="example_info" role="status" aria-live="polite" style="margin-top: -15px;">
+                    Showing @pageSize of @totalOrders entries
+                </div>
+            }
+            else
+            {
+                <div class="dataTables_info" id="example_info" role="status" aria-live="polite" style="margin-top: -15px;">
+                    Showing @totalOrders of @totalOrders entries
+                </div>
+            }
+
+        </div>
+        <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers" id="MainOrderTable_paginate" style="margin: 0;white-space: nowrap;text-align: right;">
+                <ul class="pagination" style="margin: 2px 0;white-space: nowrap;justify-content: flex-end;">
+
+                    <li class="paginate_button page-item previous @(currentPage == 1 ? "disabled" : "")">
+                        @if (currentPage == 1)
+                        {
+                            <a class="page-link disabled" tabindex="-1">Previous</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Product", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                        }
+                    </li>
+
+                    @if (totalPages > 5)
+                    {
+                        // Display the first page
+                        if (currentPage > 3)
+                        {
+                            <li class="paginate_button page-item">
+                                <a href="@Url.Action("Product", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                            </li>
+                            if (currentPage > 4)
+                            {
+                                <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
+                            }
+                        }
+
+                        // Display current page and adjacent pages
+                        for (int i = Math.Max(2, currentPage - 2); i <= Math.Min(totalPages - 1, currentPage + 2); i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <li class="paginate_button page-item active">
+                                    <a href="#" class="page-link" aria-current="page">@i</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="paginate_button page-item">
+                                    <a href="@Url.Action("Product", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                </li>
+                            }
+                        }
+
+                        // Display the last page
+                        if (currentPage < totalPages - 2)
+                        {
+                            if (currentPage < totalPages - 3)
+                            {
+                                <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            <li class="paginate_button page-item">
+                                <a href="@Url.Action("Product", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        // Display all page buttons if total pages are 5 or fewer
+                        for (int i = 1; i <= totalPages; i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <li class="paginate_button page-item active">
+                                    <a href="#" class="page-link" aria-current="page">@i</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="paginate_button page-item">
+                                    <a href="@Url.Action("Product", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                </li>
+                            }
+                        }
+                    }
+
+
+                    <li class="paginate_button page-item next @(currentPage == totalPages ? "disabled" : "")">
+                        @if (currentPage == totalPages)
+                        {
+                            <a class="page-link disabled" tabindex="-1">Next</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Product", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                        }
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="productFormModal" tabindex="-1" aria-labelledby="productFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productFormModalLabel">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="AddProduct" method="post" class="forms-sample">
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="ProductName">Product Name</label>
+                            <input type="text" class="form-control" name="ProductName" id="ProductName" placeholder="Product Name">
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="SkuIdName">SKU Name</label>
+                            <input type="text" class="form-control" name="SkuIdName" id="SkuIdName" placeholder="Enter">
+                        </div>
+                    </div>
+                    <div class="row">
+                        @* <div class="form-group col-md-6">
+                            <label for="unit">Unit</label>
+                            <input type="text" class="form-control" name="unit" id="unit" placeholder="Enter Unit">
+                        </div> *@
+
+                        <div class="form-group col-md-6">
+                            <label for="LowStockQuantity">Low Stock Quantity</label>
+                            <input type="text" class="form-control" name="LowStockQuantity" id="LowStockQuantity" placeholder="Enter Quantity">
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="AliasName">Product Alias 1</label>
+                            <input type="text" class="form-control" name="AliasNames[]" placeholder="Enter">
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="row" id="aliasContainer">
+
+
+                        @* <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="productAlias2">Product Alias 2</label>
+                                <input type="text" class="form-control" id="productAlias2" placeholder="Enter">
+                            </div>
+                        </div> *@
+
+                    </div>
+
+                    <div>
+                        <a href="#" id="addAliasBtn" class="btn btn-link">Add Alias</a>
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary mr-2">Submit</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+@* Start Code for Model Add New Alias TextBox *@
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let aliasCount = 1;
+        const aliasContainer = document.getElementById("aliasContainer");
+        const addAliasBtn = document.getElementById("addAliasBtn");
+
+        addAliasBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            aliasCount++;
+
+
+            const newAliasDiv = document.createElement("div");
+            newAliasDiv.classList.add("col-md-6");
+
+             newAliasDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Product Alias ${aliasCount}</label>
+                    <input type="text" class="form-control" name="AliasNames[]" placeholder="Enter">
+                </div>
+            `;
+
+            aliasContainer.appendChild(newAliasDiv);
+        });
+    });
+</script>
+@* End Code for Model Add New Alias TextBox *@
+
+
+
+@section Scripts {
+    <script>
+        function addAlias() {
+            const index = document.querySelectorAll("#alias-container input").length;
+            const container = document.getElementById("alias-container");
+            const div = document.createElement("div");
+            div.className = "input-group mb-2";
+            div.innerHTML = `<input type="text" name="EditProduct.AliasNames[${index}]" class="form-control" />
+                             <button type="button" class="btn btn-danger" onclick="removeAlias(this)">Remove</button>`;
+            container.appendChild(div);
+        }
+
+        function removeAlias(button) {
+            button.parentElement.remove();
+        }
+    </script>
+}
