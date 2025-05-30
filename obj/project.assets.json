@@ -3475,11 +3475,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\InventoryManagement.csproj",
+      "projectUniqueName": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\Git\\New_Inventory_Management\\InventoryManagement.csproj",
       "projectName": "InventoryManagement",
-      "projectPath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\InventoryManagement.csproj",
+      "projectPath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\Git\\New_Inventory_Management\\InventoryManagement.csproj",
       "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
-      "outputPath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\obj\\",
+      "outputPath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\Git\\New_Inventory_Management\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

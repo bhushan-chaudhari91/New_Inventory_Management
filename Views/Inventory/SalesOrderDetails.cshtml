@@ -95,8 +95,9 @@
                 <label>
                     Search:<input type="search" id="searchQuery" value="@serchquery" oninput="searchfilterquery();" style="margin-left:.5em;display: inline-block;width: auto;height: 30px; border-radius: 20px; border: 1px solid #5e5a5a;" class="form-control form-control-sm" placeholder="" aria-controls="example">
                 </label>
-                <form asp-action="ProductExportToExcel" asp-controller="Master" method="get" style="display: inline;">
+                <form asp-action="ExportSalesOrderDetailsExcel" asp-controller="Inventory" method="get" style="display: inline;">
                     <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
+                    <input type="hidden" name="orderNumber" value="@Model.OrderNumber" />
                     <button type="submit" class="btn btn-success mt-2 mt-xl-0">
                         Export to Excel
                     </button>

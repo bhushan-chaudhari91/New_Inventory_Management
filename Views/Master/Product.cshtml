@@ -433,7 +433,19 @@
 
 
 
+<script>
+    function searchfilterquery() {
+        var searchQuery = document.getElementById('searchQuery').value;
+        var pageSize = document.getElementById('rowQuantity').value;
+        window.location.href = `/Master/Product?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
 
+    function updateRowQuantity() {
+        var pageSize = document.getElementById('rowQuantity').value;
+        var searchQuery = document.getElementById('searchQuery').value;
+        window.location.href = `/Master/Product?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+</script>
 
 
 @* Start Code for Model Add New Alias TextBox *@
@@ -466,6 +478,20 @@
 
 
 
+
+@* Code For Multi Click Not save multiples record on multiple click*@
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('#productFormModal form');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', function () {
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Submitting...';
+        });
+    });
+</script>
+
 @section Scripts {
     <script>
         function addAlias() {
@@ -483,3 +509,4 @@
         }
     </script>
 }
+

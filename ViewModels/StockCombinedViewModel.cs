@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public DateTime Date { get; set; }
+        public DateTime TransactionDate { get; set; }
         public string BatchNo { get; set; }
         public string Quantity { get; set; }
         public string ProductName { get; set; }
@@ -13,6 +14,7 @@
         public string Status { get; set; } 
         public string RoomName { get; set; } 
         public string RackName { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public List<string?> AliasNames { get; internal set; }
     }

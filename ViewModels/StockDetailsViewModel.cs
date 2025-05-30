@@ -54,6 +54,8 @@
         public string AliasNames { get; set; }
         public int StockInId { get; set; }
         public int FkProjectId { get; set; }
+        public string ProductQty { get; set; }
+
 
 
         public List<string> AliasNameList { get; set; }

@@ -5,15 +5,15 @@
 
 <style>
     .view-link i {
-        color: #17a2b8;
+    color: #17a2b8;
     }
 
     .edit-link i {
-        color: #28a745;
+    color: #28a745;
     }
 
     .delete-link i {
-        color: #dc3545;
+    color: #dc3545;
     }
 
 
@@ -30,24 +30,24 @@
 
 <style>
     .custom-pagination .page-item .page-link {
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-        margin-left: 2px;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    margin-left: 2px;
     }
 
     .custom-pagination .page-item.active .page-link {
-        background-color: #007bff;
-        color: white;
+    background-color: #007bff;
+    color: white;
     }
 
     .custom-pagination .page-link {
-        color: #007bff;
-        text-decoration: none;
+    color: #007bff;
+    text-decoration: none;
     }
 
-        .custom-pagination .page-link:hover {
-            background-color: #f1f1f1;
-        }
+    .custom-pagination .page-link:hover {
+    background-color: #f1f1f1;
+    }
 </style>
 
 <div class="main-content">
@@ -140,12 +140,12 @@
 
         <script>
             $(document).ready(function () {
-                var searchInput = $('#searchQuery');
-                searchInput.focus();
+            var searchInput = $('#searchQuery');
+            searchInput.focus();
 
 
-                var val = searchInput.val();
-                searchInput.val('').val(val);
+            var val = searchInput.val();
+            searchInput.val('').val(val);
             });
         </script>
     }
@@ -153,6 +153,7 @@
     <div class="table-container">
         @if (Model != null && Model.Warehouses.Any())
         {
+            int SrNo = pageSize * (currentPage - 1);
             <table>
                 <!-- class="table table-bordered" -->
                 <thead>
@@ -163,13 +164,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                   
+
 
                     @foreach (var item in Model.Warehouses)
                     {
-                        
+                        SrNo++;
                         <tr>
-                            <td>@item.WarehouseId</td>
+                            <td>@SrNo</td>
                             <td>@item.Name</td>
                             <td>
                                 <a href="#" class="edit-link text-green-600 hover:underline" onclick="openEditModal(@item.WarehouseId, '@item.Name')" title="Edit" style="color: black;">
@@ -421,4 +422,17 @@
         var searchQuery = document.getElementById('searchQuery').value;
         window.location.href = `/Master/Warehouse?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
     }
+</script>
+
+@* Code For Multi Click Not save multiples record on multiple click*@
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('#warehouseFormModal form');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', function () {
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Submitting...';
+        });
+    });
 </script>

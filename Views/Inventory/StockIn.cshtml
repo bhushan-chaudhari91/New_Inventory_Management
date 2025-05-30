@@ -1,6 +1,39 @@
 ﻿@using InventoryManagement.ViewModels;
 @model StockInViewModel
 
+<style>
+    .autocomplete-list {
+        position: absolute;
+        z-index: 1000;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .autocomplete-list li {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .autocomplete-list li:hover {
+        background: #f0f0f0;
+    }
+
+    .autocomplete-list li.highlighted {
+        background-color: #007bff;
+        color: white;
+    }
+
+</style>
+
+
 <div>
     <div class="row" style="margin-top: -35px; margin-left: -20px;">
         <div class="col-md-12 grid-margin stretch-card">
@@ -19,7 +52,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end flex-wrap">
 
-                                    <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Upload Excel</button>
+                                   @*  <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Upload Excel</button> *@
 
                                 </div>
                             </div>
@@ -45,34 +78,67 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-2">
+                           @*  <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="supplierName">Supplier</label>
                                     <select asp-for="FkSupplierId" class="form-control" id="supplierName" asp-items="Model.SupplierList">
                                         <option value="">Select Supplier</option>
                                     </select>
                                 </div>
-                            </div>
+                            </div> *@
 
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label for="warehouse">Warehouse</label>
+                                    <label for="supplierName">Supplier</label>
+                                    <input type="text" class="form-control" id="supplierName" placeholder="SupplierName" />
+                                    <input type="hidden" id="FkSupplierId" name="FkSupplierId" />
+                                    <ul id="supplierList" class="autocomplete-list" style="display: none;"></ul>
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="warehouse">Room / Warehouse</label>
                                     <select asp-for="FkWarehouseId" class="form-control" id="warehouse" asp-items="Model.WarehouseList">
-                                        <option value="">Select Warehouse</option>
+                                       @*  <option value="">Select Warehouse</option> *@
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="col-md-2">
+                            @* <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="warehouse">Room</label>
+                                    <input type="text" class="form-control" id="warehouse" placeholder="SelectRoom" />
+                                    <input type="hidden" id="FkWarehouseId" name="FkWarehouseId" />
+                                    <ul id="warehouseList" class="autocomplete-list" style="display: none;"></ul>
+                                </div>
+                            </div> *@
+
+                            @* <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="product">Product</label>
                                     <select asp-for="FkProductId" class="form-control" id="product" asp-items="Model.ProductList">
                                         <option value="">Select Product</option>
                                     </select>
-                                    <a href="#" class="btn btn-link mt-4" data-bs-toggle="modal" data-bs-target="#productFormModal" style="text-decoration: none;">Add Product</a>
+                                   
+                                </div>
+                            </div> *@
+
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="product">Product</label>
+                                    <input type="text" class="form-control" id="product" placeholder="ProductName" />
+                                    <input type="hidden" id="FkProductId" name="FkProductId" />
+                                    <ul id="productList" class="autocomplete-list" style="display: none;"></ul>
                                 </div>
                             </div>
 
+                            <div class="col-md-2">
+                                <div class="form-group" style="margin-top: 7px;">
+                                    <a href="#" class="btn btn-link mt-4" data-bs-toggle="modal" data-bs-target="#productFormModal" style="text-decoration: none;">Add Product</a>
+                                </div>
+                            </div>
                             
                         </div>
 
@@ -101,20 +167,19 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-2" style="display: none;">
                                 <div class="form-group">
                                     <label for="room">Room</label>
                                     <input asp-for="Room" type="text" class="form-control" id="room" placeholder="Room">
                                 </div>
                             </div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-2" style="display: none;">
                                 <div class="form-group">
                                     <label for="rackNo">Rack No</label>
                                     <input asp-for="RackNo" type="text" class="form-control" id="rackNo" placeholder="Enter">
                                 </div>
                             </div>
-
                        
 
                            
@@ -139,7 +204,7 @@
                                         <th>Product Quantity</th>
                                         <th>Batch No</th>
                                         <th style="display: none;">Supplier</th>
-                                        <th>Location</th>
+                                        <th>Room</th>
                                         <th style="display: none;">Type</th>
                                         <th style="display: none;">Room</th>
                                         <th style="display: none;">Rack No</th>
@@ -152,7 +217,7 @@
                         </div>
 
                         <button type="button" class="btn btn-primary mr-2" id="saveStock">Save</button>
-                        <button class="btn btn-light">Cancel</button>
+                        <button asp-controller="Inventory" asp-action="InventoryList" class="btn btn-light">Cancel</button>
                     </form>
                 </div>
             </div>
@@ -250,15 +315,21 @@
 
         // Get values
         const date = document.getElementById('date').value;
-        const productId = document.getElementById('product').value;
-        const productText = document.getElementById('product').options[document.getElementById('product').selectedIndex].text;
+        // const productId = document.getElementById('product').value;
+        // const productText = document.getElementById('product').options[document.getElementById('product').selectedIndex].text;
+        const productText = document.getElementById('product').value;
+        const productId = document.getElementById('FkProductId').value;
         const price = document.getElementById('price').value;
         const productQuantity = document.getElementById('productQuantity').value;
         const batchNo = document.getElementById('batchNo').value;
-        const supplierId = document.getElementById('supplierName').value;
-        const supplierText = document.getElementById('supplierName').options[document.getElementById('supplierName').selectedIndex].text;
+        // const supplierId = document.getElementById('supplierName').value;
+        // const supplierText = document.getElementById('supplierName').options[document.getElementById('supplierName').selectedIndex].text;
+        const supplierText = document.getElementById('supplierName').value;
+        const supplierId = document.getElementById('FkSupplierId').value;
         const warehouseId = document.getElementById('warehouse').value;
         const warehouseText = document.getElementById('warehouse').options[document.getElementById('warehouse').selectedIndex].text;
+        // const warehouseText = document.getElementById('warehouse').value;
+        // const warehouseId = document.getElementById('FkWarehouseId').value;
         const type = document.getElementById('type').checked ? 'Box' : 'Product';
         const room = document.getElementById('room').value;
         const rackNo = document.getElementById('rackNo').value;
@@ -470,3 +541,270 @@
     });
 </script>
 @* End Code for Model Add New Alias TextBox *@
+
+
+
+@* Code for SupplerNames List Auto Search *@
+<script>
+    $(document).ready(function() {
+        var $supplierInput = $('#supplierName');
+        var $supplierList = $('#supplierList');
+        var $supplierId = $('#FkSupplierId');
+        var selectedIndex = -1;
+
+        $supplierInput.on('input', function() {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $supplierList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetSuppliers', 
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function(data) {
+                    $supplierList.empty();
+
+                    if (data.length === 0) {
+                        $supplierList.hide();
+                        return;
+                    }
+
+                    $.each(data, function(index, item) {
+                        $supplierList.append(
+                            $('<li>').text(item.supplierName)
+                                     .attr('data-id', item.id)
+                                     .on('click', function() {
+                                         $supplierInput.val(item.supplierName);
+                                         $supplierId.val(item.id);
+                                         $supplierList.hide().empty();
+                                     })
+                        );
+                    });
+
+                    $supplierList.show();
+                },
+                error: function() {
+                    $supplierList.hide().empty();
+                }
+            });
+        });
+
+
+        $supplierInput.on('keydown', function (e) {
+            var items = $supplierList.find('li');
+
+            if ($supplierList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $supplierInput.val(selected.text());
+                        $supplierId.val(selected.data('id'));
+                        $supplierList.hide().empty();
+                    }
+                }
+            }
+        });
+
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#supplierName, #supplierList').length) {
+                $supplierList.hide().empty();
+            }
+        });
+
+        $supplierInput.on('change', function() {
+            if ($(this).val().trim() === '') {
+                $supplierId.val('');
+            }
+        });
+
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script>
+
+
+
+
+
+@* <script>
+    $(document).ready(function() {
+        var $warehouseInput = $('#warehouse');
+        var $warehouseList = $('#warehouseList');
+        var $warehouseId = $('#FkWarehouseId');
+
+        $warehouseInput.on('input', function() {
+            var term = $(this).val().trim();
+
+            if (term.length < 1) {
+                $warehouseList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetWarehouse',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function(data) {
+                    $warehouseList.empty();
+
+                    if (data.length === 0) {
+                        $warehouseList.hide();
+                        return;
+                    }
+
+                    $.each(data, function(index, item) {
+                        $warehouseList.append(
+                            $('<li>').text(item.warehouseName)
+                                     .attr('data-id', item.id)
+                                     .on('click', function() {
+                                         $warehouseInput.val(item.warehouseName);
+                                         $warehouseId.val(item.id);
+                                         $warehouseList.hide().empty();
+                                     })
+                        );
+                    });
+
+                    $warehouseList.show();
+                },
+                error: function() {
+                    $warehouseList.hide().empty();
+                }
+            });
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#warehouse, #warehouseList').length) {
+                $warehouseList.hide().empty();
+            }
+        });
+
+        $warehouseInput.on('change', function() {
+            if ($(this).val().trim() === '') {
+                $warehouseId.val('');
+            }
+        });
+    });
+</script> *@
+
+
+<script>
+    $(document).ready(function() {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var selectedIndex = -1;
+
+        $productInput.on('input', function() {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProducts',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function(data) {
+                    $productList.empty();
+
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function(index, item) {
+                        $productList.append(
+                            $('<li>').text(item.productName)
+                            .attr('data-id', item.id)
+                            .on('click', function() {
+                                $productInput.val(item.productName);
+                                $productId.val(item.id);
+                                $productList.hide().empty();
+                            })
+                        );
+                    });
+
+                    $productList.show();
+                },
+                error: function() {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.data('id'));
+                        $productList.hide().empty();
+                    }
+                }
+            }
+        });
+
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#product, #productList').length) {
+                $productList.hide().empty();
+            }
+        });
+
+        $productInput.on('change', function() {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+            }
+        });
+
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -15,24 +15,24 @@
 @* Start Code For Pagination CSS for Html Table *@
 <style>
     .custom-pagination .page-item .page-link {
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-        margin-left: 2px;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    margin-left: 2px;
     }
 
     .custom-pagination .page-item.active .page-link {
-        background-color: #007bff;
-        color: white;
+    background-color: #007bff;
+    color: white;
     }
 
     .custom-pagination .page-link {
-        color: #007bff;
-        text-decoration: none;
+    color: #007bff;
+    text-decoration: none;
     }
 
-        .custom-pagination .page-link:hover {
-            background-color: #f1f1f1;
-        }
+    .custom-pagination .page-link:hover {
+    background-color: #f1f1f1;
+    }
 </style>
 @* End Code For Pagination CSS for Html Table *@
 
@@ -52,14 +52,14 @@
                         {
                             <span class="badge rounded-pill bg-success me-1">@alias.Trim()</span>
                         }
- 
+
                     </div>
                 </div>
 
                 <div class="text-center">
                     <div class="d-flex align-items-center justify-content-center mb-1"
-                         style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
-                        <span class="h4 text-primary mb-0">60</span>
+                    style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
+                        <span class="h4 text-primary mb-0">@Model.ProductQty</span>
                     </div>
                     <small class="text-primary">Total Stock</small>
                 </div>
@@ -69,7 +69,7 @@
 
 
 
-   @*<div class="row">
+    @*<div class="row">
         <div class="col-md-12 grid-margin">
             <div class="d-flex justify-content-between flex-wrap">
                 <div class="d-flex align-items-end flex-wrap">
@@ -79,7 +79,7 @@
                     </div>
 
                 </div>
-               
+
             </div>
         </div>
     </div>*@
@@ -158,21 +158,24 @@
 
         <script>
             $(document).ready(function () {
-                var searchInput = $('#searchQuery');
-                searchInput.focus();
+            var searchInput = $('#searchQuery');
+            searchInput.focus();
 
 
-                var val = searchInput.val();
-                searchInput.val('').val(val);
+            var val = searchInput.val();
+            searchInput.val('').val(val);
             });
         </script>
     }
-   
+
 
     <div class="table-container">
-       
-        
-            <table>
+
+
+        <table>
+            @{
+                int SrNo = ((currentPage - 1) * pageSize) + 1;
+            }
                 <thead>
                     <tr>
                         <th>Sr.No</th>
@@ -187,29 +190,31 @@
                     </tr>
                 </thead>
                 <tbody>
+                
                     @foreach (var item in Model.CombinedStockList)
                     {
+                    
                         <tr>
-                            <td>@item.Id</td>
-                            <td>@item.Date.ToShortDateString()</td>
-                            <td>@item.ProductName</td>
-                            <td>@item.BatchNo</td>
-                            <td>
-                                @if (item.Status == "Stock In")
-                                {
-                                    <span class="badge bg-success">Stock In</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Stock Out</span>
-                                }
-                            </td>
-                            <td>@item.SupplierName</td>
+                        <td>@SrNo</td>
+                        <td>@item.Date.ToShortDateString()</td>
+                        <td>@item.ProductName</td>
+                        <td>@item.BatchNo</td>
+                        <td>
+                            @if (item.Status == "Stock In")
+                            {
+                                <span class="badge bg-success">Stock In</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Stock Out</span>
+                            }
+                        </td>
+                        <td style="text-align: center;">@item.SupplierName</td>
                             <td>@item.Quantity</td>
                             @* <td>@item.LocationName / @item.RoomName / @item.RackName</td> *@
                             <td>
                                 @{
-                                    var fullText = $"{item.LocationName} / {item.RoomName} / {item.RackName}";
+                                    var fullText = $"{item.LocationName}";
                                     var words1 = fullText.Split(' ');
                                     var lines1 = new List<string>();
                                     var currentLine1 = "";
@@ -244,6 +249,7 @@
                             
                            
                         </tr>
+                    SrNo++;
                     }
                 </tbody>
             </table>
@@ -277,7 +283,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("StocksDetails", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                            <a href="@Url.Action("StocksDetails", new {id = Model.StockInId, productId = Model.FkProjectId, pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
                         }
                     </li>
 
@@ -287,7 +293,7 @@
                         if (currentPage > 3)
                         {
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("StocksDetails", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                                <a href="@Url.Action("StocksDetails", new {id = Model.StockInId, productId = Model.FkProjectId, pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
                             </li>
                             if (currentPage > 4)
                             {
@@ -307,7 +313,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("StocksDetails", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("StocksDetails", new {id = Model.StockInId, productId = Model.FkProjectId, pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -320,7 +326,7 @@
                                 <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
                             }
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("StocksDetails", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                                <a href="@Url.Action("StocksDetails", new {id = Model.StockInId, productId = Model.FkProjectId, pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
                             </li>
                         }
                     }
@@ -338,7 +344,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("StocksDetails", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("StocksDetails", new {id = Model.StockInId, productId = Model.FkProjectId, pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -352,7 +358,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("StocksDetails", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                            <a href="@Url.Action("StocksDetails", new {id = Model.StockInId, productId = Model.FkProjectId, pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
                         }
                     </li>
 

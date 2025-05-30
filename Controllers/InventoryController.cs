@@ -53,8 +53,17 @@ namespace InventoryManagement.Controllers
             int totalBatchCount = stockInList.Select(x => x.BatchNo).Distinct().Count();
             int totalRecords = groupedStockInList.Count();
 
+            //int totalStockCount = stockInList.Select(x => x.StockInId).Distinct().Count();
+            //int totalOutOfStockCount = stockInList.Where(x => Convert.ToInt32(x.AvailableQuantity) == 0).Select(x => x.StockInId).Distinct().Count();
+
+            int totalOutOfStockCount = _context.TblProducts
+                .Where(x => x.IsDeleted == false && x.AvailableProductQty == "0")
+                .Count();
+
             ViewBag.ProductCount = totalProductsCount;
             ViewBag.BatchCount = totalBatchCount;
+            //ViewBag.TotalStock = totalStockCount;
+            ViewBag.TotalOutOfStock = totalOutOfStockCount;
 
             var paginatedstockIn = groupedStockInList
             .Skip((pageNumber - 1) * pageSize)
@@ -62,6 +71,7 @@ namespace InventoryManagement.Controllers
             .ToList();
 
 
+            int totalLowStockCount = 0;
 
             foreach (var item in paginatedstockIn)
             {
@@ -73,18 +83,36 @@ namespace InventoryManagement.Controllers
                 var getProject = _context.TblProducts.FirstOrDefault(x => x.IsDeleted == false && x.ProductId == item.FkProductId);
                 var getWarehouse = _context.TblWarehouses.FirstOrDefault(x => x.IsDeleted == false && x.WarehouseId == item.FkWarehouseId);
 
+
+                if (getProject != null)
+                {
+                    if (int.TryParse(getProject.AvailableProductQty, out int availableQty) &&
+                        int.TryParse(getProject.LowStockQuantity, out int lowStockQty))
+                    {
+                        if (availableQty <= lowStockQty)
+                        {
+                            totalLowStockCount++;
+                        }
+                    }
+                }
+
                 getStockInList.Add(new StockInViewModel
                 {
                     StockInId = item.StockInId,
                     FkProductId = (int)item.FkProductId,
                     Barcode = item.Barcode,
                     ProductQuantity = getProject?.AvailableProductQty,
+                    LowStockQty = getProject?.LowStockQuantity,
                     ProductName = getProject?.ProductName,
                     SKUName = getProject?.SkuIdName,
                     WarehouseName = getWarehouse?.Name,
-                    AliasNames = aliasNames
-                });
+                    AliasNames = aliasNames,
+                    Type = item.Type
+
+                });       
             }
+
+            ViewBag.TotalLowStock = totalLowStockCount;
 
             var viewModel = new StockInListViewModel
             {
@@ -100,7 +128,6 @@ namespace InventoryManagement.Controllers
 
             return View(viewModel);
         }
-
 
 
         [HttpPost]
@@ -124,7 +151,12 @@ namespace InventoryManagement.Controllers
                                                      x.ProductStatus.Contains(searchTerm));
             }
 
-            var filteredList = stockInList.ToList();
+            //var filteredList = stockInList.ToList();
+
+            var filteredList = stockInList
+             .GroupBy(x => x.FkProductId)
+             .Select(g => g.First())
+             .ToList();
 
             var stockInData = new List<StockInViewModel>();
 
@@ -145,7 +177,7 @@ namespace InventoryManagement.Controllers
                 {
                     StockInId = item.StockInId,
                     FkProductId = (int)item.FkProductId,
-                    ProductQuantity = item.ProductQuantity,
+                    ProductQuantity = product.AvailableProductQty,
                     ProductName = product?.ProductName,
                     SKUName = product?.SkuIdName,
                     WarehouseName = warehouse?.Name,
@@ -263,8 +295,17 @@ namespace InventoryManagement.Controllers
             int totalProductsCount = batchesQuery.Select(x => x.FkProductId).Distinct().Count();
             int totalBatchCount = batchesQuery.Select(x => x.BatchNo).Distinct().Count();
 
+            //int totalStockCount = batchesQuery.Select(x => x.StockInId).Distinct().Count();
+            //int totalOutOfStockCount = batchesQuery.Where(x => Convert.ToInt32(x.AvailableQuantity) == 0).Select(x => x.StockInId).Distinct().Count();
+
+            int totalOutOfStockCount = _context.TblProducts
+                .Where(x => x.IsDeleted == false && x.AvailableProductQty == "0")
+                .Count();
+
             ViewBag.ProductCount = totalProductsCount;
             ViewBag.BatchCount = totalBatchCount;
+            //ViewBag.TotalStock = totalStockCount;
+            ViewBag.TotalOutOfStock = totalOutOfStockCount;
 
             var batchGroupList = batchesQuery
                 .GroupBy(x => new { x.BatchNo, x.Date })
@@ -274,8 +315,24 @@ namespace InventoryManagement.Controllers
                     Date = group.Key.Date,
                     ProductsCount = group.Select(g => g.FkProductId).Distinct().Count(),
                     TotalQuantity = group.Sum(g => Convert.ToDecimal(g.ProductQuantity)),
-                    WarehouseCount = group.Select(g => g.FkWarehouseId).Distinct().Count()
+                    WarehouseCount = group.Select(g => g.FkWarehouseId).Distinct().Count(),
+                    ProductIds = group.Select(g => g.FkProductId).Distinct()
                 });
+
+
+            //Start Code for Get LowStockCount
+            var products = _context.TblProducts
+            .Where(p => p.IsDeleted == false)
+            .ToList();
+
+            int totalLowStockCount = products.Count(p =>
+                int.TryParse(p.AvailableProductQty, out int availableQty) &&
+                int.TryParse(p.LowStockQuantity, out int lowStockQty) &&
+                availableQty <= lowStockQty
+            );
+
+            ViewBag.LowStockCount = totalLowStockCount;
+            //End Code for Get LowStockCount
 
             int totalRecords = batchGroupList.Count();
 
@@ -285,8 +342,7 @@ namespace InventoryManagement.Controllers
                .Take(pageSize)
                .ToList();
 
-            // Convert into a view model if needed
-            var batchViewModel = batchGroupList.Select(x => new BatchSummaryViewModel
+            var batchViewModel = paginatedBatches.Select(x => new BatchSummaryViewModel
             {
                 BatchNo = x.BatchId,
                 Date = x.Date,
@@ -343,7 +399,8 @@ namespace InventoryManagement.Controllers
                     BatchId = group.Key.BatchNo,
                     Date = group.Key.Date,
                     ProductsCount = group.Select(g => g.FkProductId).Distinct().Count(),
-                    TotalQuantity = group.Sum(g => Convert.ToDecimal(g.ProductQuantity))
+                    //TotalQuantity = group.Sum(g => Convert.ToDecimal(g.ProductQuantity))
+                    TotalQuantity = group.Sum(g => Convert.ToInt32(g.ProductQuantity))
                 })
                 .ToList();
 
@@ -364,7 +421,7 @@ namespace InventoryManagement.Controllers
                     worksheet.Cell(row, 2).Value = batch.BatchId;
                     worksheet.Cell(row, 3).Value = batch.Date?.ToString("dd/MM/yyyy");
                     worksheet.Cell(row, 4).Value = batch.ProductsCount;
-                    worksheet.Cell(row, 5).Value = batch.TotalQuantity.ToString("0.00");
+                    worksheet.Cell(row, 5).Value = batch.TotalQuantity.ToString("0");
                     row++;
                 }
 
@@ -538,8 +595,8 @@ namespace InventoryManagement.Controllers
                         : "-";
                     worksheet.Cell(row, 5).Style.Alignment.WrapText = true;
 
-                    // Format location with line breaks
-                    var fullLocation = $"{item.LocationName} / {item.RoomName} / {item.RackName}";
+                    //var fullLocation = $"{item.LocationName} / {item.RoomName} / {item.RackName}";
+                    var fullLocation = $"{item.LocationName}";
                     worksheet.Cell(row, 6).Value = string.Join(Environment.NewLine, BreakText(fullLocation, 25));
                     worksheet.Cell(row, 6).Style.Alignment.WrapText = true;
 
@@ -700,6 +757,51 @@ namespace InventoryManagement.Controllers
         //    return Ok();
         //}
 
+
+        [HttpGet]
+        public JsonResult GetSuppliers(string term)
+        {
+            var suppliers = _context.TblSuppliers
+                .Where(x => x.IsDeleted == false && x.SupplierName.Contains(term))
+                .Select(x => new
+                {
+                    id = x.SupplierId,
+                    supplierName = x.SupplierName
+                })
+                .ToList();
+
+            return Json(suppliers);
+        }
+
+        [HttpGet]
+        public JsonResult GetWarehouse(string term)
+        {
+            var warehose = _context.TblWarehouses
+                .Where(x => x.IsDeleted == false && x.Name.Contains(term))
+                .Select(x => new
+                {
+                    id = x.WarehouseId,
+                    warehouseName = x.Name
+                }).ToList();
+
+            return Json(warehose);
+        }
+
+        [HttpGet]
+        public JsonResult GetProducts(string term)
+        {
+            var product = _context.TblProducts
+                .Where(x => x.IsDeleted == false && x.ProductName.Contains(term))
+                .Select(x => new
+                {
+                    id = x.ProductId,
+                    productName = x.ProductName
+                }).ToList();
+
+            return Json(product);
+        }
+
+
         [HttpGet]
         public async Task<IActionResult> StockIn()
         {
@@ -723,11 +825,11 @@ namespace InventoryManagement.Controllers
             }
             //End Store Produre
 
-            var getSupplier = _context.TblSuppliers.Where(x => x.IsDeleted == false).Select(x => new
-            {
-                Id = x.SupplierId,
-                supplierName = x.SupplierName
-            }).ToList();
+            //var getSupplier = _context.TblSuppliers.Where(x => x.IsDeleted == false).Select(x => new
+            //{
+            //    Id = x.SupplierId,
+            //    supplierName = x.SupplierName
+            //}).ToList();
 
             var getWarehouse = _context.TblWarehouses.Where(x => x.IsDeleted == false).Select(x => new
             {
@@ -761,7 +863,7 @@ namespace InventoryManagement.Controllers
             {
                 BatchNo = batchNumber,
 
-                SupplierList = new SelectList(getSupplier, "Id", "supplierName"),
+                //SupplierList = new SelectList(getSupplier, "Id", "supplierName"),
                 WarehouseList = new SelectList(getWarehouse, "Id", "warehouseName"),
                 ProductList = new SelectList(getProduct, "Id", "productName"),
                 FkProductId = matchingProduct?.ProductId ?? 0
@@ -839,7 +941,7 @@ namespace InventoryManagement.Controllers
 
                 foreach (var entry in stockInEntries)
                 {
-                    if (decimal.TryParse(entry.ProductQuantity, out var qty))
+                    if (decimal.TryParse(entry.AvailableQuantity, out var qty))
                     {
                         existingQuantity += qty;
                     }
@@ -864,7 +966,6 @@ namespace InventoryManagement.Controllers
 
             return Ok();
         }
-
 
         //this code genarte barcode in productName PR000001 
 
@@ -927,39 +1028,44 @@ namespace InventoryManagement.Controllers
         //[HttpGet]
         //public IActionResult GetProductByBarcode(string barcode)
         //{
-        //    var stock = _context.TblStockIns
-        //                        .FirstOrDefault(x => x.Barcode == barcode);
 
-        //    if (stock == null)
+        //    var stocks = _context.TblStockIns
+        //                        .Where(x => EF.Functions.Collate(x.Barcode, "utf8mb4_bin") == barcode).ToList();
+
+        //    if (stocks == null || !stocks.Any())
         //    {
-        //        return Json(null); 
+        //        return Json(null);
         //    }
 
+        //    var firstStock = stocks.First();
+
         //    var product = _context.TblProducts
-        //                          .FirstOrDefault(p => p.ProductId == stock.FkProductId);
+        //                          .FirstOrDefault(p => p.ProductId == firstStock.FkProductId);
 
         //    if (product == null)
         //    {
-        //        return Json(null); 
+        //        return Json(null);
         //    }
+
+        //    var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
 
         //    var result = new
         //    {
         //        fkSupplierId = product.ProductId,
         //        productName = product.ProductName,
-        //        stockInQuantity = stock.AvailableQuantity
-        //        //stockInQuantity = product.AvailableProductQty
+        //        stockInQuantity = totalAvailableQuantity
         //    };
 
         //    return Json(result);
         //}
+
 
         [HttpGet]
         public IActionResult GetProductByBarcode(string barcode)
         {
 
             var stocks = _context.TblStockIns
-                                .Where(x => x.Barcode == barcode).ToList();
+                                .Where(x => EF.Functions.Collate(x.Barcode, "utf8mb4_bin") == barcode).ToList();
 
             if (stocks == null || !stocks.Any())
             {
@@ -978,15 +1084,57 @@ namespace InventoryManagement.Controllers
 
             var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
 
+            var warehouseIds = _context.TblStockIns.Where(x => x.IsDeleted == false && x.Barcode == barcode)
+                .Select(x => x.FkWarehouseId)
+                .Distinct()
+                .ToList();
+
+            //var warehouseQuantities = stocks
+            //    .GroupBy(s => s.FkWarehouseId)
+            //    .Select(g => new
+            //    {
+            //        warehouseId = g.Key,
+            //        totalQuantity = g.Sum(s => Convert.ToInt32(s.AvailableQuantity))
+            //    }).ToList();
+
+            var warehouses = _context.TblWarehouses.Where(x => x.IsDeleted == false && warehouseIds.Contains(x.WarehouseId))
+                 .Select(x => new
+                 {
+                     id = x.WarehouseId,
+                     name = x.Name
+                 }).ToList();
+
+
+
             var result = new
             {
                 fkSupplierId = product.ProductId,
                 productName = product.ProductName,
-                stockInQuantity = totalAvailableQuantity
+                stockInQuantity = totalAvailableQuantity,
+                warehouseName = warehouses,
+                //warehouseQuantities = warehouseQuantities
             };
 
             return Json(result);
         }
+
+
+        [HttpGet]
+        public IActionResult GetAvailableQuantity(string barcode, int warehouseId)
+        {
+            var stocks = _context.TblStockIns
+                .Where(x => x.IsDeleted == false && x.Barcode == barcode && x.FkWarehouseId == warehouseId)
+                .ToList();
+
+            if (stocks == null || !stocks.Any())
+            {
+                return Json(0); 
+            }
+
+            var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
+            return Json(totalAvailableQuantity);
+        }
+
 
         public IActionResult StockOut()
         {
@@ -1003,9 +1151,16 @@ namespace InventoryManagement.Controllers
                 productName = x.ProductName
             }).ToList();
 
+            var getWarehouse = _context.TblWarehouses.Where(x => x.IsDeleted == false).Select(x => new
+            {
+                Id = x.WarehouseId,
+                warehouseName = x.Name
+            }).ToList();
+
             var viewModel = new StockOutViewModel
             {
                 ProductList = new SelectList(getProduct, "Id", "productName"),
+                WarehouseList = new SelectList(getWarehouse, "Id", "warehouseName"),
             };
 
             return View(viewModel);
@@ -1095,10 +1250,15 @@ namespace InventoryManagement.Controllers
             {
                 int stockOutQty = int.TryParse(item.Quantity, out var outQty) ? outQty : 0;
 
+                //var stockInList = await _context.TblStockIns
+                //    .Where(x => x.Barcode == item.Barcode.ToString())
+                //    .OrderBy(x => x.StockInId) 
+                //    .ToListAsync();
+
                 var stockInList = await _context.TblStockIns
-                    .Where(x => x.Barcode == item.Barcode.ToString())
-                    .OrderBy(x => x.StockInId) 
-                    .ToListAsync();
+                   .Where(x => x.Barcode == item.Barcode.ToString() && x.FkWarehouseId == item.FkWarehouseId)
+                   .OrderBy(x => x.StockInId)
+                   .ToListAsync();
 
                 var product = await _context.TblProducts
                     .FirstOrDefaultAsync(x => x.ProductId == item.FkProductId);
@@ -1154,72 +1314,6 @@ namespace InventoryManagement.Controllers
         }
 
 
-        //Extra code not Important
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> StockOut([FromBody] List<StockOutViewModel> addStockOut)
-        //{
-        //    if (addStockOut == null || !addStockOut.Any())
-        //    {
-        //        return BadRequest("No stock data provided.");
-        //    }
-
-        //    foreach (var item in addStockOut)
-        //    {
-        //        var stockIns = await _context.TblStockIns
-        //            .Where(x => x.Barcode == item.Barcode.ToString())
-        //            .OrderBy(x => x.StockInId)
-        //            .ToListAsync();
-
-        //        var product = await _context.TblProducts
-        //            .FirstOrDefaultAsync(x => x.ProductId == item.FkProductId);
-
-        //        if (stockIns == null || !stockIns.Any())
-        //        {
-        //            return BadRequest($"Stock-in not found for Barcode: {item.Barcode}");
-        //        }
-
-        //        int currentProductQty = int.TryParse(product.AvailableProductQty, out var qty2) ? qty2 : 0;
-        //        int stockOutQty = int.TryParse(item.Quantity, out var outQty) ? outQty : 0;
-
-        //        // Set AvailableQuantity = 0 for all except last
-        //        for (int i = 0; i < stockIns.Count - 1; i++)
-        //        {
-        //            stockIns[i].AvailableQuantity = "0";
-        //            _context.TblStockIns.Update(stockIns[i]);
-        //        }
-
-        //        // Update last record with updated quantity
-        //        var lastStockIn = stockIns.Last();
-        //        int currentQty = int.TryParse(lastStockIn.ProductQuantity, out var qty) ? qty : 0;
-
-        //        int updatedQty = currentQty - stockOutQty;
-        //        if (updatedQty < 0) updatedQty = 0;
-        //        lastStockIn.AvailableQuantity = updatedQty.ToString();
-        //        _context.TblStockIns.Update(lastStockIn);
-
-        //        // Update Product quantity
-        //        int updateproductQty = currentProductQty - stockOutQty;
-        //        product.AvailableProductQty = updateproductQty.ToString();
-        //        _context.TblProducts.Update(product);
-
-        //        var stockOut = new TblStockOut
-        //        {
-        //            Barcode = item.Barcode,
-        //            FkProductId = lastStockIn.FkProductId,
-        //            Quantity = item.Quantity,
-        //            Reason = item.Reason,
-        //            StockOutDate = DateTime.Now,
-        //            FkStockInId = lastStockIn.StockInId
-        //        };
-        //        await _context.TblStockOuts.AddAsync(stockOut);
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //    return Ok();
-        //}
-
 
 
         public IActionResult StocksDetails(int id, int productId, string searchTerm = "", int pageNumber = 1, int pageSize = 10)
@@ -1249,7 +1343,8 @@ namespace InventoryManagement.Controllers
                 SKUName = product?.SkuIdName ?? "",
                 AliasNames = aliasNamesString,
                 StockInId = id,
-                FkProjectId = productId
+                FkProjectId = productId,
+                ProductQty = product?.AvailableProductQty
 
             };
 
@@ -1278,6 +1373,7 @@ namespace InventoryManagement.Controllers
                 {
                     Id = item.StockInId,
                     Date = item.Date ?? DateTime.MinValue,
+                    CreatedAt = item.CreatedAt ?? DateTime.MinValue,
                     BatchNo = item.BatchNo ?? null,
                     Quantity = item.ProductQuantity,
                     ProductName = getProduct?.ProductName,
@@ -1320,10 +1416,12 @@ namespace InventoryManagement.Controllers
                 {
                     Id = item.StockOutId,
                     Date = item.StockOutDate ?? DateTime.MinValue,
+                    CreatedAt = item.CreatedAt ?? DateTime.MinValue,
                     BatchNo = batchNo,
                     Quantity = item.Quantity,
                     ProductName = getProduct?.ProductName,
-                    SupplierName = supplierName,
+                    //SupplierName = supplierName,
+                    SupplierName = "-",
                     LocationName = locationName,
                     Status = "Stock Out",
                     RoomName = roomName,
@@ -1333,7 +1431,7 @@ namespace InventoryManagement.Controllers
 
            
 
-            var sortedList = model.CombinedStockList.OrderByDescending(x => x.Date).ToList();
+            var sortedList = model.CombinedStockList.OrderByDescending(x => x.CreatedAt).ToList();
 
             int totalRecords = sortedList.Count;
             model.CombinedStockList = sortedList
@@ -1389,7 +1487,7 @@ namespace InventoryManagement.Controllers
 
             // Query stock in and stock out data
             var stockInQuery = _context.TblStockIns
-                .Where(x => x.IsDeleted == false && x.StockInId == id && x.FkProductId == productId);
+                .Where(x => x.IsDeleted == false && x.FkProductId == productId);
 
             var stockOutQuery = _context.TblStockOuts
                 .Where(x => x.IsDeleted == false && x.FkProductId == productId);
@@ -1416,6 +1514,7 @@ namespace InventoryManagement.Controllers
                 {
                     Id = item.StockInId,
                     Date = item.Date ?? DateTime.MinValue,
+                    TransactionDate = item.CreatedAt ?? DateTime.MinValue,
                     BatchNo = item.BatchNo ?? null,
                     Quantity = item.ProductQuantity,
                     ProductName = getProduct?.ProductName,
@@ -1457,10 +1556,12 @@ namespace InventoryManagement.Controllers
                 {
                     Id = item.StockOutId,
                     Date = item.StockOutDate ?? DateTime.MinValue,
+                    TransactionDate = item.CreatedAt ?? DateTime.MinValue,
                     BatchNo = batchNo,
                     Quantity = item.Quantity,
                     ProductName = getProduct?.ProductName,
-                    SupplierName = supplierName,
+                    //SupplierName = supplierName,
+                    SupplierName = "-",
                     LocationName = locationName,
                     Status = "Stock Out",
                     RoomName = roomName,
@@ -1468,7 +1569,7 @@ namespace InventoryManagement.Controllers
                 });
             }
 
-            var sortedList = model.CombinedStockList.OrderByDescending(x => x.Date).ToList();
+            var sortedList = model.CombinedStockList.OrderByDescending(x => x.TransactionDate).ToList();
 
             // Export data to Excel
             using (var workbook = new XLWorkbook())
@@ -1514,7 +1615,8 @@ namespace InventoryManagement.Controllers
                     worksheet.Cell(row, 5).Value = item.Status;
                     worksheet.Cell(row, 6).Value = item.SupplierName;
                     worksheet.Cell(row, 7).Value = item.Quantity;
-                    worksheet.Cell(row, 8).Value = $"{item.LocationName} / {item.RoomName} / {item.RackName}";
+                    //worksheet.Cell(row, 8).Value = $"{item.LocationName} / {item.RoomName} / {item.RackName}";
+                    worksheet.Cell(row, 8).Value = $"{item.LocationName}";
 
                     row++;
                     count++;
@@ -1543,9 +1645,9 @@ namespace InventoryManagement.Controllers
             var saleMasterQuery = _context.TblSaleOrders
                 .Where(x => x.IsDeleted == false && x.OrderId != 0);
 
-            if (!string.IsNullOrEmpty(searchTerm))
+            if(!string.IsNullOrEmpty(searchTerm))
             {
-                saleMasterQuery = saleMasterQuery.Where(x => x.ProductName.Contains(searchTerm));
+                saleMasterQuery = saleMasterQuery.Where(x => x.OrderNumber.Contains(searchTerm));
             }
 
             // Grouping by OrderNumber
@@ -1588,6 +1690,85 @@ namespace InventoryManagement.Controllers
             return View(viewModel); // make sure you return the view with the viewModel
         }
 
+        [HttpGet]
+        public IActionResult ExportSalesOrderExcel(string searchTerm = "")
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var saleMasterQuery = _context.TblSaleOrders
+                .Where(x => x.IsDeleted == false && x.OrderId != 0)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                saleMasterQuery = saleMasterQuery.Where(x =>
+                    x.ProductName.Contains(searchTerm) ||
+                    x.OrderNumber.Contains(searchTerm) ||
+                    x.OrderProductQty.Contains(searchTerm));
+            }
+
+            // Grouped data to match SalesOrder action
+            var groupedOrders = saleMasterQuery
+                .GroupBy(x => x.OrderNumber)
+                .AsEnumerable()
+                .Select(g => new
+                {
+                    OrderNumber = g.Key,
+                    TotalQuantity = g.Sum(x => int.TryParse(x.OrderProductQty, out int qty) ? qty : 0),
+                    OrderDate = g.OrderBy(x => x.OrderDate).FirstOrDefault()?.OrderDate
+                })
+                .ToList();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("SaleOrder");
+
+                // Headers
+                worksheet.Cell(1, 1).Value = "Sr.No.";
+                worksheet.Cell(1, 2).Value = "Order Number";
+                worksheet.Cell(1, 3).Value = "Order Date";
+                worksheet.Cell(1, 4).Value = "Order Quantity";
+
+                // Header Style
+                var headerRange = worksheet.Range("A1:D1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Font.FontColor = XLColor.Black;
+                headerRange.Style.Fill.BackgroundColor = XLColor.Yellow;
+
+                // Column Widths
+                worksheet.Column(1).Width = 10;
+                worksheet.Column(2).Width = 30;
+                worksheet.Column(3).Width = 25;
+                worksheet.Column(4).Width = 20;
+
+                // Data Rows
+                int row = 2;
+                int srNo = 1;
+                foreach (var item in groupedOrders)
+                {
+                    worksheet.Cell(row, 1).Value = srNo++;
+                    worksheet.Cell(row, 2).Value = item.OrderNumber;
+                    worksheet.Cell(row, 3).Value = item.OrderDate?.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 4).Value = item.TotalQuantity;
+                    row++;
+                }
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "SalesOrders.xlsx");
+                }
+            }
+        }
+
 
         public IActionResult SalesOrderDetails(string orderNumber, string searchTerm = "", int pageNumber = 1, int pageSize = 10)
         {
@@ -1625,9 +1806,9 @@ namespace InventoryManagement.Controllers
                 var StockIn = _context.TblStockIns.FirstOrDefault(x => x.IsDeleted == false && x.FkProductId == item.FkProductId);
 
                 int orderQty = int.TryParse(item.OrderProductQty, out var oq) ? oq : 0;
-                int availableQty = int.TryParse(StockIn?.ProductQuantity, out var aq) ? aq : 0;
+                int availableQty = int.TryParse(product?.AvailableProductQty, out var aq) ? aq : 0;
 
-                string status = orderQty <= availableQty ? "Available" : "Not Available";
+                string status = availableQty >= orderQty ? "Available" : "Not Available";
 
                 getSaleOrderList.Add(new SaleOrderViewModel
                 {
@@ -1635,7 +1816,7 @@ namespace InventoryManagement.Controllers
                     ProductName = product.ProductName,
                     SKUName = product.SkuIdName,
                     OrderQuantity = item.OrderProductQty,
-                    AvailableQuantity = StockIn.ProductQuantity,
+                    AvailableQuantity = product?.AvailableProductQty ?? "0",
                     OrderDate = (DateTime)item.OrderDate,
                     Status = status,
                 });
@@ -1650,13 +1831,272 @@ namespace InventoryManagement.Controllers
                     CurrentPage = pageNumber,
                     PageSize = pageSize,
                     SearchTerm = searchTerm
-                }
+                },
+                OrderNumber = orderNumber
             };
 
             return View(viewModel);
         }
 
-      
+
+        [HttpGet]
+        public IActionResult ExportSalesOrderDetailsExcel(string orderNumber, string searchTerm = "")
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var saleOrderList = _context.TblSaleOrders
+                .Where(x => x.IsDeleted == false && x.OrderId != 0 && x.OrderNumber == orderNumber)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                saleOrderList = saleOrderList.Where(x =>
+                    x.ProductName.Contains(searchTerm) ||
+                    x.Status.Contains(searchTerm) ||
+                    x.OrderProductQty.Contains(searchTerm));
+            }
+
+            var data = saleOrderList.ToList();
+
+            List<SaleOrderViewModel> saleOrderDetails = new List<SaleOrderViewModel>();
+
+            foreach (var item in data)
+            {
+                var product = _context.TblProducts.FirstOrDefault(x => x.IsDeleted == false && x.ProductId == item.FkProductId);
+                var stockIn = _context.TblStockIns.FirstOrDefault(x => x.IsDeleted == false && x.FkProductId == item.FkProductId);
+
+                int orderQty = int.TryParse(item.OrderProductQty, out var oq) ? oq : 0;
+                int availableQty = int.TryParse(product?.AvailableProductQty, out var aq) ? aq : 0;
+
+                string status = availableQty >= orderQty ? "Available" : "Not Available";
+
+                saleOrderDetails.Add(new SaleOrderViewModel
+                {
+                    OrderId = item.OrderId,
+                    ProductName = product?.ProductName,
+                    SKUName = product?.SkuIdName,
+                    OrderQuantity = item.OrderProductQty,
+                    AvailableQuantity = product?.AvailableProductQty ?? "0",
+                    OrderDate = (DateTime)item.OrderDate,
+                    Status = status
+                });
+            }
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("SaleOrderDetails");
+
+                // Headers
+                worksheet.Cell(1, 1).Value = "Sr.No.";
+                worksheet.Cell(1, 2).Value = "Product Name";
+                worksheet.Cell(1, 3).Value = "SKU Name";
+                worksheet.Cell(1, 4).Value = "Order Quantity";
+                worksheet.Cell(1, 5).Value = "Available Quantity";
+                worksheet.Cell(1, 6).Value = "Order Date";
+                worksheet.Cell(1, 7).Value = "Status";
+
+                // Header styling
+                var headerRange = worksheet.Range("A1:G1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Font.FontColor = XLColor.Black;
+                headerRange.Style.Fill.BackgroundColor = XLColor.Yellow;
+
+                // Column Widths
+                worksheet.Column(1).Width = 10;
+                worksheet.Column(2).Width = 30;
+                worksheet.Column(3).Width = 25;
+                worksheet.Column(4).Width = 20;
+                worksheet.Column(5).Width = 20;
+                worksheet.Column(6).Width = 20;
+                worksheet.Column(7).Width = 20;
+
+                // Column widths
+                //worksheet.Columns().AdjustToContents();
+
+                // Data
+                int row = 2;
+                int srNo = 1;
+                foreach (var item in saleOrderDetails)
+                {
+                    worksheet.Cell(row, 1).Value = srNo++;
+                    worksheet.Cell(row, 2).Value = item.ProductName;
+                    worksheet.Cell(row, 3).Value = item.SKUName;
+                    worksheet.Cell(row, 4).Value = item.OrderQuantity;
+                    worksheet.Cell(row, 5).Value = item.AvailableQuantity;
+                    worksheet.Cell(row, 6).Value = item.OrderDate.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 7).Value = item.Status;
+                    row++;
+                }
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SaleOrderDetails.xlsx");
+                }
+            }
+        }
+
+
+        //Start Correct Code Not Delete 14/05/2025
+
+        //[HttpPost]
+        //public IActionResult ImportExcel(IFormFile file)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    if (file == null || file.Length == 0)
+        //    {
+        //        TempData["ErrorMessage"] = "Please select an Excel file.";
+        //        return RedirectToAction("Create");
+        //    }
+
+        //    try
+        //    {
+        //        using (var stream = new MemoryStream())
+        //        {
+        //            file.CopyTo(stream);
+        //            stream.Position = 0;
+
+        //            // Use ClosedXML Labibary
+        //            using (var workbook = new XLWorkbook(stream))
+        //            {
+        //                var worksheet = workbook.Worksheets.Worksheet(1); 
+        //                var rowCount = worksheet.RowsUsed().Count(); 
+
+        //                List<TblSaleOrder> saleOrderToInsert = new List<TblSaleOrder>();
+        //                List<TblSaleOrder> saleOrderToUpdate = new List<TblSaleOrder>();
+
+        //                for (int row = 2; row <= rowCount; row++)
+        //                {
+        //                    string orderNumber = worksheet.Cell(row, 1).GetString().Trim();
+        //                    string productName = worksheet.Cell(row, 2).GetString().Trim();
+        //                    string productQty = worksheet.Cell(row, 3).GetString().Trim();
+        //                    string orderDateString = worksheet.Cell(row, 4).GetString().Trim();
+
+        //                    if (string.IsNullOrEmpty(orderNumber) || string.IsNullOrEmpty(productName) || string.IsNullOrEmpty(productQty) || string.IsNullOrEmpty(orderDateString))
+        //                    {
+        //                        continue;
+        //                    }
+
+        //                    DateTime orderDate;
+        //                    bool validDate = false;
+
+        //                    // First try parsing with common formats
+        //                    string[] formats = {
+        //                        "d/M/yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "MM/dd/yyyy",
+        //                        "d/M/yyyy h:mm:ss tt", "dd/MM/yyyy h:mm:ss tt",
+        //                        "yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss"
+        //                    };
+
+        //                    validDate = DateTime.TryParseExact(orderDateString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out orderDate);
+
+        //                    // If TryParseExact fails, fallback to TryParse (more flexible)
+        //                    if (!validDate)
+        //                    {
+        //                        validDate = DateTime.TryParse(orderDateString, out orderDate);
+        //                    }
+
+        //                    if (!validDate)
+        //                    {
+        //                        continue; 
+        //                    }
+
+
+        //                    var existingSaleOrder = _context.TblSaleOrders.AsNoTracking().FirstOrDefault(u => u.OrderNumber == orderNumber);
+
+        //                    if (existingSaleOrder != null)
+        //                    {
+        //                        existingSaleOrder.OrderNumber = orderNumber;
+        //                        existingSaleOrder.ProductName = productName;
+        //                        existingSaleOrder.OrderProductQty = productQty;
+        //                        existingSaleOrder.OrderDate = orderDate;
+        //                        existingSaleOrder.UpdatedAt = DateTime.Now;
+
+        //                        var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+        //                        if (product != null)
+        //                        {
+        //                            existingSaleOrder.FkProductId = product.ProductId;
+        //                            saleOrderToUpdate.Add(existingSaleOrder);
+        //                        }
+        //                        else
+        //                        {
+        //                            TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+        //                            return RedirectToAction("SalesOrder"); 
+        //                        }
+
+        //                    }
+        //                    else
+        //                    {
+        //                        var newSaleOrder = new TblSaleOrder
+        //                        {
+        //                            OrderNumber = orderNumber,
+        //                            ProductName = productName,
+        //                            OrderProductQty = productQty,
+        //                            OrderDate = orderDate,
+        //                            CreatedAt = DateTime.Now,
+        //                        };
+
+        //                        var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+        //                        if (product != null)
+        //                        {
+        //                            newSaleOrder.FkProductId = product.ProductId;
+        //                            saleOrderToInsert.Add(newSaleOrder);
+        //                        }
+        //                        else
+        //                        {
+        //                            TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+        //                            return RedirectToAction("SalesOrder"); 
+        //                        }
+
+
+        //                    }
+        //                }
+
+        //                if (saleOrderToInsert.Count > 0)
+        //                {
+        //                    _context.TblSaleOrders.AddRange(saleOrderToInsert);
+        //                    _context.SaveChanges();
+        //                }
+
+        //                if (saleOrderToUpdate.Count > 0)
+        //                {
+        //                    _context.TblSaleOrders.UpdateRange(saleOrderToUpdate);
+        //                    _context.SaveChanges();
+        //                }
+
+        //                int rowsAffected = saleOrderToInsert.Count + saleOrderToUpdate.Count;
+        //                if (rowsAffected > 0)
+        //                {
+        //                    TempData["SuccessMessage"] = $"Successfully imported {rowsAffected} records!";
+        //                }
+        //                else
+        //                {
+        //                    TempData["ErrorMessage"] = "No valid user data found in the file.";
+        //                }
+
+        //                return RedirectToAction("SalesOrder");
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ErrorMessage"] = "Error importing data: " + ex.Message;
+        //        return RedirectToAction("SalesOrder");
+        //    }
+        //}
+
+        //End Correct Code Not Delete 14/05/2025
 
 
         [HttpPost]
@@ -1675,6 +2115,10 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("Create");
             }
 
+            List<string> invalidProducts = new List<string>();
+            List<TblSaleOrder> saleOrderToInsert = new List<TblSaleOrder>();
+            List<TblSaleOrder> saleOrderToUpdate = new List<TblSaleOrder>();
+
             try
             {
                 using (var stream = new MemoryStream())
@@ -1685,11 +2129,10 @@ namespace InventoryManagement.Controllers
                     // Use ClosedXML Labibary
                     using (var workbook = new XLWorkbook(stream))
                     {
-                        var worksheet = workbook.Worksheets.Worksheet(1); 
-                        var rowCount = worksheet.RowsUsed().Count(); 
+                        var worksheet = workbook.Worksheets.Worksheet(1);
+                        var rowCount = worksheet.RowsUsed().Count();
 
-                        List<TblSaleOrder> saleOrderToInsert = new List<TblSaleOrder>();
-                        List<TblSaleOrder> saleOrderToUpdate = new List<TblSaleOrder>();
+
 
                         for (int row = 2; row <= rowCount; row++)
                         {
@@ -1702,13 +2145,6 @@ namespace InventoryManagement.Controllers
                             {
                                 continue;
                             }
-
-                            //string[] formats = { "d/M/yyyy", "d/M/yyyy h:mm:ss tt", "dd/MM/yyyy", "dd/MM/yyyy h:mm:ss tt" };
-                            //DateTime orderDate;
-                            //if (!DateTime.TryParseExact(orderDateString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out orderDate))
-                            //{
-                            //    continue; 
-                            //}
 
                             DateTime orderDate;
                             bool validDate = false;
@@ -1730,47 +2166,75 @@ namespace InventoryManagement.Controllers
 
                             if (!validDate)
                             {
-                                continue; // skip invalid date
+                                continue;
                             }
 
 
                             var existingSaleOrder = _context.TblSaleOrders.AsNoTracking().FirstOrDefault(u => u.OrderNumber == orderNumber);
 
-                            if (existingSaleOrder != null)
+                            var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+
+                            if (product != null)
                             {
-                                existingSaleOrder.OrderNumber = orderNumber;
-                                existingSaleOrder.ProductName = productName;
-                                existingSaleOrder.OrderProductQty = productQty;
-                                existingSaleOrder.OrderDate = orderDate;
-                                existingSaleOrder.UpdatedAt = DateTime.Now;
-
-                                var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
-                                if (product != null)
+                                if (existingSaleOrder != null)
                                 {
-                                    existingSaleOrder.FkProductId = product.ProductId; 
-                                }
+                                    existingSaleOrder.OrderNumber = orderNumber;
+                                    existingSaleOrder.ProductName = productName;
+                                    existingSaleOrder.OrderProductQty = productQty;
+                                    existingSaleOrder.OrderDate = orderDate;
+                                    existingSaleOrder.UpdatedAt = DateTime.Now;
+                                    existingSaleOrder.FkProductId = product.ProductId;
 
-                                saleOrderToUpdate.Add(existingSaleOrder);
+                                    saleOrderToUpdate.Add(existingSaleOrder);
+
+                                    //if (product != null)
+                                    //{
+                                    //    existingSaleOrder.FkProductId = product.ProductId;
+                                    //    saleOrderToUpdate.Add(existingSaleOrder);
+                                    //}
+                                    //else
+                                    //{
+                                    //    TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+                                    //    return RedirectToAction("SalesOrder");
+                                    //}
+
+                                }
+                                else
+                                {
+                                    var newSaleOrder = new TblSaleOrder
+                                    {
+                                        OrderNumber = orderNumber,
+                                        ProductName = productName,
+                                        OrderProductQty = productQty,
+                                        OrderDate = orderDate,
+                                        CreatedAt = DateTime.Now,
+                                        FkProductId = product.ProductId
+                                    };
+
+                                    saleOrderToInsert.Add(newSaleOrder);
+
+                                    //var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+                                    //if (product != null)
+                                    //{
+                                    //    newSaleOrder.FkProductId = product.ProductId;
+                                    //    saleOrderToInsert.Add(newSaleOrder);
+                                    //}
+                                    //else
+                                    //{
+                                    //    TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+                                    //    return RedirectToAction("SalesOrder");
+                                    //}
+                                }
+                                
                             }
                             else
                             {
-                                var newSaleOrder = new TblSaleOrder
-                                {
-                                    OrderNumber = orderNumber,
-                                    ProductName = productName,
-                                    OrderProductQty = productQty,
-                                    OrderDate = orderDate,
-                                    CreatedAt = DateTime.Now,
-                                };
-
-                                var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
-                                if (product != null)
-                                {
-                                    newSaleOrder.FkProductId = product.ProductId; 
-                                }
-
-                                saleOrderToInsert.Add(newSaleOrder);
+                                
+                                TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+                                //return RedirectToAction("SalesOrder");
+                                invalidProducts.Add(productName);
                             }
+
                         }
 
                         if (saleOrderToInsert.Count > 0)
@@ -1805,8 +2269,6 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("SalesOrder");
             }
         }
-
-
 
         [HttpPost]
         public async Task<ActionResult> AddProduct(ProductViewModel addProduct)

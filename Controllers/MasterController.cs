@@ -427,6 +427,15 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
+            var existingSupplier = await _context.TblSuppliers
+        .FirstOrDefaultAsync(s => s.SupplierName == addSupplier.SupplierName && s.IsDeleted == false);
+
+            if (existingSupplier != null)
+            {
+                TempData["ErrorMessage"] = "Supplier already exists.";
+                return RedirectToAction("Supplier");
+            }
+
             var supplier = new TblSupplier
             {
                 SupplierName = addSupplier.SupplierName,

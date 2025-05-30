@@ -20,6 +20,12 @@
         }
 </style>
 
+<style>
+    .low-stock-row {
+        background-color: #f8d7da; /* Light red */
+    }
+</style>
+
 
 @* Start For Pagination Table CSS Code *@
 <style>
@@ -68,9 +74,29 @@
     }
 
     .btn-pill.active {
-    border: 2px solid #0d6efd; 
-    background-color: #ffffff;
+        border: 2px solid #e74a5f;
+        background-color: #4d83ff;
+        color: white;
     }
+</style>
+
+@* Code for Type show in color *@
+<style>
+    .type-box {
+        color: #070807;
+        font-weight: bold;
+    }
+
+    .type-single {
+        color: #28a745; 
+        font-weight: bold;
+    }
+
+    .type-unknown {
+        color: #dc3545; 
+        font-style: italic;
+    }
+
 </style>
 
 <div class="main-content">
@@ -80,9 +106,56 @@
         <div class="col-md-12 grid-margin">
             <div class="d-flex justify-content-between flex-wrap">
                 <div class="d-flex align-items-end flex-wrap">
-                    <div class="mr-md-3 mr-xl-5">
-                        <h2>Products</h2>
+                  
 
+                    <div class="d-flex justify-content-start flex-wrap gap-3">
+
+                        <div class="card p-3 mr-3" style="width: 180px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                            <h2 class="mb-0" style="color: #2b2e27; font-weight: 700; font-size: 33px; margin-top: 18px;">
+                                Products
+                            </h2>
+                        </div>
+
+                        <!-- Total Stock Card -->
+                        @* <div class="card p-3 mr-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                            <small class="text-muted">Total Stock</small>
+                            <h3 class="mb-0" style="color: #78ed0e; font-weight: 700; font-size: 33px;">
+                                @ViewBag.TotalStock
+                            </h3>
+                            <small style="color: #78ed0e; font-weight: 700; font-size: 20px;">Items</small>
+                        </div> *@
+
+                        <!-- Low Stock Card -->
+                        <div class="card p-3 mr-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                            <small class="text-muted">Low Stock</small>
+                            <h3 class="mb-0" style="color: #ef4444; font-weight: 700; font-size: 33px;">
+                                @ViewBag.TotalLowStock
+                            </h3>
+                            <small style="color: #ef4444; font-weight: 700; font-size: 20px;">Products</small>
+                        </div>
+
+                        <!-- Out of Stock Card -->
+                        <div class="card p-3 mr-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                            <small class="text-muted">Out of Stock</small>
+                            <h3 class="mb-0" style="color: #f59e0b; font-weight: 700; font-size: 33px;">
+                                @ViewBag.TotalOutOfStock
+                            </h3>
+                            <small style="color: #f59e0b; font-weight: 700; font-size: 20px;">Products</small>
+                        </div>
+
+                        <div class="card p-3 mr-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                            <small style="color: #78ed0e; font-weight: 700; font-size: 20px;">Total Products</small>
+                            <h3 class="mb-0" style="color: #f6a623; font-weight: 700; font-size: 33px;">
+                                @ViewBag.ProductCount
+                            </h3>
+                        </div>
+
+                        <div class="card p-3 mr-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                            <small style="color: #78ed0e; font-weight: 700; font-size: 20px;">Total Batches</small>
+                            <h3 class="mb-0" style="color: #f6a623; font-weight: 700; font-size: 33px;">
+                                @ViewBag.BatchCount
+                            </h3>
+                        </div>
                     </div>
 
                 </div>
@@ -101,13 +174,13 @@
                 <button type="button" id="productBtn" 
                 class="btn-pill active"
                 onclick="setActive(this); window.location.href='/Inventory/InventoryList';">
-                    <span class="count">@ViewBag.ProductCount</span> Products
+                   @*  <span class="count">@ViewBag.ProductCount</span> *@ Products
                 </button>
 
                 <button type="button" id="batchBtn" 
                 class="btn-pill"
                 onclick="setActive(this); window.location.href='/Inventory/BatchesList';">
-                    <span class="count">@ViewBag.BatchCount</span> Batches
+                    @* <span class="count">@ViewBag.BatchCount</span> *@ Batches
                 </button>
             </div>
         </div>
@@ -214,7 +287,7 @@
         }
         @if (Model != null && Model.StockIns.Any())
         {
-            int SrNo = 0;
+            int SrNo = pageSize * (currentPage - 1);
 
             <table>
                 <thead>
@@ -224,6 +297,7 @@
                         <th>Product Name</th>
                         <th>SKU</th>
                         <th>Quantity</th>
+                        <th>Type</th>
                         <th>Aliases</th>
                         <th>Action</th>
                     </tr>
@@ -233,12 +307,18 @@
                     {
                         SrNo++;
                         string rowUrl = Url.Action("StocksDetails", "Inventory", new { id = item.StockInId, productId = item.FkProductId });
-                        <tr class="clickable-row" data-url="@rowUrl">
+
+                        string typeLabel = item.Type == "1" ? "Box" : item.Type == "2" ? "Single Unit" : "Unknown";
+                        string typeClass = item.Type == "1" ? "type-box" : item.Type == "2" ? "type-single" : "type-unknown";
+
+
+                        <tr class="clickable-row @(int.TryParse(item.ProductQuantity, out var qty) && int.TryParse(item.LowStockQty, out var lowQty) && qty <= lowQty ? "low-stock-row" : "")" data-url="@rowUrl">
                             <td>@SrNo</td>
                             @* <td>@item.Barcode</td> *@
                             <td>@item.ProductName</td>
                             <td>@item.SKUName</td>
                             <td>@item.ProductQuantity</td>
+                            <td><span class="@typeClass">@typeLabel</span></td>
                             <td>
                                 @if (item.AliasNames != null && item.AliasNames.Any())
                                 {

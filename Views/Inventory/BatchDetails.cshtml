@@ -200,7 +200,7 @@
             <tbody>
                 @if(Model != null && Model.StockItems.Any())
                 {
-                    int SrNo = 0;
+                    int SrNo = pageSize * (currentPage - 1);
 
                     @foreach (var item in Model.StockItems)
                     {
@@ -255,7 +255,7 @@
 
                             <td>
                                 @{
-                                    var fullText = $"{item.LocationName} / {item.RoomName} / {item.RackName}";
+                                    var fullText = $"{item.LocationName}";
                                     var words1 = fullText.Split(' ');
                                     var lines1 = new List<string>();
                                     var currentLine1 = "";

@@ -19,7 +19,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end flex-wrap">
 
-                                    <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Upload Excel</button>
+                                    @* <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Upload Excel</button> *@
 
                                 </div>
                             </div>
@@ -41,7 +41,7 @@
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="product">Product Name</label>
-                                    <select asp-for="FkProductId" class="form-control" id="product" asp-items="Model.ProductList">
+                                    <select asp-for="FkProductId" class="form-control" id="product" asp-items="Model.ProductList" disabled>
                                         <option value="">Select Product</option>
                                     </select>
                                 </div>
@@ -51,7 +51,6 @@
                                 <div class="form-group">
                                     <label for="reason">Reason</label>
                                     <select class="form-control" id="reason">
-                                       @*  <option value="">Select Reason</option> *@
                                         <option value="1">Sold</option>
                                         <option value="2">Return</option>
                                         <option value="3">Damage</option>
@@ -61,17 +60,29 @@
 
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label for="getStockInQuantity">Product Quantity</label>
+                                    <label for="getStockInQuantity">Total Quantity</label>
                                     <input type="text" class="form-control" id="getStockInQuantity" placeholder="StockInQuantity" readonly>
                                 </div>
                             </div>
 
-                           @*  <div class="col-md-2">
+
+                            <div class="col-md-2">
                                 <div class="form-group">
-                                    <label for="productQuantity">Product Quantity</label>
-                                    <input type="text" class="form-control" id="productQuantity" placeholder="Quantity">
+                                    <label for="warehouse">Room / Warehouse</label>
+                                    <select asp-for="FkWarehouseId" class="form-control" id="warehouse" asp-items="Model.WarehouseList">
+                                        <option value="">Select Room/Warehouse</option>
+                                    </select>
                                 </div>
-                            </div> *@
+                            </div>
+
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="availableQuantity">Available Quantity</label>
+                                    <input type="text" id="availableQuantity" class="form-control" readonly />
+                                </div>
+                            </div>
+
+
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="productQuantity">Stock Out Quantity</label>
@@ -99,6 +110,7 @@
                                         <th>Product Name</th>
                                         <th>Product Quantity</th>
                                         <th>Reason</th>
+                                        <th>Room / Warehouse</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -109,7 +121,7 @@
 
 
                         <button type="button" class="btn btn-primary mr-2" id="saveStock">Save</button>
-                        <button class="btn btn-light">Cancel</button>
+                        <button asp-controller="Inventory" asp-action="InventoryList" class="btn btn-light">Cancel</button>
                     </form>
                 </div>
             </div>
@@ -144,10 +156,24 @@
 </div>
 
 
-<script>
+@* <script>
     document.getElementById('productQuantity').addEventListener('input', function () {
         const enteredQuantity = parseInt(this.value);
         const stockValue = parseInt(document.getElementById('getStockInQuantity').value);
+        const errorDiv = document.getElementById('quantityError');
+
+        if (!isNaN(enteredQuantity) && !isNaN(stockValue) && enteredQuantity > stockValue) {
+            errorDiv.textContent = `Quantity can't be more than available stock (${stockValue}).`;
+        } else {
+            errorDiv.textContent = '';
+        }
+    });
+</script> *@
+
+<script>
+    document.getElementById('productQuantity').addEventListener('input', function () {
+        const enteredQuantity = parseInt(this.value);
+        const stockValue = parseInt(document.getElementById('availableQuantity').value);
         const errorDiv = document.getElementById('quantityError');
 
         if (!isNaN(enteredQuantity) && !isNaN(stockValue) && enteredQuantity > stockValue) {
@@ -168,12 +194,19 @@
         const productText = document.getElementById('product').options[document.getElementById('product').selectedIndex].text;
         const productQuantity = document.getElementById('productQuantity').value;
         const reason = document.getElementById('reason').options[document.getElementById('reason').selectedIndex].text;
+        const warehouseId = document.getElementById('warehouse').value;
+        const warehouseText = document.getElementById('warehouse').options[document.getElementById('warehouse').selectedIndex].text;
+        const stockInQuantity = parseInt(document.getElementById('availableQuantity').value);
         
-        if (!barcodeNo || !productId || !productQuantity || !reason) {
+        if (!barcodeNo || !productId || !productQuantity || !reason || !warehouseId) {
             alert("Please fill all required fields.");
             return;
         }
         
+         if (productQuantity > stockInQuantity) {
+            alert(`Quantity cannot exceed available stock of ${stockInQuantity}.`);
+            return;
+        }
 
         const table = document.getElementById('stockOutTable').getElementsByTagName('tbody')[0];
         const newRow = table.insertRow();
@@ -183,8 +216,9 @@
         newRow.insertCell(2).textContent = productText;
         newRow.insertCell(3).textContent = productQuantity;
         newRow.insertCell(4).textContent = reason;
+        newRow.insertCell(5).textContent = warehouseText;
 
-        const removeCell = newRow.insertCell(5);
+        const removeCell = newRow.insertCell(6);
         const removeButton = document.createElement('button');
         removeButton.textContent = 'Remove';
         removeButton.className = 'btn btn-danger btn-sm';
@@ -196,6 +230,7 @@
 
          newRow.dataset.productId = productId;
          newRow.dataset.reason = reason;
+         newRow.dataset.warehouseId = warehouseId;
 
         document.getElementById('stockForm').reset();
     });
@@ -209,82 +244,6 @@
         }
     }
 </script>
-
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-        $('#barcodeNo').on('blur', function () {
-            var barcode = $(this).val();
-            if (barcode.trim() !== '') {
-                $.ajax({
-                    url: '/Inventory/GetProductByBarcode', 
-                    type: 'GET',
-                    data: { barcode: barcode },
-                    success: function (response) {
-                        if (response) {
-                            $('#product').val(response.fkSupplierId);
-                            $('#getStockInQuantity').val(response.stockInQuantity);
-                        } else {
-                            alert("No record found for this Barcode.");
-                        }
-                    },
-                    error: function () {
-                        alert('Something went wrong.');
-                    }
-                });
-            }
-        });
-    });
-</script>
-
-@* <script>
-    document.getElementById('saveStock').addEventListener('click', function () {
-        const rows = document.querySelectorAll("#stockTable tbody tr");
-        const stockData = [];
-
-        if (rows.length === 0) {
-            alert("No items to save.");
-            return;
-        }
-
-        rows.forEach(row => {
-            const cells = row.querySelectorAll("td");
-
-            const stockItem = {
-                BarcodeId: cells[1].textContent,
-                FkProductId: row.dataset.productId,
-                Reason: row.dataset.reason,
-                Quantity: cells[7].textContent,
-            };
-
-            stockData.push(stockItem);
-        });
-
-        // Send data to server
-        fetch("/Inventory/StockOut", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
-            },
-            body: JSON.stringify(stockData)
-        })
-        .then(response => {
-            if (response.ok) {
-                alert("Records saved successfully!");
-                location.reload();
-            } else {
-                alert("Failed to save records.");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("An error occurred while saving.");
-        });
-    });
-</script> *@
 
 <script>
     document.getElementById('saveStock').addEventListener('click', function () {
@@ -303,7 +262,8 @@
                 Barcode: cells[1].textContent.trim(),
                 FkProductId: row.dataset.productId,
                 Reason: row.dataset.reason,
-                Quantity: cells[3].textContent.trim()
+                Quantity: cells[3].textContent.trim(),
+                FkWarehouseId: row.dataset.warehouseId
             };
 
             stockData.push(stockItem);
@@ -332,6 +292,82 @@
         });
     });
 </script>
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+        $('#barcodeNo').on('blur', function () {
+            var barcode = $(this).val();
+            if (barcode.trim() !== '') {
+                $.ajax({
+                    url: '/Inventory/GetProductByBarcode', 
+                    type: 'GET',
+                    data: { barcode: barcode },
+                    success: function (response) {
+                        if (response) {
+                            $('#product').val(response.fkSupplierId);
+                            $('#getStockInQuantity').val(response.stockInQuantity);
+
+                            var $warehouseDropdown = $('#warehouse');
+                            $warehouseDropdown.empty(); 
+                            // $warehouseDropdown.append('<option value="">Select Warehouse</option>');
+
+                            $.each(response.warehouseName, function (index, warehouse) {
+                                $warehouseDropdown.append(
+                                    $('<option></option>').val(warehouse.id).text(warehouse.name)
+                                );
+                            });
+
+                            var firstWarehouseId = response.warehouseName[0].id;
+                            $warehouseDropdown.val(firstWarehouseId).trigger('change');
+
+                        } else {
+                            // alert("No record found for this Barcode.");
+                            alert("Please enter barcode in correct format (case-sensitive).");
+                        }
+                    },
+                    error: function () {
+                        alert('Something went wrong.');
+                    }
+                });
+            }
+        });
+
+        $('#warehouse').on('change', function () {
+        var selectedWarehouseId = $(this).val();
+        var barcode = $('#barcodeNo').val();
+
+        if (selectedWarehouseId && barcode.trim() !== '') {
+            $.ajax({
+                url: '/Inventory/GetAvailableQuantity',
+                type: 'GET',
+                data: {
+                    barcode: barcode,
+                    warehouseId: selectedWarehouseId
+                },
+                success: function (quantity) {
+                    $('#availableQuantity').val(quantity);
+                },
+                error: function () {
+                    alert('Failed to get available quantity.');
+                    $('#availableQuantity').val('');
+                }
+            });
+        } else {
+            $('#availableQuantity').val('');
+        }
+    });
+    });
+</script>
+
+
+
+
+
 
 
 

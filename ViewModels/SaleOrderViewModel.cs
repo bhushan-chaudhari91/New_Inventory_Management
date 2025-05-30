@@ -17,5 +17,6 @@
     {
         public List<SaleOrderViewModel> SaleOrder { get; set; }
         public PaginationMetadataViewModel Pagination { get; set; }
+        public string OrderNumber { get; set; }
     }
 }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "slRxfg+ZUwU=",
+  "dgSpecHash": "hL9rWDSNh20=",
   "success": true,
-  "projectFilePath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\InventoryManagement\\InventoryManagement.csproj",
+  "projectFilePath": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\Git\\New_Inventory_Management\\InventoryManagement.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\DELL\\.nuget\\packages\\closedxml\\0.104.2\\closedxml.0.104.2.nupkg.sha512",
     "C:\\Users\\DELL\\.nuget\\packages\\closedxml.parser\\1.2.0\\closedxml.parser.1.2.0.nupkg.sha512",

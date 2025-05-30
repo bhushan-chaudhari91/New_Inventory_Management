@@ -9,12 +9,14 @@ namespace InventoryManagement.ViewModels
         public string Barcode { get; set; }
 
         public int FkProductId { get; set; }
+        public int FkWarehouseId { get; set; }
 
         public string Quantity { get; set; }
 
         public string Reason { get; set; }
 
         public SelectList ProductList { get; set; } = new SelectList(Enumerable.Empty<SelectListItem>());
+        public SelectList WarehouseList { get; set; } = new SelectList(Enumerable.Empty<SelectListItem>());
 
     }
 

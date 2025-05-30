@@ -86,6 +86,13 @@
 
                 </div>
                 <div class="d-flex justify-content-between align-items-end flex-wrap">
+                    @* @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    } *@
+
 
                     @* <button class="btn btn-primary mr-3 mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#productFormModal">Add Product</button> *@
                     <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Upload Excel</button>
@@ -173,7 +180,7 @@
                 <label>
                     Search:<input type="search" id="searchQuery" value="@serchquery" oninput="searchfilterquery();" style="margin-left:.5em;display: inline-block;width: auto;height: 30px; border-radius: 20px; border: 1px solid #5e5a5a;" class="form-control form-control-sm" placeholder="" aria-controls="example">
                 </label>
-                <form asp-action="ProductExportToExcel" asp-controller="Master" method="get" style="display: inline;">
+                <form asp-action="ExportSalesOrderExcel" asp-controller="Inventory" method="get" style="display: inline;">
                     <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
                     <button type="submit" class="btn btn-success mt-2 mt-xl-0">
                         Export to Excel
@@ -211,7 +218,7 @@
                 <thead>
                     <tr>
                         <th>No.</th>
-                        <th>Order Id</th>
+                        <th>Order Number</th>
                         <th>Order Date</th>
                         <th>Ordered Products</th>
                         @* <th>Status</th> *@
@@ -374,3 +381,70 @@
         window.location.href = `/Inventory/SalesOrder?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
     }
 </script>
+
+
+<!-- Add this in your _Layout.cshtml or at the top of the View -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@* @section Scripts {
+    <script>
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '@TempData["ErrorMessage"]'
+                    });
+            </text>
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '@TempData["SuccessMessage"]'
+                    });
+            </text>
+        }
+    </script>
+} *@
+
+@section Scripts {
+    <script>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '@TempData["SuccessMessage"]'
+                    });
+            </text>
+        }
+
+        @if (TempData["WarningMessage"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Warning!',
+                        text: '@TempData["WarningMessage"]'
+                    });
+            </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '@TempData["ErrorMessage"]'
+                    });
+            </text>
+        }
+    </script>
+}
+

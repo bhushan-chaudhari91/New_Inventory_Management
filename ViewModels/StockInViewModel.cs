@@ -18,12 +18,14 @@ namespace InventoryManagement.ViewModels
         public decimal Price { get; set; }
 
         public string Type { get; set; }
+        public int IsBox { get; set; }
 
         public string ProductQuantity { get; set; }
         public string AvailableProductQty { get; set; }
         public string barcodeNo { get; set; }
 
         public string AvailableQuantity { get; set; }
+        public string LowStockQty { get; set; }
 
         public string Room { get; set; }
 

@@ -154,7 +154,7 @@
     <div class="table-container">
         @if (Model != null && Model.Supplies.Any())
         {
-            int SrNo = 0;
+            int SrNo = pageSize * (currentPage - 1);
             <table>
                 <!-- class="table table-bordered" -->
                 <thead>
@@ -319,7 +319,7 @@
 
 
 
-<!-- Modal for add new Data -->
+<!-- Modal -->
 <div class="modal fade" id="supplierFormModal" tabindex="-1" aria-labelledby="supplierFormModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -332,7 +332,7 @@
                     <div class="row">
                         <div class="form-group col-md-6">
                             <label for="SupplierName">Supplier Name</label>
-                            <input type="text" name="SupplierName" class="form-control" id="SupplierName" placeholder="Supplier Name">
+                            <input type="text" name="SupplierName" class="form-control" id="SupplierName" placeholder="Supplier Name" required>
                         </div>
 
                         <div class="form-group col-md-6">
@@ -361,6 +361,7 @@
         </div>
     </div>
 </div>
+
 
 
 <!-- Edit Modal -->
@@ -463,4 +464,17 @@
         var searchQuery = document.getElementById('searchQuery').value;
         window.location.href = `/Master/Supplier?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
     }
+</script>
+
+@* Code For Multi Click Not save multiples record on multiple click*@
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('#supplierFormModal form');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', function () {
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Submitting...';
+        });
+    });
 </script>
