@@ -14,6 +14,8 @@
         public string Status { get; set; } 
         public string RoomName { get; set; } 
         public string RackName { get; set; }
+        public string Type { get; set; }
+        public string Reason { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public List<string?> AliasNames { get; internal set; }

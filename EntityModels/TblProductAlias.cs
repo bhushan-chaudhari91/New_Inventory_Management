@@ -17,7 +17,7 @@ public partial class TblProductAlias
 
     public int? CreatedBy { get; set; }
 
-    public int? UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
-    public string? UpdatedBy { get; set; }
+    public int? UpdatedBy { get; set; }
 }

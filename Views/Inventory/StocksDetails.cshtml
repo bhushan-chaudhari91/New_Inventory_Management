@@ -37,6 +37,27 @@
 @* End Code For Pagination CSS for Html Table *@
 
 
+
+@* Code for Type show in color *@
+<style>
+    .type-box {
+        color: #070807;
+        font-weight: bold;
+    }
+
+    .type-single {
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .type-unknown {
+        color: #dc3545;
+        font-style: italic;
+    }
+
+</style>
+
+
 <div class="main-content">
 
 
@@ -173,9 +194,9 @@
 
 
         <table>
-            @{
-                int SrNo = ((currentPage - 1) * pageSize) + 1;
-            }
+                @{
+                    int SrNo = ((currentPage - 1) * pageSize) + 1;
+                }
                 <thead>
                     <tr>
                         <th>Sr.No</th>
@@ -183,8 +204,10 @@
                         <th>Product Name</th>
                         <th>Batch ID</th>
                         <th>Status</th>
-                        <th>Supplier Name</th>
+                    <th>Reason</th>
+                    @*  <th>Supplier Name</th> *@
                         <th>Quantity</th>
+                        <th>Type</th>
                         <th>Location</th>
                         
                     </tr>
@@ -193,6 +216,8 @@
                 
                     @foreach (var item in Model.CombinedStockList)
                     {
+                    string typeLabel = item.Type == "1" ? "Box" : item.Type == "2" ? "Single Unit" : "Unknown";
+                    string typeClass = item.Type == "1" ? "type-box" : item.Type == "2" ? "type-single" : "type-unknown";
                     
                         <tr>
                         <td>@SrNo</td>
@@ -209,9 +234,11 @@
                                 <span class="badge bg-danger">Stock Out</span>
                             }
                         </td>
-                        <td style="text-align: center;">@item.SupplierName</td>
-                            <td>@item.Quantity</td>
-                            @* <td>@item.LocationName / @item.RoomName / @item.RackName</td> *@
+                        <td style="text-align: center;">@item.Reason</td>
+                    @*  <td style="text-align: center;">@item.SupplierName</td> *@
+                        <td>@item.Quantity</td>
+                        <td><span class="@typeClass">@typeLabel</span></td>
+                     @* <td>@item.LocationName / @item.RoomName / @item.RackName</td> *@
                             <td>
                                 @{
                                     var fullText = $"{item.LocationName}";
@@ -252,7 +279,7 @@
                     SrNo++;
                     }
                 </tbody>
-            </table>
+        </table>
         
     </div>
 

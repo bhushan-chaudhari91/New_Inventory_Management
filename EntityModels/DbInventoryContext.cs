@@ -34,6 +34,9 @@ public partial class DbInventoryContext : DbContext
 
     public virtual DbSet<TblSaleOrder> TblSaleOrders { get; set; }
 
+    public virtual DbSet<TblUsersRole> TblUsersRoles { get; set; }
+
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
@@ -94,7 +97,7 @@ public partial class DbInventoryContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.FkProductId).HasColumnName("Fk_ProductId");
             entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
-            entity.Property(e => e.UpdatedBy).HasMaxLength(45);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<TblStockIn>(entity =>
@@ -214,6 +217,19 @@ public partial class DbInventoryContext : DbContext
             entity.Property(e => e.ProductName).HasMaxLength(45);
             entity.Property(e => e.Status).HasMaxLength(45);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<TblUsersRole>(entity =>
+        {
+            entity.HasKey(e => e.RoleId).HasName("PRIMARY");
+
+            entity.ToTable("tbl_users_role");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime");
+            entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
+            entity.Property(e => e.RoleName).HasMaxLength(45);
         });
 
         OnModelCreatingPartial(modelBuilder);

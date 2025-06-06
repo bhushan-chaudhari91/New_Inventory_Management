@@ -14,42 +14,42 @@
 
     <style>
         .table-container {
-            width: 100%;
-            max-width: 100%;
-            overflow-x: auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            padding: 0px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        padding: 0px;
         }
 
         table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1070px;
-            /* table-layout: fixed; */
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1070px;
+        /* table-layout: fixed; */
         }
 
         th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        font-size: 14px;
         }
 
         th {
-            background: #3a57e8;
-            color: white;
+        background: #3a57e8;
+        color: white;
         }
 
         .view-link {
-            color: #3a57e8;
-            text-decoration: none;
-            font-weight: bold;
+        color: #3a57e8;
+        text-decoration: none;
+        font-weight: bold;
         }
 
         .collapse.show {
-            display: block !important;
+        display: block !important;
         }
 
     </style>
@@ -101,11 +101,18 @@
                 </button>
             </div>
         </nav>
+
+        @{
+            var fkRole = Context.Session.GetInt32("FkRole");
+        }
+
         <!-- partial -->
         <div class="container-fluid page-body-wrapper">
             <!-- partial:partials/_sidebar.html -->
             <nav class="sidebar sidebar-offcanvas" id="sidebar">
                 <ul class="nav">
+
+
 
                     @*<li class="nav-item">
                         <a class="nav-link" asp-controller="Home" asp-action="Index">
@@ -121,21 +128,41 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="collapse" href="~/#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                            <i class="mdi mdi-account menu-icon"></i>
-                            <span class="menu-title">Master</span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse" id="ui-basic">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" asp-controller="Master" asp-action="Warehouse">Warehouse</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-controller="Master" asp-action="Product">Product</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-controller="Master" asp-action="Supplier">Supplier</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-controller="User" asp-action="UserList">Users</a></li>
-                            </ul>
-                        </div>
-                    </li>
+                    @if (fkRole == 1)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="collapse" href="~/#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+                                <i class="mdi mdi-account menu-icon"></i>
+                                <span class="menu-title">Master</span>
+                                <i class="menu-arrow"></i>
+                            </a>
+                            <div class="collapse" id="ui-basic">
+                                <ul class="nav flex-column sub-menu">
+                                    <li class="nav-item"> <a class="nav-link" asp-controller="Master" asp-action="Warehouse">Warehouse</a></li>
+                                    <li class="nav-item"> <a class="nav-link" asp-controller="Master" asp-action="Product">Product</a></li>
+                                    @* <li class="nav-item"> <a class="nav-link" asp-controller="Master" asp-action="Supplier">Supplier</a></li> *@
+                                    <li class="nav-item"> <a class="nav-link" asp-controller="User" asp-action="UserList">Users</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    }
+
+                    @if(fkRole == 2)
+                    {
+                        @* <li class="nav-item">
+                            <a class="nav-link" data-toggle="collapse" href="~/#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+                                <i class="mdi mdi-account menu-icon"></i>
+                                <span class="menu-title">Master</span>
+                                <i class="menu-arrow"></i>
+                            </a>
+                            <div class="collapse" id="ui-basic">
+                                <ul class="nav flex-column sub-menu">
+                                    <li class="nav-item"> <a class="nav-link" asp-controller="Master" asp-action="Supplier">Supplier</a></li>
+                                </ul>
+                            </div>
+                        </li> *@
+                    }
+
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Inventory" asp-action="SalesOrder">
                             <i class="mdi mdi-view-headline menu-icon"></i>

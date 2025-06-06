@@ -12,17 +12,21 @@
 
 <style>
     .clickable-row {
-        cursor: pointer;
+    cursor: pointer;
     }
 
-        .clickable-row:hover {
-            background-color: #f1f1f1;
-        }
+    .clickable-row:hover {
+    background-color: #f1f1f1;
+    }
 </style>
 
 <style>
     .low-stock-row {
-        background-color: #f8d7da; /* Light red */
+    background-color: #f8d7da; /* Light red */
+    }
+
+    .mbrb-3 {
+        margin-right: 80px !important;
     }
 </style>
 
@@ -30,24 +34,24 @@
 @* Start For Pagination Table CSS Code *@
 <style>
     .custom-pagination .page-item .page-link {
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-        margin-left: 2px;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    margin-left: 2px;
     }
 
     .custom-pagination .page-item.active .page-link {
-        background-color: #007bff;
-        color: white;
+    background-color: #007bff;
+    color: white;
     }
 
     .custom-pagination .page-link {
-        color: #007bff;
-        text-decoration: none;
+    color: #007bff;
+    text-decoration: none;
     }
 
-        .custom-pagination .page-link:hover {
-            background-color: #f1f1f1;
-        }
+    .custom-pagination .page-link:hover {
+    background-color: #f1f1f1;
+    }
 </style>
 @* End For Pagination Table CSS Code *@
 
@@ -74,27 +78,27 @@
     }
 
     .btn-pill.active {
-        border: 2px solid #e74a5f;
-        background-color: #4d83ff;
-        color: white;
+    border: 2px solid #e74a5f;
+    background-color: #4d83ff;
+    color: white;
     }
 </style>
 
 @* Code for Type show in color *@
 <style>
     .type-box {
-        color: #070807;
-        font-weight: bold;
+    color: #070807;
+    font-weight: bold;
     }
 
     .type-single {
-        color: #28a745; 
-        font-weight: bold;
+    color: #28a745; 
+    font-weight: bold;
     }
 
     .type-unknown {
-        color: #dc3545; 
-        font-style: italic;
+    color: #dc3545; 
+    font-style: italic;
     }
 
 </style>
@@ -106,7 +110,7 @@
         <div class="col-md-12 grid-margin">
             <div class="d-flex justify-content-between flex-wrap">
                 <div class="d-flex align-items-end flex-wrap">
-                  
+
 
                     <div class="d-flex justify-content-start flex-wrap gap-3">
 
@@ -144,27 +148,85 @@
                         </div>
 
                         <div class="card p-3 mr-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                            <small style="color: #78ed0e; font-weight: 700; font-size: 20px;">Total Products</small>
-                            <h3 class="mb-0" style="color: #f6a623; font-weight: 700; font-size: 33px;">
+                            <small style="color: #747373; font-weight: 700; font-size: 20px;">Total Products</small>
+                            <h3 class="mb-0" style="font-weight: 700; font-size: 33px;">
                                 @ViewBag.ProductCount
                             </h3>
                         </div>
 
-                        <div class="card p-3 mr-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                            <small style="color: #78ed0e; font-weight: 700; font-size: 20px;">Total Batches</small>
-                            <h3 class="mb-0" style="color: #f6a623; font-weight: 700; font-size: 33px;">
+                        <div class="card p-3 mr-3 mbrb-3" style="width: 120px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                            <small style="color: #747373; font-weight: 700; font-size: 20px;">Total Batches</small>
+                            <h3 class="mb-0" style="font-weight: 700; font-size: 33px;">
                                 @ViewBag.BatchCount
                             </h3>
                         </div>
-                    </div>
 
+                       
+                        
+                    </div>
+                    <div class="card p-3 mr-3" style="width: 240px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                        <small class="text-muted" style="text-align: center;">Import Excel File Data</small><br />
+                        <button class="btn btn-success mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Import Individual Items</button>
+                        @* <button class="btn btn-success mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#importBoxItemsExcel">Import Box Items</button> *@
+                    </div>
                 </div>
-              
+
 
             </div>
             <hr />
         </div>
     </div>
+
+    <!-- Modal For Import Individual Items Excel File -->
+    <form asp-action="StockInDataExcelImport" asp-controller="Inventory" method="post" enctype="multipart/form-data">
+        <div class="modal fade" id="excelUploadModal" tabindex="-1" aria-labelledby="excelUploadModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="excelUploadModalLabel">Import Individual Items Excel File</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="file" id="excelFile" name="file" accept=".xls,.xlsx" class="form-control" required />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Modal For Import Box Items Excel File -->
+    <form asp-action="ImportBoxItems" asp-controller="Inventory" method="post" enctype="multipart/form-data">
+        <div class="modal fade" id="importBoxItemsExcel" tabindex="-1" aria-labelledby="importBoxItemsExcelLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importBoxItemsExcelLabel">Import Box Items Excel File</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="file" id="excelFile" name="file" accept=".xls,.xlsx" class="form-control" required />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
 
 
 
@@ -174,7 +236,7 @@
                 <button type="button" id="productBtn" 
                 class="btn-pill active"
                 onclick="setActive(this); window.location.href='/Inventory/InventoryList';">
-                   @*  <span class="count">@ViewBag.ProductCount</span> *@ Products
+                    @*  <span class="count">@ViewBag.ProductCount</span> *@ Products
                 </button>
 
                 <button type="button" id="batchBtn" 
@@ -271,12 +333,12 @@
 
         <script>
             $(document).ready(function () {
-                var searchInput = $('#searchQuery');
-                searchInput.focus();
+            var searchInput = $('#searchQuery');
+            searchInput.focus();
 
 
-                var val = searchInput.val();
-                searchInput.val('').val(val);
+            var val = searchInput.val();
+            searchInput.val('').val(val);
             });
         </script>
     }
@@ -297,7 +359,16 @@
                         <th>Product Name</th>
                         <th>SKU</th>
                         <th>Quantity</th>
-                        <th>Type</th>
+                        @if(Model.UserFkRoleId == 1)
+                        {
+                            <th>Price</th>
+                        }
+                        else
+                        {
+
+                        }
+
+                       @*  <th>Type</th> *@
                         <th>Aliases</th>
                         <th>Action</th>
                     </tr>
@@ -308,8 +379,8 @@
                         SrNo++;
                         string rowUrl = Url.Action("StocksDetails", "Inventory", new { id = item.StockInId, productId = item.FkProductId });
 
-                        string typeLabel = item.Type == "1" ? "Box" : item.Type == "2" ? "Single Unit" : "Unknown";
-                        string typeClass = item.Type == "1" ? "type-box" : item.Type == "2" ? "type-single" : "type-unknown";
+                        @* string typeLabel = item.Type == "1" ? "Box" : item.Type == "2" ? "Single Unit" : "Unknown";
+                        string typeClass = item.Type == "1" ? "type-box" : item.Type == "2" ? "type-single" : "type-unknown"; *@
 
 
                         <tr class="clickable-row @(int.TryParse(item.ProductQuantity, out var qty) && int.TryParse(item.LowStockQty, out var lowQty) && qty <= lowQty ? "low-stock-row" : "")" data-url="@rowUrl">
@@ -318,7 +389,15 @@
                             <td>@item.ProductName</td>
                             <td>@item.SKUName</td>
                             <td>@item.ProductQuantity</td>
-                            <td><span class="@typeClass">@typeLabel</span></td>
+                            @if (Model.UserFkRoleId == 1)
+                            {
+                                <td>@item.Price</td>
+                            }
+                            else
+                            {
+                                
+                            }
+                            @* <td><span class="@typeClass">@typeLabel</span></td> *@
                             <td>
                                 @if (item.AliasNames != null && item.AliasNames.Any())
                                 {
@@ -517,3 +596,41 @@
         });
     });
 </script>
+
+
+@* Start this code work for upload excel file and show SuccessMessage & ErrorMessage *@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var messages = "";
+
+    @* Append SuccessMessage if exists *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <text>
+             messages += "<p style='color:green;'>@TempData["SuccessMessage"]</p>";
+        </text>
+    }
+
+    @* Append ErrorMessage if exists *@
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <text>
+                    messages += "<p style='color:red;'>@TempData["ErrorMessage"]</p>";
+        </text>
+    }
+
+        if (messages !== "") {
+            Swal.fire({
+                icon: (messages.includes('failed')) ? 'error' : 'success',
+                title: 'Import Result',
+                html: messages,
+                confirmButtonText: 'Okay',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+        }
+    });
+</script>
+@* End this code work for upload excel file and show SuccessMessage & ErrorMessage *@
+

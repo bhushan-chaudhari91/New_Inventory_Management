@@ -31,6 +31,7 @@ namespace InventoryManagement.Controllers
             {
                 HttpContext.Session.SetInt32("userId", (int)checkUse.UserId);
                 HttpContext.Session.SetString("userName", checkUse.UserName);
+                HttpContext.Session.SetInt32("FkRole", (int)checkUse.FkRoleId);
                 return RedirectToAction("InventoryList", "Inventory");
             }
 
@@ -46,5 +47,17 @@ namespace InventoryManagement.Controllers
 
             return RedirectToAction("Login", "Auth");
         }
+
+        public IActionResult Warehouse()
+        {
+            int? role = HttpContext.Session.GetInt32("FkRole");
+            if (role != 1)
+            {
+                return RedirectToAction("AccessDenied", "Auth");
+            }
+
+            return View();
+        }
+
     }
 }

@@ -65,5 +65,6 @@ namespace InventoryManagement.ViewModels
     {
         public List<StockInViewModel> StockIns { get; set; }
         public PaginationMetadataViewModel Pagination { get; set; }
+        public int UserFkRoleId { get; set; }
     }
 }

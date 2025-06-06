@@ -78,20 +78,12 @@
                                 </div>
                             </div>
 
-                           @*  <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="supplierName">Supplier</label>
-                                    <select asp-for="FkSupplierId" class="form-control" id="supplierName" asp-items="Model.SupplierList">
-                                        <option value="">Select Supplier</option>
-                                    </select>
-                                </div>
-                            </div> *@
 
-                            <div class="col-md-2">
+                            <div class="col-md-2" style="display: none;">
                                 <div class="form-group">
                                     <label for="supplierName">Supplier</label>
                                     <input type="text" class="form-control" id="supplierName" placeholder="SupplierName" />
-                                    <input type="hidden" id="FkSupplierId" name="FkSupplierId" />
+                                    <input type="hidden" id="FkSupplierId" name="FkSupplierId" value="1" />
                                     <ul id="supplierList" class="autocomplete-list" style="display: none;"></ul>
                                 </div>
                             </div>
@@ -156,7 +148,7 @@
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="productQuantity">Product Quantity</label>
-                                    <input asp-for="ProductQuantity" type="text" class="form-control" id="productQuantity" placeholder="Quantity" value="1">
+                                    <input asp-for="ProductQuantity" type="number" class="form-control" id="productQuantity" placeholder="Quantity" value="1" min="1" step="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
                                 </div>
                             </div>
 

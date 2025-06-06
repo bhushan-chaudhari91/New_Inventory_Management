@@ -1,4 +1,6 @@
-﻿namespace InventoryManagement.ViewModels
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace InventoryManagement.ViewModels
 {
     public class UserViewModel
     {
@@ -20,6 +22,8 @@
 
         public string Gender { get; set; }
 
+        
+
 
     }
 
@@ -27,5 +31,7 @@
     {
         public List<UserViewModel> users { get; set; }
         public PaginationMetadataViewModel Pagination { get; set; }
+        public int FkRoleId { get; set; }
+        public SelectList RoleNameList { get; set; } = new SelectList(Enumerable.Empty<SelectListItem>());
     }
 }

@@ -1,6 +1,7 @@
 ﻿using InventoryManagement.EntityModels;
 using InventoryManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagement.Controllers
@@ -23,6 +24,12 @@ namespace InventoryManagement.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
+
+            var GetRoles = _context.TblUsersRoles.Where(x => x.IsDeleted == 0).Select( x => new
+            {
+                Id = x.RoleId,
+                Name = x.RoleName
+            }).ToList();
 
             List<UserViewModel> getUserList = new List<UserViewModel>();
 
@@ -55,19 +62,21 @@ namespace InventoryManagement.Controllers
                     UserName = item.UserName,
                     Email = item.Email,
                     ContactNo = item.ContactNo,
-                    Address = item.Address
+                    Address = item.Address,
+                    FkRoleId = (int)item.FkRoleId
                 });
             }
 
             var viewModel = new UserListViewModel
             {
+                RoleNameList = new SelectList(GetRoles, "Id", "Name"),
                 users = getUserList,
                 Pagination = new PaginationMetadataViewModel
                 {
                     TotalRecords = totalRecords,
                     CurrentPage = pageNumber,
                     PageSize = pageSize,
-                    SearchTerm = searchTerm
+                    SearchTerm = searchTerm,
                 }
             };
 
@@ -92,6 +101,7 @@ namespace InventoryManagement.Controllers
                 Email = addUser.Email,
                 ContactNo = addUser.ContactNo,
                 Address = addUser.Address,
+                FkRoleId = addUser.FkRoleId,
                 IsDeleted = false,
                 CreatedAt = DateTime.Now
             };
@@ -124,6 +134,7 @@ namespace InventoryManagement.Controllers
             existingUser.Email = model.Email;
             existingUser.ContactNo = model.ContactNo;
             existingUser.Address = model.Address;
+            existingUser.FkRoleId = model.FkRoleId;
             existingUser.UpdatedAt = DateTime.Now;
 
             _context.TblUsers.Update(existingUser);

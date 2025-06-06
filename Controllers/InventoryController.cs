@@ -33,6 +33,8 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
+            var userRoleId = _context.TblUsers.Where(x => x.UserId == userId).Select(x => x.FkRoleId).FirstOrDefault();
+
             List<StockInViewModel> getStockInList = new List<StockInViewModel>();
 
             var stockInList = _context.TblStockIns.Where(x => x.IsDeleted == false && x.StockInId != 0).AsQueryable();
@@ -101,6 +103,7 @@ namespace InventoryManagement.Controllers
                     StockInId = item.StockInId,
                     FkProductId = (int)item.FkProductId,
                     Barcode = item.Barcode,
+                    Price = (decimal)item.Price,
                     ProductQuantity = getProject?.AvailableProductQty,
                     LowStockQty = getProject?.LowStockQuantity,
                     ProductName = getProject?.ProductName,
@@ -116,6 +119,7 @@ namespace InventoryManagement.Controllers
 
             var viewModel = new StockInListViewModel
             {
+                UserFkRoleId = (int)userRoleId,
                 StockIns = getStockInList,
                 Pagination = new PaginationMetadataViewModel
                 {
@@ -1084,25 +1088,25 @@ namespace InventoryManagement.Controllers
 
             var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
 
-            var warehouseIds = _context.TblStockIns.Where(x => x.IsDeleted == false && x.Barcode == barcode)
-                .Select(x => x.FkWarehouseId)
-                .Distinct()
-                .ToList();
+            //var warehouseIds = _context.TblStockIns.Where(x => x.IsDeleted == false && x.Barcode == barcode)
+            //    .Select(x => x.FkWarehouseId)
+            //    .Distinct()
+            //    .ToList();
 
-            //var warehouseQuantities = stocks
-            //    .GroupBy(s => s.FkWarehouseId)
-            //    .Select(g => new
-            //    {
-            //        warehouseId = g.Key,
-            //        totalQuantity = g.Sum(s => Convert.ToInt32(s.AvailableQuantity))
-            //    }).ToList();
+            var warehouseQuantities = stocks
+                .GroupBy(s => s.FkWarehouseId)
+                .Select(g => new
+                {
+                    warehouseId = g.Key,
+                    totalQuantity = g.Sum(s => Convert.ToInt32(s.AvailableQuantity))
+                }).ToList();
 
-            var warehouses = _context.TblWarehouses.Where(x => x.IsDeleted == false && warehouseIds.Contains(x.WarehouseId))
-                 .Select(x => new
-                 {
-                     id = x.WarehouseId,
-                     name = x.Name
-                 }).ToList();
+            //var warehouses = _context.TblWarehouses.Where(x => x.IsDeleted == false && warehouseIds.Contains(x.WarehouseId))
+            //     .Select(x => new
+            //     {
+            //         id = x.WarehouseId,
+            //         name = x.Name
+            //     }).ToList();
 
 
 
@@ -1111,8 +1115,8 @@ namespace InventoryManagement.Controllers
                 fkSupplierId = product.ProductId,
                 productName = product.ProductName,
                 stockInQuantity = totalAvailableQuantity,
-                warehouseName = warehouses,
-                //warehouseQuantities = warehouseQuantities
+                //warehouseName = warehouses,
+                warehouseQuantities = warehouseQuantities
             };
 
             return Json(result);
@@ -1136,35 +1140,7 @@ namespace InventoryManagement.Controllers
         }
 
 
-        public IActionResult StockOut()
-        {
-            var userId = HttpContext.Session.GetInt32("userId");
 
-            if (userId == null || userId == 0)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var getProduct = _context.TblProducts.Where(x => x.IsDeleted == false).Select(x => new
-            {
-                Id = x.ProductId,
-                productName = x.ProductName
-            }).ToList();
-
-            var getWarehouse = _context.TblWarehouses.Where(x => x.IsDeleted == false).Select(x => new
-            {
-                Id = x.WarehouseId,
-                warehouseName = x.Name
-            }).ToList();
-
-            var viewModel = new StockOutViewModel
-            {
-                ProductList = new SelectList(getProduct, "Id", "productName"),
-                WarehouseList = new SelectList(getWarehouse, "Id", "warehouseName"),
-            };
-
-            return View(viewModel);
-        }
 
 
         //Old Code Update the StockIn Table Single reocrd Barcode aginst 06/05/2025
@@ -1228,6 +1204,37 @@ namespace InventoryManagement.Controllers
         //    await _context.SaveChangesAsync();
         //    return Ok();
         //}
+
+
+        public IActionResult StockOut()
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var getProduct = _context.TblProducts.Where(x => x.IsDeleted == false).Select(x => new
+            {
+                Id = x.ProductId,
+                productName = x.ProductName
+            }).ToList();
+
+            var getWarehouse = _context.TblWarehouses.Where(x => x.IsDeleted == false).Select(x => new
+            {
+                Id = x.WarehouseId,
+                warehouseName = x.Name
+            }).ToList();
+
+            var viewModel = new StockOutViewModel
+            {
+                ProductList = new SelectList(getProduct, "Id", "productName"),
+                WarehouseList = new SelectList(getWarehouse, "Id", "warehouseName"),
+            };
+
+            return View(viewModel);
+        }
 
 
         [HttpPost]
@@ -1316,6 +1323,8 @@ namespace InventoryManagement.Controllers
 
 
 
+
+
         public IActionResult StocksDetails(int id, int productId, string searchTerm = "", int pageNumber = 1, int pageSize = 10)
         {
             var userId = HttpContext.Session.GetInt32("userId");
@@ -1380,8 +1389,11 @@ namespace InventoryManagement.Controllers
                     SupplierName = getSupplier?.SupplierName,
                     LocationName = getLocation?.Name,
                     Status = "Stock In",
+                    Reason = "-",
                     RoomName = item.Room,
-                    RackName = item.RackNo
+                    RackName = item.RackNo,
+                    Type = item.Type
+                    
                 });
             }
 
@@ -1395,6 +1407,7 @@ namespace InventoryManagement.Controllers
                 string batchNo = "";
                 string roomName = "";
                 string rackName = "";
+                string Type = "";
 
                 if (getStockInData != null)
                 {
@@ -1410,6 +1423,7 @@ namespace InventoryManagement.Controllers
                     batchNo = getStockInData.BatchNo ?? "";
                     roomName = getStockInData.Room ?? "";
                     rackName = getStockInData.RackNo ?? "";
+                    Type = getStockInData.Type ?? "";
                 }
 
                 model.CombinedStockList.Add(new StockCombinedViewModel
@@ -1424,8 +1438,10 @@ namespace InventoryManagement.Controllers
                     SupplierName = "-",
                     LocationName = locationName,
                     Status = "Stock Out",
+                    Reason = item.Reason,
                     RoomName = roomName,
-                    RackName = rackName
+                    RackName = rackName,
+                    Type = Type
                 });
             }
 
@@ -2322,5 +2338,336 @@ namespace InventoryManagement.Controllers
         }
 
 
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> StockInDataExcelImport(IFormFile file)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    if (file == null || file.Length == 0)
+        //    {
+        //        TempData["ErrorMessage"] = "Please select an Excel file.";
+        //        return RedirectToAction("Create");
+        //    }
+
+        //    string batchNumber = "";
+
+        //    // 1. Get Batch Number from stored procedure
+        //    using (var connection = new MySqlConnection(_context.Database.GetConnectionString()))
+        //    {
+        //        var parameters = new DynamicParameters();
+        //        parameters.Add("@newBatchNo", dbType: DbType.String, direction: ParameterDirection.Output, size: 255);
+        //        await connection.ExecuteAsync("GenerateBatchNumber", parameters, commandType: CommandType.StoredProcedure);
+        //        batchNumber = parameters.Get<string>("@newBatchNo");
+        //    }
+
+        //    List<TblStockIn> stockInList = new();
+
+        //    try
+        //    {
+        //        using (var stream = new MemoryStream())
+        //        {
+        //            await file.CopyToAsync(stream);
+        //            stream.Position = 0;
+
+        //            using (var workbook = new XLWorkbook(stream))
+        //            {
+        //                var worksheet = workbook.Worksheets.Worksheet(1);
+        //                var rowCount = worksheet.RowsUsed().Count();
+
+        //                for (int row = 2; row <= rowCount; row++)
+        //                {
+        //                    string itemName = worksheet.Cell(row, 1).GetString().Trim();       
+        //                    string itemCode = worksheet.Cell(row, 2).GetString().Trim();      
+        //                    string priceText = worksheet.Cell(row, 5).GetString().Trim();      
+        //                    string qtyText = worksheet.Cell(row, 9).GetString().Trim();        
+
+        //                    if (string.IsNullOrWhiteSpace(itemName)) continue;
+
+        //                    var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
+        //                    if (product == null) continue;
+
+        //                    decimal.TryParse(priceText, out decimal price);
+        //                    int.TryParse(qtyText, out int qty);
+
+
+        //                    int currentQty = 0;
+        //                    if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
+        //                    {
+        //                        int.TryParse(product.AvailableProductQty, out currentQty);
+        //                    }
+
+        //                    int updatedQty = currentQty + qty;
+        //                    product.AvailableProductQty = updatedQty.ToString();
+
+
+
+        //                    TblStockIn stockIn = new()
+        //                    {
+        //                        FkProductId = product.ProductId,
+        //                        Barcode = itemCode,
+        //                        Price = price,
+        //                        ProductQuantity = Convert.ToString(qty),
+        //                        AvailableQuantity = Convert.ToString(qty),
+        //                        Date = DateTime.Now,
+        //                        Type = "2",
+        //                        FkWarehouseId = 1,
+        //                        FkSupplierId = 1,
+        //                        BatchNo = batchNumber
+        //                    };
+
+        //                    stockInList.Add(stockIn);
+        //                }
+
+        //                if (stockInList.Any())
+        //                {
+        //                    _context.TblStockIns.AddRange(stockInList);
+        //                    await _context.SaveChangesAsync();
+        //                    TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully!";
+        //                }
+        //                else
+        //                {
+        //                    TempData["ErrorMessage"] = "No valid records found.";
+        //                }
+        //            }
+        //        }
+
+        //        return RedirectToAction("InventoryList");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ErrorMessage"] = "Error importing data: " + ex.Message;
+        //        return RedirectToAction("InventoryList");
+        //    }
+        //}
+
+
+        [HttpPost]
+        public async Task<IActionResult> StockInDataExcelImport(IFormFile file)
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please select an Excel file.";
+                return RedirectToAction("Create");
+            }
+
+            string batchNumber = "";
+            using (var connection = new MySqlConnection(_context.Database.GetConnectionString()))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@newBatchNo", dbType: DbType.String, direction: ParameterDirection.Output, size: 255);
+                await connection.ExecuteAsync("GenerateBatchNumber", parameters, commandType: CommandType.StoredProcedure);
+                batchNumber = parameters.Get<string>("@newBatchNo");
+            }
+
+            List<TblStockIn> stockInList = new();
+            List<string> failedRecords = new();
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    using (var workbook = new XLWorkbook(stream))
+                    {
+                        var worksheet = workbook.Worksheets.Worksheet(1);
+                        var rowCount = worksheet.RowsUsed().Count();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            string itemName = worksheet.Cell(row, 1).GetString().Trim();
+                            string itemCode = worksheet.Cell(row, 2).GetString().Trim();
+                            string priceText = worksheet.Cell(row, 5).GetString().Trim();
+                            string qtyText = worksheet.Cell(row, 9).GetString().Trim();
+
+                            if (string.IsNullOrWhiteSpace(itemName))
+                                continue;
+
+                            var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
+                            if (product == null)
+                            {
+                                failedRecords.Add($"Row {row}: Product '{itemName}' not found");
+                                continue;
+                            }
+
+                            decimal.TryParse(priceText, out decimal price);
+                            int.TryParse(qtyText, out int qty);
+
+                            int currentQty = 0;
+                            if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
+                            {
+                                int.TryParse(product.AvailableProductQty, out currentQty);
+                            }
+
+                            int updatedQty = currentQty + qty;
+                            product.AvailableProductQty = updatedQty.ToString();
+
+                            TblStockIn stockIn = new()
+                            {
+                                FkProductId = product.ProductId,
+                                Barcode = itemCode,
+                                Price = price,
+                                ProductQuantity = qty.ToString(),
+                                AvailableQuantity = qty.ToString(),
+                                Date = DateTime.Now,
+                                Type = "2",
+                                FkWarehouseId = 1,
+                                FkSupplierId = 1,
+                                BatchNo = batchNumber
+                            };
+
+                            stockInList.Add(stockIn);
+                        }
+
+                        if (stockInList.Any())
+                        {
+                            _context.TblStockIns.AddRange(stockInList);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
+                        if (failedRecords.Any())
+                        {
+                            TempData["ErrorMessage"] = $"{failedRecords.Count} records failed to import due to incorrect product names.";
+                        }
+
+                    }
+                }
+
+                return RedirectToAction("InventoryList");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error importing data: " + ex.Message;
+                return RedirectToAction("InventoryList");
+            }
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> ImportBoxItems(IFormFile file)
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please select an Excel file.";
+                return RedirectToAction("Create");
+            }
+
+            string batchNumber = "";
+            using (var connection = new MySqlConnection(_context.Database.GetConnectionString()))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@newBatchNo", dbType: DbType.String, direction: ParameterDirection.Output, size: 255);
+                await connection.ExecuteAsync("GenerateBatchNumber", parameters, commandType: CommandType.StoredProcedure);
+                batchNumber = parameters.Get<string>("@newBatchNo");
+            }
+
+            List<TblStockIn> stockInList = new();
+            List<string> failedRecords = new();
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    using (var workbook = new XLWorkbook(stream))
+                    {
+                        var worksheet = workbook.Worksheets.Worksheet(1);
+                        var rowCount = worksheet.RowsUsed().Count();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            string itemName = worksheet.Cell(row, 3).GetString().Trim();
+                            string itemCode = worksheet.Cell(row, 2).GetString().Trim();
+                            string priceText = worksheet.Cell(row, 5).GetString().Trim();
+                            string qtyText = worksheet.Cell(row, 9).GetString().Trim();
+
+                            if (string.IsNullOrWhiteSpace(itemName))
+                                continue;
+
+                            var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
+                            if (product == null)
+                            {
+                                failedRecords.Add($"Row {row}: Product '{itemName}' not found");
+                                continue;
+                            }
+
+                            decimal.TryParse(priceText, out decimal price);
+                            int.TryParse(qtyText, out int qty);
+
+                            int currentQty = 0;
+                            if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
+                            {
+                                int.TryParse(product.AvailableProductQty, out currentQty);
+                            }
+
+                            int updatedQty = currentQty + qty;
+                            product.AvailableProductQty = updatedQty.ToString();
+
+                            TblStockIn stockIn = new()
+                            {
+                                FkProductId = product.ProductId,
+                                Barcode = itemCode,
+                                Price = price,
+                                ProductQuantity = qty.ToString(),
+                                AvailableQuantity = qty.ToString(),
+                                Date = DateTime.Now,
+                                Type = "2",
+                                FkWarehouseId = 1,
+                                FkSupplierId = 1,
+                                BatchNo = batchNumber
+                            };
+
+                            stockInList.Add(stockIn);
+                        }
+
+                        if (stockInList.Any())
+                        {
+                            _context.TblStockIns.AddRange(stockInList);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
+                        if (failedRecords.Any())
+                        {
+                            TempData["ErrorMessage"] = $"{failedRecords.Count} records failed to import due to incorrect product names.";
+                        }
+
+                    }
+                }
+
+                return RedirectToAction("InventoryList");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error importing data: " + ex.Message;
+                return RedirectToAction("InventoryList");
+            }
+        }
     }
 }

@@ -34,7 +34,7 @@
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="barcodeNo">Barcode/ Serial No.</label>
-                                    <input type="text" class="form-control" id="barcodeNo" placeholder="BarcodeNo">
+                                    <input type="text" class="form-control" id="barcodeNo" placeholder="BarcodeNo" autofocus>
                                 </div>
                             </div>
 
@@ -70,7 +70,7 @@
                                 <div class="form-group">
                                     <label for="warehouse">Room / Warehouse</label>
                                     <select asp-for="FkWarehouseId" class="form-control" id="warehouse" asp-items="Model.WarehouseList">
-                                        <option value="">Select Room/Warehouse</option>
+                                       @*  <option value="">Select Room/Warehouse</option> *@
                                     </select>
                                 </div>
                             </div>
@@ -86,15 +86,16 @@
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="productQuantity">Stock Out Quantity</label>
-                                    <input type="text" class="form-control" id="productQuantity" placeholder="Quantity">
+                                    <input type="number" class="form-control" id="productQuantity" value="1" placeholder="Quantity" min="1" step="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     <small id="quantityError" style="color: red;"></small>
                                 </div>
                             </div>
-                            <div class="col-md-2">
+
+                           @*  <div class="col-md-2">
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary mr-2" style="margin-top: 32px;" id="addButton">+ Add</button>
                                 </div>
-                            </div>
+                            </div> *@
 
                         </div>
 
@@ -170,6 +171,7 @@
     });
 </script> *@
 
+
 <script>
     document.getElementById('productQuantity').addEventListener('input', function () {
         const enteredQuantity = parseInt(this.value);
@@ -184,7 +186,10 @@
     });
 </script>
 
-<script>
+
+
+@*Start Code for click on AddButton so that time textbox data add in html Table 30/05/2025 *@
+@* <script>
     let serialNumber = 1;
 
     document.getElementById('addButton').addEventListener('click', function(e) {
@@ -243,7 +248,8 @@
             rows[i].cells[0].textContent = serialNumber++;
         }
     }
-</script>
+</script> *@
+@*End Code for click on AddButton so that time textbox data add in html Table 30/05/2025 *@
 
 <script>
     document.getElementById('saveStock').addEventListener('click', function () {
@@ -262,7 +268,8 @@
                 Barcode: cells[1].textContent.trim(),
                 FkProductId: row.dataset.productId,
                 Reason: row.dataset.reason,
-                Quantity: cells[3].textContent.trim(),
+                // Quantity: cells[3].textContent.trim(),
+                Quantity: cells[3].querySelector('input.quantity-input').value.trim(),
                 FkWarehouseId: row.dataset.warehouseId
             };
 
@@ -297,7 +304,9 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-<script>
+@*Start Code for Enter the BarcodeNo and Press Tab Button So that time details show in textbox 30/05/2025 *@
+
+@* <script>
 
     $(document).ready(function () {
         $('#barcodeNo').on('blur', function () {
@@ -362,9 +371,290 @@
         }
     });
     });
+</script> *@
+
+@*End Code for Enter the BarcodeNo and Press Tab Button So that time details show in textbox 30/05/2025 *@
+
+
+
+<script>
+    let serialNumber = 1;
+
+    $(document).ready(function () {
+        $('#barcodeNo').on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); 
+
+                const barcode = $(this).val().trim();
+                if (barcode === '') return;
+
+                $.ajax({
+                    url: '/Inventory/GetProductByBarcode',
+                    type: 'GET',
+                    data: { barcode: barcode },
+                    success: function (response) {
+                        if (response) {
+                            $('#product').val(response.fkSupplierId);
+                            $('#getStockInQuantity').val(response.stockInQuantity);
+
+                            const $warehouseDropdown = $('#warehouse');
+
+                           
+
+
+                            const currentSelectedWarehouse = $warehouseDropdown.val();
+
+                            if (!currentSelectedWarehouse || currentSelectedWarehouse === '') {
+                                const firstWarehouseId = response.warehouseQuantities[0].warehouseId;
+                                $warehouseDropdown.val(firstWarehouseId).trigger('change');
+
+                                const qty = response.warehouseQuantities.find(q => q.warehouseId == firstWarehouseId)?.totalQuantity || 0;
+                                $('#availableQuantity').val(qty);
+                            } else {
+                                const selectedQty = response.warehouseQuantities.find(q => q.warehouseId == currentSelectedWarehouse)?.totalQuantity || 0;
+                                $('#availableQuantity').val(selectedQty);
+                            }
+
+                            setTimeout(() => {
+                                autoAddToTable();
+                            }, 500);
+                        } else {
+                            alert("Please enter barcode in correct format.");
+                            $('#barcodeNo').val('').focus();
+                        }
+                    },
+                    error: function () {
+                        alert('Something went wrong.');
+                    }
+                });
+            }
+        });
+
+        $('#warehouse').on('change', function () {
+            const selectedWarehouseId = $(this).val();
+            const barcode = $('#barcodeNo').val();
+
+            if (selectedWarehouseId && barcode.trim() !== '') {
+                $.ajax({
+                    url: '/Inventory/GetAvailableQuantity',
+                    type: 'GET',
+                    data: {
+                        barcode: barcode,
+                        warehouseId: selectedWarehouseId
+                    },
+                    success: function (quantity) {
+                        $('#availableQuantity').val(quantity);
+                    },
+                    error: function () {
+                        alert('Failed to get available quantity.');
+                        $('#availableQuantity').val('');
+                    }
+                });
+            } else {
+                $('#availableQuantity').val('');
+            }
+        });
+
+        // Existing + Add button logic (optional if you still want manual add)
+        $('#addButton').on('click', function (e) {
+            e.preventDefault();
+            autoAddToTable();
+        });
+
+        //Start Code For use validation for Deferent Deferent Reasone for Qty Validation
+
+        // function autoAddToTable() {
+        //     const barcodeNo = $('#barcodeNo').val();
+        //     const productId = $('#product').val();
+        //     const productText = $('#product option:selected').text();
+        //     const productQuantity = $('#productQuantity').val();
+        //     const reason = $('#reason option:selected').text();
+        //     const warehouseId = $('#warehouse').val();
+        //     const warehouseText = $('#warehouse option:selected').text();
+        //     const stockInQuantity = parseInt($('#availableQuantity').val());
+
+        //     if (!barcodeNo || !productId || !productQuantity || !reason || !warehouseId) {
+        //         alert("Please fill all required fields.");
+        //         return;
+        //     }
+
+        //     if (parseInt(productQuantity) > stockInQuantity) {
+        //         alert(`Quantity cannot exceed available stock of ${stockInQuantity}.`);
+        //         return;
+        //     }
+
+        //     const table = $('#stockOutTable tbody');
+
+        //     //Start This code for If Scan Same Barcode in Multiples so that time add only first records and other add only +Qty
+        //     let existingRow = null;
+        //     table.find('tr').each(function () {
+        //         const rowBarcode = $(this).find('td:eq(1)').text();
+        //         const rowWarehouseId = $(this).data('warehouse-id');
+        //         const rowReason = $(this).data('reason');
+        //         const rowProductId = $(this).data('product-id');
+
+        //         if (rowBarcode === barcodeNo && 
+        //             rowProductId == productId &&
+        //             rowWarehouseId == warehouseId &&
+        //             rowReason === reason)
+        //         {
+        //             existingRow = $(this);
+        //             return false; 
+        //         }
+        //     });
+
+        //     if (existingRow) {
+        //         const qtyCell = existingRow.find('td:eq(3)');
+        //         const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
+        //         const addedQty = parseInt(productQuantity) || 0;
+        //         const newQty = currentQty + addedQty;
+
+        //         if (newQty > stockInQuantity) {
+        //             alert(`Quantity cannot exceed available stock of ${stockInQuantity}.`);
+        //             return;
+        //         }
+
+        //         qtyCell.find('input.quantity-input').val(newQty);
+        //     }
+        //     else 
+        //     {
+        //      //End This code for If Scan Same Barcode in Multiples so that time add only first records and other add only +Qty
+
+        //         const newRow = `
+        //             <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}">
+        //                 <td>${serialNumber++}</td>
+        //                 <td>${barcodeNo}</td>
+        //                 <td>${productText}</td>
+        //                 <td>
+        //                     <div class="input-group input-group-sm">
+        //                         <input type="number" class="form-control quantity-input" value="${productQuantity}" min="1" max="${stockInQuantity}" style="width: 60px;">
+        //                     </div>
+        //                 </td>
+        //                 <td>${reason}</td>
+        //                 <td>${warehouseText}</td>
+        //                 <td><button type="button" class="btn btn-danger btn-sm removeRow">Remove</button></td>
+        //             </tr>
+        //         `;
+
+        //         table.append(newRow);
+        //     }
+
+        //     // Reset form except productQuantity (keep 1)
+        //     $('#barcodeNo').val('');
+        //     $('#availableQuantity').val('');
+        //     $('#productQuantity').val('1');
+        // }
+
+        //End Code For use validation for Deferent Deferent Reasone for Qty Validation
+
+            function autoAddToTable() {
+                const barcodeNo = $('#barcodeNo').val();
+                const productId = $('#product').val();
+                const productText = $('#product option:selected').text();
+                const productQuantity = parseInt($('#productQuantity').val()) || 0;
+                const reason = $('#reason option:selected').text();
+                const warehouseId = $('#warehouse').val();
+                const warehouseText = $('#warehouse option:selected').text();
+                const stockInQuantity = parseInt($('#availableQuantity').val());
+
+                if (!barcodeNo || !productId || !productQuantity || !reason || !warehouseId) {
+                    alert("Please fill all required fields.");
+                    return;
+                }
+
+                const table = $('#stockOutTable tbody');
+
+                // 🔍 Calculate total quantity in the table for same productId + warehouseId
+                let totalQtyForProductWarehouse = 0;
+                table.find('tr').each(function () {
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    if (rowProductId == productId && rowWarehouseId == warehouseId) {
+                        const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
+                        totalQtyForProductWarehouse += qtyVal;
+                    }
+                });
+
+                // 🧠 Find existing row for same barcode + product + warehouse + reason
+                let existingRow = null;
+                table.find('tr').each(function () {
+                    const rowBarcode = $(this).find('td:eq(1)').text();
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    const rowReason = $(this).data('reason');
+
+                    if (rowBarcode === barcodeNo &&
+                        rowProductId == productId &&
+                        rowWarehouseId == warehouseId &&
+                        rowReason === reason) {
+                        existingRow = $(this);
+                        return false;
+                    }
+                });
+
+                if (existingRow) {
+                    // Update existing row quantity
+                    const qtyCell = existingRow.find('td:eq(3)');
+                    const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
+                    const newQty = currentQty + productQuantity;
+
+                    const newTotalQty = totalQtyForProductWarehouse - currentQty + newQty;
+
+                    if (newTotalQty > stockInQuantity) {
+                        alert(`Total quantity for this product and warehouse cannot exceed available stock of ${stockInQuantity}.`);
+                        return;
+                    }
+
+                    qtyCell.find('input.quantity-input').val(newQty);
+                } else {
+                    // New row to be added — validate total
+                    const newTotalQty = totalQtyForProductWarehouse + productQuantity;
+
+                    if (newTotalQty > stockInQuantity) {
+                        alert(`Total quantity for this product and warehouse cannot exceed available stock of ${stockInQuantity}.`);
+                        return;
+                    }
+
+                    const newRow = `
+                        <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}">
+                            <td>${serialNumber++}</td>
+                            <td>${barcodeNo}</td>
+                            <td>${productText}</td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control quantity-input" value="${productQuantity}" min="1" max="${stockInQuantity}" style="width: 60px;">
+                                </div>
+                            </td>
+                            <td>${reason}</td>
+                            <td>${warehouseText}</td>
+                            <td><button type="button" class="btn btn-danger btn-sm removeRow">Remove</button></td>
+                        </tr>
+                    `;
+                    table.append(newRow);
+                }
+
+                // Reset form
+                $('#barcodeNo').val('');
+                $('#availableQuantity').val('');
+                $('#productQuantity').val('1');
+            }
+
+
+        // Remove row handler
+        $('#stockOutTable').on('click', '.removeRow', function () {
+            $(this).closest('tr').remove();
+            updateSerialNumbers();
+        });
+
+        function updateSerialNumbers() {
+            const rows = $('#stockOutTable tbody tr');
+            serialNumber = 1;
+            rows.each(function () {
+                $(this).find('td:first').text(serialNumber++);
+            });
+        }
+    });
 </script>
-
-
 
 
 
