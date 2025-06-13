@@ -73,7 +73,7 @@ namespace InventoryManagement.Controllers
             .ToList();
 
 
-            int totalLowStockCount = 0;
+            //int totalLowStockCount = 0;
 
             foreach (var item in paginatedstockIn)
             {
@@ -85,18 +85,22 @@ namespace InventoryManagement.Controllers
                 var getProject = _context.TblProducts.FirstOrDefault(x => x.IsDeleted == false && x.ProductId == item.FkProductId);
                 var getWarehouse = _context.TblWarehouses.FirstOrDefault(x => x.IsDeleted == false && x.WarehouseId == item.FkWarehouseId);
 
+                //Start Old Code for Get LowStockCount i think this code getting wrong count  //int totalLowStockCount = 0;
 
-                if (getProject != null)
-                {
-                    if (int.TryParse(getProject.AvailableProductQty, out int availableQty) &&
-                        int.TryParse(getProject.LowStockQuantity, out int lowStockQty))
-                    {
-                        if (availableQty <= lowStockQty)
-                        {
-                            totalLowStockCount++;
-                        }
-                    }
-                }
+                //if (getProject != null)
+                //{
+                //    if (int.TryParse(getProject.AvailableProductQty, out int availableQty) &&
+                //        int.TryParse(getProject.LowStockQuantity, out int lowStockQty))
+                //    {
+                //        if (availableQty <= lowStockQty)
+                //        {
+                //            totalLowStockCount++;
+                //        }
+                //    }
+                //}
+                //ViewBag.TotalLowStock = totalLowStockCount;
+
+                //End Old Code for Get LowStockCount i think this code getting wrong count
 
                 getStockInList.Add(new StockInViewModel
                 {
@@ -115,7 +119,21 @@ namespace InventoryManagement.Controllers
                 });       
             }
 
+           
+
+            //Start Code for Get LowStockCount
+            var products = _context.TblProducts
+            .Where(p => p.IsDeleted == false)
+            .ToList();
+
+            int totalLowStockCount = products.Count(p =>
+                int.TryParse(p.AvailableProductQty, out int availableQty) &&
+                int.TryParse(p.LowStockQuantity, out int lowStockQty) &&
+                availableQty <= lowStockQty
+            );
+
             ViewBag.TotalLowStock = totalLowStockCount;
+            //End Code for Get LowStockCount
 
             var viewModel = new StockInListViewModel
             {
@@ -286,7 +304,7 @@ namespace InventoryManagement.Controllers
             }
 
             var batchesQuery = _context.TblStockIns
-                .Where(x => x.IsDeleted == false && x.StockInId != 0)
+                .Where(x => x.IsDeleted == false && x.StockInId != 0).OrderByDescending(x => x.BatchNo)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
@@ -341,7 +359,7 @@ namespace InventoryManagement.Controllers
             int totalRecords = batchGroupList.Count();
 
             var paginatedBatches = batchGroupList
-               .OrderByDescending(x => x.Date)
+               .OrderByDescending(x => x.BatchId)
                .Skip((pageNumber - 1) * pageSize)
                .Take(pageSize)
                .ToList();
