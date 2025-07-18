@@ -1,14 +1,5 @@
-﻿@* @model List<InventoryManagement.ViewModels.ProductViewModel> *@
-@model InventoryManagement.ViewModels.ProductListViewModel
-
-@{
-    var pagination = Model.Pagination;
-    int totalOrders = pagination.TotalRecords;
-    int currentPage = pagination.CurrentPage;
-    int pageSize = pagination.PageSize;
-    int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
-    string serchquery = pagination.SearchTerm;
-}
+﻿@using InventoryManagement.ViewModels
+@model RackNoListViewModel
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
@@ -26,6 +17,15 @@
     }
 
 </style>
+
+@{
+    var pagination = Model.Pagination;
+    int totalOrders = pagination.TotalRecords;
+    int currentPage = pagination.CurrentPage;
+    int pageSize = pagination.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+    string serchquery = pagination.SearchTerm;
+}
 
 <style>
     .custom-pagination .page-item .page-link {
@@ -49,33 +49,22 @@
         }
 </style>
 
-
 <div class="main-content">
-
     <div class="row">
         <div class="col-md-12 grid-margin">
             <div class="d-flex justify-content-between flex-wrap">
                 <div class="d-flex align-items-end flex-wrap">
                     <div class="mr-md-3 mr-xl-5">
-                        <h2>Product List</h2>
+                        <h2>Rack No</h2>
 
                     </div>
 
                 </div>
                 <div class="d-flex justify-content-between align-items-end flex-wrap">
 
-                    <button class="btn btn-primary mr-3 mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#productFormModal">Add Product</button>
-                    <a asp-action="BarcodePrint" asp-controller="Master" class="btn btn-primary mt-2 mt-xl-0">Print Barcode</a>
-
-                    @* <form asp-action="ProductExportToExcel" asp-controller="Master" method="get" style="display: inline;">
-                        <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
-                        <button type="submit" class="btn btn-success mt-2 mt-xl-0">
-                            Export to Excel
-                        </button>
-                    </form> *@
+                    <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#rackNoFormModal">Create RackNo</button>
 
                 </div>
-
             </div>
         </div>
     </div>
@@ -131,12 +120,13 @@
                 <label>
                     Search:<input type="search" id="searchQuery" value="@serchquery" oninput="searchfilterquery();" style="margin-left:.5em;display: inline-block;width: auto;height: 30px; border-radius: 20px; border: 1px solid #5e5a5a;" class="form-control form-control-sm" placeholder="" aria-controls="example">
                 </label>
-                <form asp-action="ProductExportToExcel" asp-controller="Master" method="get" style="display: inline;">
+                @* <form asp-action="ExportWarehouseToExcel" method="post" style="display: inline; margin-bottom: 1rem;">
                     <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
                     <button type="submit" class="btn btn-success mt-2 mt-xl-0">
                         Export to Excel
                     </button>
-                </form>
+                </form> *@
+
             </div>
         </div>
 
@@ -149,105 +139,62 @@
 
         <script>
             $(document).ready(function () {
-                var searchInput = $('#searchQuery');
-                searchInput.focus();
+            var searchInput = $('#searchQuery');
+            searchInput.focus();
 
 
-                var val = searchInput.val();
-                searchInput.val('').val(val);
+            var val = searchInput.val();
+            searchInput.val('').val(val);
             });
         </script>
     }
 
-
     <div class="table-container">
-        @if (Model != null && Model.Products.Any())
+        @if (Model != null && Model.rackNo.Any())
         {
             int SrNo = pageSize * (currentPage - 1);
             <table>
-
+                <!-- class="table table-bordered" -->
                 <thead>
                     <tr>
                         <th>No.</th>
-                        <th>Product Name</th>
-                        <th>SKU Name</th>
-                        <th>Alias Name</th>
+                        <th>Warehouse Name</th>
+                        <th>Rack No</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
 
-                    @foreach (var item in Model.Products)
+
+                    @foreach (var item in Model.rackNo)
                     {
                         SrNo++;
                         <tr>
-
                             <td>@SrNo</td>
-                            <td>@item.ProductName</td>
-                            <td>@item.SkuIdName</td>
-
+                            <td>@item.WarehouseName</td>
+                            <td>@item.RackNo</td>
                             <td>
-                                @if (item.AliasNames != null && item.AliasNames.Any())
-                                {
-                                    var aliasString = string.Join(", ", item.AliasNames);
-                                    var words = aliasString.Split(' ');
-                                    var lines = new List<string>();
-                                    var currentLine = "";
-
-                                    foreach (var word in words)
-                                    {
-                                        if ((currentLine.Length + word.Length + (currentLine == "" ? 0 : 1)) <= 25)
-                                        {
-                                            currentLine += (currentLine == "" ? "" : " ") + word;
-                                        }
-                                        else
-                                        {
-                                            lines.Add(currentLine);
-                                            currentLine = word;
-                                        }
-                                    }
-
-                                    if (!string.IsNullOrEmpty(currentLine))
-                                    {
-                                        lines.Add(currentLine);
-                                    }
-
-                                    foreach (var line in lines)
-                                    {
-                                        @line
-
-                                        <br />
-                                    }
-                                }
-                                else
-                                {
-                                    <span>-</span>
-                                }
-                            </td>
-
-
-
-                            <td>
-
-                                <a asp-action="EditProduct" asp-route-id="@item.ProductId" class="edit-link text-green-600 hover:underline" title="Edit" style="color: black;">
+                                <a href="#" class="edit-link text-green-600 hover:underline" onclick="openEditModal(@item.RackId, '@item.FKWarehouseId', '@item.RackNo')" title="Edit" style="color: black;">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
+                               
 
-                                @* &nbsp;|&nbsp;
-                                <a href="#" class="delete-link text-red-600 hover:underline" onclick="openDeleteModal(@item.ProductId)" title="Delete" style="color: black;">
+                                &nbsp;|&nbsp;
+                                <a href="#" class="delete-link text-red-600 hover:underline" title="Delete" style="color: black;" onclick="openDeleteModal(@item.RackId)">
                                     <i class="fas fa-trash-alt"></i> Delete
-                                </a> *@
+                                </a>
                             </td>
+
                         </tr>
-
-
                     }
+
+
                 </tbody>
             </table>
         }
         else
         {
-            <p>No records found.</p>
+            <td>Records Not Found</td>
         }
 
     </div>
@@ -279,7 +226,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("Product", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                            <a href="@Url.Action("RackNo", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
                         }
                     </li>
 
@@ -289,7 +236,7 @@
                         if (currentPage > 3)
                         {
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("Product", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                                <a href="@Url.Action("RackNo", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
                             </li>
                             if (currentPage > 4)
                             {
@@ -309,7 +256,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("Product", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("RackNo", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -322,7 +269,7 @@
                                 <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
                             }
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("Product", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                                <a href="@Url.Action("RackNo", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
                             </li>
                         }
                     }
@@ -340,7 +287,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("Product", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("RackNo", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -354,7 +301,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("Product", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                            <a href="@Url.Action("RackNo", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
                         }
                     </li>
 
@@ -363,75 +310,35 @@
         </div>
     </div>
 
+
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="productFormModal" tabindex="-1" aria-labelledby="productFormModalLabel" aria-hidden="true">
+
+<!-- Modal For Save New Data -->
+<div class="modal fade" id="rackNoFormModal" tabindex="-1" aria-labelledby="rackNoFormModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="productFormModalLabel">Add New Product</h5>
+                <h5 class="modal-title" id="rackNoFormModalLabel">Add RackNo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
             </div>
             <div class="modal-body">
-                <form asp-action="AddProduct" method="post" class="forms-sample">
-                    <div class="row">
-                        <div class="form-group col-md-12">
-                            <label for="ProductName">Product Name</label>
-                            <input type="text" class="form-control" name="ProductName" id="ProductName" placeholder="Product Name">
-                        </div>
+                <form asp-action="AddRackNo" method="post" class="forms-sample">
 
-                       
+                  
+                    <div class="form-group">
+                        <label for="warehouse">Room / Warehouse</label>
+                        <select asp-for="FKWarehouseId" class="form-control" id="warehouse" asp-items="Model.WarehouseList">
+                            @*  <option value="">Select Warehouse</option> *@
+                        </select>
+                    </div>
+                   
+
+                    <div class="form-group">
+                        <label for="warehouseName">Rack Number</label>
+                        <input type="text" name="RackNo" id="RackNo" class="form-control" placeholder="enter rack no">
                     </div>
 
-                    <div class="row">
-                        <div class="form-group col-md-6">
-                            <label for="SkuForSignleItem">SKU For Sigle Item</label>
-                            <input type="text" class="form-control" name="SkuForSignleItem" id="SkuForSignleItem" placeholder="Enter">
-                        </div>
-
-                        <div class="form-group col-md-6">
-                            <label for="SkuForBox">SKU For Box</label>
-                            <input type="text" class="form-control" name="SkuForBox" id="SkuForBox" placeholder="Enter">
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        
-                        @* <div class="form-group col-md-6">
-                            <label for="unit">Unit</label>
-                            <input type="text" class="form-control" name="unit" id="unit" placeholder="Enter Unit">
-                        </div> *@
-
-                        <div class="form-group col-md-6">
-                            <label for="LowStockQuantity">Low Stock Quantity</label>
-                            <input type="text" class="form-control" name="LowStockQuantity" id="LowStockQuantity" placeholder="Enter Quantity">
-                        </div>
-
-                        <div class="form-group col-md-6">
-                            <label for="AliasName">Product Alias 1</label>
-                            <input type="text" class="form-control" name="AliasNames[]" placeholder="Enter">
-                        </div>
-
-                    </div>
-
-
-
-                    <div class="row" id="aliasContainer">
-
-
-                        @* <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="productAlias2">Product Alias 2</label>
-                                <input type="text" class="form-control" id="productAlias2" placeholder="Enter">
-                            </div>
-                        </div> *@
-
-                    </div>
-
-                    <div>
-                        <a href="#" id="addAliasBtn" class="btn btn-link">Add Alias</a>
-                    </div>
 
 
                     <button type="submit" class="btn btn-primary mr-2">Submit</button>
@@ -443,57 +350,114 @@
 </div>
 
 
+<!-- Edit Modal -->
+<div class="modal fade" id="editRackNoModal" tabindex="-1" aria-labelledby="editRackNoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Rack No</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="EditRackNo" method="post">
+                    <input type="hidden" name="RackId" id="editRackId" />
+
+                    <div class="form-group">
+                        <label for="fkWarehouseId">Room / Warehouse</label>
+                        <select asp-for="FKWarehouseId" class="form-control" id="fkWarehouseId" asp-items="Model.WarehouseList">
+                           
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editRackNo">Rack Number</label>
+                        <input type="text" name="RackNo" id="editRackNo" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteRackNoModal" tabindex="-1" aria-labelledby="deleteRackNoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this rack no?</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post" asp-action="DeleteRackNo" asp-controller="Master">
+                    <input type="hidden" name="id" id="deleteRackNoId" />
+                    <button type="submit" class="btn btn-danger">Yes</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Code For Delete Data *@
+<script>
+    function openDeleteModal(id) {
+        document.getElementById('deleteRackNoId').value = id;
+        $('#deleteRackNoModal').modal('show');
+    }
+</script>
+
+@* Code For Get Edit data *@
+@* <script>
+    function openEditModal(id, fkWarehouseId, name) {
+        $('#editRackId').val(id);
+        $('#fkWarehouseId').val(fkWarehouseId);
+        $('#editRackNo').val(name);
+        $('#editRackNoModal').modal('show');
+    }
+</script> *@
+
+<script>
+    function openEditModal(id, fkWarehouseId, name) {
+    console.log('RackId:', id, 'FKWarehouseId:', fkWarehouseId, 'RackNo:', name);
+    $('#editRackId').val(id);
+    $('#fkWarehouseId').val(fkWarehouseId);
+    $('#editRackNo').val(name);
+    $('#editRackNoModal').modal('show');
+}
+</script>
+
+@* Code For delete data *@
+<script>
+    function openDeleteModal(id, name) {
+        $('#deleteRackNoId').val(id);
+        $('#deleteRackNoModal').modal('show');
+    }
+</script>
+
 
 <script>
     function searchfilterquery() {
         var searchQuery = document.getElementById('searchQuery').value;
         var pageSize = document.getElementById('rowQuantity').value;
-        window.location.href = `/Master/Product?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+        window.location.href = `/Master/RackNo?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
     }
 
     function updateRowQuantity() {
         var pageSize = document.getElementById('rowQuantity').value;
         var searchQuery = document.getElementById('searchQuery').value;
-        window.location.href = `/Master/Product?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+        window.location.href = `/Master/RackNo?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
     }
 </script>
-
-
-@* Start Code for Model Add New Alias TextBox *@
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let aliasCount = 1;
-        const aliasContainer = document.getElementById("aliasContainer");
-        const addAliasBtn = document.getElementById("addAliasBtn");
-
-        addAliasBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-            aliasCount++;
-
-
-            const newAliasDiv = document.createElement("div");
-            newAliasDiv.classList.add("col-md-6");
-
-             newAliasDiv.innerHTML = `
-                <div class="form-group">
-                    <label>Product Alias ${aliasCount}</label>
-                    <input type="text" class="form-control" name="AliasNames[]" placeholder="Enter">
-                </div>
-            `;
-
-            aliasContainer.appendChild(newAliasDiv);
-        });
-    });
-</script>
-@* End Code for Model Add New Alias TextBox *@
-
-
-
 
 @* Code For Multi Click Not save multiples record on multiple click*@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.querySelector('#productFormModal form');
+        const form = document.querySelector('#rackNoFormModal form');
         const submitButton = form.querySelector('button[type="submit"]');
 
         form.addEventListener('submit', function () {
@@ -502,22 +466,3 @@
         });
     });
 </script>
-
-@section Scripts {
-    <script>
-        function addAlias() {
-            const index = document.querySelectorAll("#alias-container input").length;
-            const container = document.getElementById("alias-container");
-            const div = document.createElement("div");
-            div.className = "input-group mb-2";
-            div.innerHTML = `<input type="text" name="EditProduct.AliasNames[${index}]" class="form-control" />
-                             <button type="button" class="btn btn-danger" onclick="removeAlias(this)">Remove</button>`;
-            container.appendChild(div);
-        }
-
-        function removeAlias(button) {
-            button.parentElement.remove();
-        }
-    </script>
-}
-

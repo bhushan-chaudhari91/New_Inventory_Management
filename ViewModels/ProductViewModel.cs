@@ -5,6 +5,8 @@
         public int ProductId { get; set; }
         public string ProductName { get; set; }
         public string SkuIdName { get; set; }
+        public string SkuForSignleItem { get; set; }
+        public string SkuForBox { get; set; }
         public string LowStockQuantity { get; set; }
         public string unit { get; set; }
         public bool IsDeleted { get; set; }

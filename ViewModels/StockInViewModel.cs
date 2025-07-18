@@ -34,16 +34,10 @@ namespace InventoryManagement.ViewModels
         public string Barcode { get; set; }
 
         public string ProductStatus { get; set; }
+        public decimal TotalBox { get; set; }
+        public decimal PerBoxQty { get; set; }
 
-        public bool IsDeleted { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public int CreatedBy { get; set; }
-
-        public DateTime UpdatedAt { get; set; }
-
-        public int UpdatedBy { get; set; }
+      
 
 
         public string ProductName { get; set; }

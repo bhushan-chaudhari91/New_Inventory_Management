@@ -36,6 +36,10 @@ public partial class DbInventoryContext : DbContext
 
     public virtual DbSet<TblUsersRole> TblUsersRoles { get; set; }
 
+    public virtual DbSet<TblSkuBarcode> TblSkuBarcodes { get; set; }
+
+    public virtual DbSet<TblRack> TblRacks { get; set; }
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -117,11 +121,13 @@ public partial class DbInventoryContext : DbContext
             entity.Property(e => e.FkSupplierId).HasColumnName("Fk_SupplierId");
             entity.Property(e => e.FkWarehouseId).HasColumnName("Fk_WarehouseId");
             entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
+            entity.Property(e => e.PerBoxQty).HasPrecision(10);
             entity.Property(e => e.Price).HasPrecision(10);
             entity.Property(e => e.ProductQuantity).HasMaxLength(45);
             entity.Property(e => e.ProductStatus).HasMaxLength(45);
             entity.Property(e => e.RackNo).HasMaxLength(45);
             entity.Property(e => e.Room).HasMaxLength(45);
+            entity.Property(e => e.TotalBox).HasPrecision(10);
             entity.Property(e => e.Type).HasMaxLength(45);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
@@ -230,6 +236,38 @@ public partial class DbInventoryContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
             entity.Property(e => e.RoleName).HasMaxLength(45);
+        });
+
+        modelBuilder.Entity<TblSkuBarcode>(entity =>
+        {
+            entity.HasKey(e => e.SkuId).HasName("PRIMARY");
+
+            entity.ToTable("tbl_sku_barcode");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime");
+            entity.Property(e => e.FkProductId).HasColumnName("Fk_ProductId");
+            entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Skuname)
+                .HasMaxLength(100)
+                .HasColumnName("SKUName");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<TblRack>(entity =>
+        {
+            entity.HasKey(e => e.RackId).HasName("PRIMARY");
+
+            entity.ToTable("tbl_rack");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime");
+            entity.Property(e => e.FkWarehouseId).HasColumnName("Fk_WarehouseId");
+            entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
+            entity.Property(e => e.RackNo).HasMaxLength(50);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
         OnModelCreatingPartial(modelBuilder);

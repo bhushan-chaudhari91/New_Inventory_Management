@@ -18,6 +18,10 @@ public partial class TblStockIn
 
     public string? Type { get; set; }
 
+    public decimal? TotalBox { get; set; }
+
+    public decimal? PerBoxQty { get; set; }
+
     public string? ProductQuantity { get; set; }
 
     public decimal? Price { get; set; }

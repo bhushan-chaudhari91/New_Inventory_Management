@@ -34,6 +34,34 @@
 </style>
 
 
+<style>
+
+    .card-body {
+        flex: 1 1 auto;
+        padding: 15px;
+    }
+
+    .card-soft {
+        background-color: #f5f9ff;
+        border: 1px solid #e0e6ed;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .btn-soft {
+        background-color: #e0edff;
+        border: none;
+        color: #285bc7;
+        font-weight: 500;
+    }
+
+        .btn-soft:hover {
+            background-color: #c7dcff;
+            color: #2149a7;
+        }
+</style>
+
 <div>
     <div class="row" style="margin-top: -35px; margin-left: -20px;">
         <div class="col-md-12 grid-margin stretch-card">
@@ -52,8 +80,8 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end flex-wrap">
 
-                                   @*  <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Upload Excel</button> *@
-
+                                    <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#productFormModal"> + Add New Product</button>
+                                    
                                 </div>
                             </div>
                             <hr />
@@ -63,61 +91,106 @@
                     @* <button class="btn btn-primary mr-3 mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#productFormModal">Add Product</button> *@
 
                     <form asp-action="StockIn" method="post" class="forms-sample" id="stockForm">
-                        <div class="row">
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="date">Date</label>
-                                    <input type="date" class="form-control" id="date" value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                        <div class="container my-4">
+                            <div class="row g-4">
+                                <div class="col-md-9">
+                                    <div class="card-soft">
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="date">Date</label>
+                                                    <input type="date" class="form-control" id="date" value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="batchNo">Batch No</label>
+                                                    <input asp-for="BatchNo" type="text" class="form-control" value="@Model.BatchNo" id="batchNo" placeholder="Batch No" readonly>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="col-md-3" style="display: none;">
+                                                <div class="form-group">
+                                                    <label for="supplierName">Supplier</label>
+                                                    <input type="text" class="form-control" id="supplierName" placeholder="SupplierName" />
+                                                    <input type="hidden" id="FkSupplierId" name="FkSupplierId" value="1" />
+                                                    <ul id="supplierList" class="autocomplete-list" style="display: none;"></ul>
+                                                </div>
+                                            </div>
+
+
+                                            @* <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="warehouse">Room / Warehouse</label>
+                                                    <select asp-for="FkWarehouseId" class="form-control" id="warehouse" asp-items="Model.WarehouseList">
+                                                       
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="rackNo">Rack No</label>
+                                                    <input asp-for="RackNo" type="text" class="form-control" id="rackNo" placeholder="rack no">
+                                                </div>
+                                            </div> *@
+
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="warehouse">Room / Warehouse</label>
+                                                    <select asp-for="FkWarehouseId" class="form-control" id="warehouse">
+                                                        @foreach (var item in Model.WarehouseList)
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="rackNo">Rack No</label>
+                                                    <select asp-for="RackNo" class="form-control" id="rackNo">
+
+                                                    </select>
+                                                </div>
+                                            </div>
+
+
+
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="batchNo">Batch No</label>
-                                    <input asp-for="BatchNo" type="text" class="form-control" value="@Model.BatchNo" id="batchNo" placeholder="Batch No" readonly>
-                                </div>
-                            </div>
-
-
-                            <div class="col-md-2" style="display: none;">
-                                <div class="form-group">
-                                    <label for="supplierName">Supplier</label>
-                                    <input type="text" class="form-control" id="supplierName" placeholder="SupplierName" />
-                                    <input type="hidden" id="FkSupplierId" name="FkSupplierId" value="1" />
-                                    <ul id="supplierList" class="autocomplete-list" style="display: none;"></ul>
-                                </div>
-                            </div>
-
-
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="warehouse">Room / Warehouse</label>
-                                    <select asp-for="FkWarehouseId" class="form-control" id="warehouse" asp-items="Model.WarehouseList">
-                                       @*  <option value="">Select Warehouse</option> *@
-                                    </select>
-                                </div>
-                            </div>
-
-                            @* <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="warehouse">Room</label>
-                                    <input type="text" class="form-control" id="warehouse" placeholder="SelectRoom" />
-                                    <input type="hidden" id="FkWarehouseId" name="FkWarehouseId" />
-                                    <ul id="warehouseList" class="autocomplete-list" style="display: none;"></ul>
-                                </div>
-                            </div> *@
-
-                            @* <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="product">Product</label>
-                                    <select asp-for="FkProductId" class="form-control" id="product" asp-items="Model.ProductList">
-                                        <option value="">Select Product</option>
-                                    </select>
+                                <!-- Right Card with Import Buttons -->
+                                <div class="col-md-3">
                                    
+                                    <div class="card p-3 mr-3" style="width: 240px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); background: #f5f9ff;">
+                                        <small class="text-muted" style="text-align: center;">Import Excel File Data</small><br />
+                                        <button type="button" class="btn btn-soft mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Import Individual Items</button><br />
+                                        <button type="button" class="btn btn-soft mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#importBoxItemsExcel">Import Box Items</button>
+                                    </div>
                                 </div>
-                            </div> *@
 
-                            <div class="col-md-2">
+                            </div>
+                        </div>
+
+                        
+
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="sku">Barcode</label>
+                                    <input asp-for="SKUName" type="text" class="form-control" id="sku" placeholder="barcode" />
+                                    <ul id="skuList" class="autocomplete-list" style="display: none;"></ul>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="product">Product</label>
                                     <input type="text" class="form-control" id="product" placeholder="ProductName" />
@@ -126,33 +199,11 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-2">
-                                <div class="form-group" style="margin-top: 7px;">
-                                    <a href="#" class="btn btn-link mt-4" data-bs-toggle="modal" data-bs-target="#productFormModal" style="text-decoration: none;">Add Product</a>
-                                </div>
-                            </div>
-                            
-                        </div>
 
-                        <div class="row">
 
-                            <div class="col-md-1">
-                                <div class="form-group">
-                                    <div class="form-check">
-                                        <input asp-for="Type" type="checkbox" class="form-check-input" id="type" value="true" style="margin-left:11%; margin-top: 4px;">
-                                        <label class="form-check-label" for="type" style="margin-top: 42px; font-size: 14px; font-weight: 700;">Is Box</label>
-                                    </div>
-                                </div>
-                            </div>
+                           
 
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="productQuantity">Product Quantity</label>
-                                    <input asp-for="ProductQuantity" type="number" class="form-control" id="productQuantity" placeholder="Quantity" value="1" min="1" step="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
-                                </div>
-                            </div>
-
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="price">Price</label>
                                     <input asp-for="Price" type="text" class="form-control" id="price" placeholder="price">
@@ -166,16 +217,42 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-2" style="display: none;">
+                            
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="rackNo">Rack No</label>
-                                    <input asp-for="RackNo" type="text" class="form-control" id="rackNo" placeholder="Enter">
+                                    <div class="form-check">
+                                        <input asp-for="Type" type="checkbox" class="form-check-input" id="type" value="true" style="margin-left:1%; margin-top: 8px;">
+                                        <label class="form-check-label" for="type" style="font-size: 20px; font-weight: 700;">Is Box</label>
+                                    </div>
                                 </div>
                             </div>
-                       
+                        </div>
 
-                           
+                        <div class="row">
 
+                            <div class="col-md-2" id="totalBoxContainer">
+                                <div class="form-group">
+                                    <label for="totalBox">Total Box</label>
+                                    <input asp-for="TotalBox" type="text" class="form-control" id="totalBox" placeholder="Enter">
+                                </div>
+                            </div>
+
+                            <div class="col-md-2" id="perBoxQtyContainer">
+                                <div class="form-group">
+                                    <label for="perBoxQty">Per Box Qty</label>
+                                    <input asp-for="PerBoxQty" type="text" class="form-control" id="perBoxQty" placeholder="Enter">
+                                </div>
+                            </div>
+              
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="productQuantity">Product Quantity</label>
+                                    <input asp-for="ProductQuantity" type="number" class="form-control" id="productQuantity" placeholder="Quantity" value="1" min="1" step="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                </div>
+                            </div>
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary mr-2" style="margin-top: 32px;" id="addButton">+ Add</button>
@@ -197,6 +274,8 @@
                                         <th>Batch No</th>
                                         <th style="display: none;">Supplier</th>
                                         <th>Room</th>
+                                        <th>Total Box</th>
+                                        <th>PerBoxQty</th>
                                         <th style="display: none;">Type</th>
                                         <th style="display: none;">Room</th>
                                         <th style="display: none;">Rack No</th>
@@ -217,7 +296,7 @@
 
 
         <!-- Modal For Choose Excel File -->
-        <div class="modal fade" id="excelUploadModal" tabindex="-1" aria-labelledby="excelUploadModalLabel" aria-hidden="true">
+        @* <div class="modal fade" id="excelUploadModal" tabindex="-1" aria-labelledby="excelUploadModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
 
@@ -237,7 +316,7 @@
 
                 </div>
             </div>
-        </div>
+        </div> *@
 
 
     </div>
@@ -298,7 +377,68 @@
     </div>
 </div>
 
+
+<!-- Modal For Import Individual Items Excel File -->
+<form asp-action="StockInDataExcelImport" asp-controller="Inventory" method="post" enctype="multipart/form-data">
+    <div class="modal fade" id="excelUploadModal" tabindex="-1" aria-labelledby="excelUploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="excelUploadModalLabel">Import Individual Items Excel File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="file" id="excelFile" name="file" accept=".xls,.xlsx" class="form-control" required />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<!-- Modal For Import Box Items Excel File -->
+<form asp-action="ImportBoxItems" asp-controller="Inventory" method="post" enctype="multipart/form-data">
+    <div class="modal fade" id="importBoxItemsExcel" tabindex="-1" aria-labelledby="importBoxItemsExcelLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importBoxItemsExcelLabel">Import Box Items Excel File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="file" id="excelFile" name="file" accept=".xls,.xlsx" class="form-control" required />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+
+
 <script>
+
+        // Prevent Enter key from triggering form submission or button click
+    // document.getElementById('stockForm').addEventListener('keydown', function (e) {
+    //     if (e.key === "Enter") {
+    //         e.preventDefault();
+    //     }
+    // });
+
 
      let serialNumber = 1;
 
@@ -307,24 +447,21 @@
 
         // Get values
         const date = document.getElementById('date').value;
-        // const productId = document.getElementById('product').value;
-        // const productText = document.getElementById('product').options[document.getElementById('product').selectedIndex].text;
         const productText = document.getElementById('product').value;
         const productId = document.getElementById('FkProductId').value;
         const price = document.getElementById('price').value;
         const productQuantity = document.getElementById('productQuantity').value;
         const batchNo = document.getElementById('batchNo').value;
-        // const supplierId = document.getElementById('supplierName').value;
-        // const supplierText = document.getElementById('supplierName').options[document.getElementById('supplierName').selectedIndex].text;
         const supplierText = document.getElementById('supplierName').value;
         const supplierId = document.getElementById('FkSupplierId').value;
         const warehouseId = document.getElementById('warehouse').value;
         const warehouseText = document.getElementById('warehouse').options[document.getElementById('warehouse').selectedIndex].text;
-        // const warehouseText = document.getElementById('warehouse').value;
-        // const warehouseId = document.getElementById('FkWarehouseId').value;
         const type = document.getElementById('type').checked ? 'Box' : 'Product';
         const room = document.getElementById('room').value;
         const rackNo = document.getElementById('rackNo').value;
+        const barcode = document.getElementById('sku').value;
+        const totalBox = document.getElementById('totalBox').value;
+        const perBoxQty = document.getElementById('perBoxQty').value;
 
         // Validate required fields
         if (!date || !batchNo || !supplierId || !warehouseId || !productId || !productQuantity) {
@@ -339,24 +476,6 @@
 
                 const barcodeNo = data.barcode;
 
-                // const existingRows = document.querySelectorAll("#stockTable tbody tr");
-                // const productPrefix = productText.substring(0, 2).toUpperCase();
-                // let maxNumber = parseInt(data.barcode.replace(productPrefix, '')); 
-                // var cts = 0;
-                // existingRows.forEach(row => {
-                //     const rowProductId = row.dataset.productId;
-                //     if (rowProductId === productId) {
-                //         cts = cts + 1;
-                        
-                //     }
-                // });
-
-                // console.log("max number = "+maxNumber+"");
-                // console.log("cts number = "+cts+"");
-
-                // const nextNumber = maxNumber + cts;
-                // const barcodeNo = productPrefix + nextNumber.toString().padStart(6, '0');
-
                 // Now add the row to the table
                 const table = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
                 const newRow = table.insertRow();
@@ -365,7 +484,8 @@
                 newRow.insertCell(0).textContent = serialNumber++;
                 newRow.insertCell(1).textContent = date;
                 newRow.insertCell(2).textContent = productText;
-                newRow.insertCell(3).textContent = barcodeNo;
+                //newRow.insertCell(3).textContent = barcodeNo;
+                newRow.insertCell(3).textContent = barcode;
                 newRow.insertCell(4).textContent = price;
                 newRow.insertCell(5).textContent = productQuantity;
                 newRow.insertCell(6).textContent = batchNo;
@@ -374,6 +494,8 @@
                 newRow.insertCell(9).textContent = type;
                 newRow.insertCell(10).textContent = room;
                 newRow.insertCell(11).textContent = rackNo;
+                newRow.insertCell(12).textContent = totalBox;
+                newRow.insertCell(13).textContent = perBoxQty;
 
                 // Hide unnecessary columns
                 newRow.cells[1].style.display = 'none';
@@ -383,7 +505,7 @@
                 newRow.cells[11].style.display = 'none';
 
                 // Add remove button
-                const removeCell = newRow.insertCell(12);
+                const removeCell = newRow.insertCell(14);
                 const removeButton = document.createElement('button');
                 removeButton.textContent = 'Remove';
                 removeButton.className = 'btn btn-danger btn-sm';
@@ -449,11 +571,14 @@
                 FkProductId: row.dataset.productId,
                 Type: row.dataset.type === 'true' ? '1' : '2',
                 ProductQuantity: cells[5].textContent,
-                barcodeNo: cells[3].textContent,
+                //barcodeNo: cells[3].textContent,
+                Barcode: cells[3].textContent,
                 Room: cells[10].textContent,
                 Price: cells[4].textContent,
                 RackNo: cells[11].textContent,
-                Barcode: ""
+                TotalBox: cells[12].textContent,
+                PerBoxQty: cells[13].textContent,
+                //Barcode: ""
             };
             stockData.push(stockItem);
         });
@@ -482,6 +607,12 @@
         });
     });
 </script>
+
+
+
+
+
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -701,7 +832,362 @@
 </script> *@
 
 
+
+
+
+@* Start This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
+
 <script>
+    $(document).ready(function () {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var $skuInput = $('#sku');
+        var selectedIndex = -1;
+
+        // ProductName Input Autocomplete
+        $productInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProducts',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $productList.empty();
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $productList.append(
+                            $('<li>').text(item.productName)
+                                .attr('data-id', item.id)
+                                .attr('data-sku', item.skuName)
+                                .on('click', function () {
+                                    $productInput.val(item.productName);
+                                    $skuInput.val(item.skuName); // show SKU
+                                    $productId.val(item.id);
+                                    $productList.hide().empty();
+                                })
+                        );
+                    });
+
+                    $productList.show();
+                },
+                error: function () {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.data('id'));
+                        $skuInput.val(selected.data('sku'));
+                        $productList.hide().empty();
+                    }
+                }
+            }
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#product, #productList').length) {
+                $productList.hide().empty();
+            }
+        });
+
+        // Handle SKU Input (Scan barcode)
+        $skuInput.on('change', function () {
+            var sku = $(this).val().trim();
+            if (sku.length < 1) {
+                $productInput.val('');
+                $productId.val('');
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProductBySku',
+                type: 'GET',
+                data: { sku: sku },
+                success: function (data) {
+                    if (data) {
+                        $productInput.val(data.productName);
+                        $productId.val(data.productId);
+                    } else {
+                        $productInput.val('');
+                        $productId.val('');
+                    }
+                },
+                error: function () {
+                    $productInput.val('');
+                    $productId.val('');
+                }
+            });
+        });
+
+        $productInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+                $skuInput.val('');
+            }
+        });
+
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script>
+
+@* Start This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
+
+
+
+
+
+
+
+
+@*  Start this Code for show SKUName list AutoComplete Dropdown *@
+@* <script>
+    $(document).ready(function () {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var $skuInput = $('#sku');
+        var $skuList = $('#skuList');
+        var selectedIndexProduct = -1;
+        var selectedIndexSku = -1;
+
+        // ------------------ Product autocomplete ------------------
+        $productInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndexProduct = -1;
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProducts',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $productList.empty();
+
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $('<li>').text(item.productName)
+                            .attr('data-id', item.id)
+                            .on('click', function () {
+                                $productInput.val(item.productName);
+                                $productId.val(item.id);
+                                $productList.hide().empty();
+
+                                // Fetch SKU for selected Product
+                                fetchSkuForProduct(item.id);
+                            })
+                            .appendTo($productList);
+                    });
+
+                    $productList.show();
+                },
+                error: function () {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+        function fetchSkuForProduct(productId) {
+            $.ajax({
+                url: '/Inventory/GetProductSkuByProductId',
+                type: 'GET',
+                dataType: 'json',
+                data: { productId: productId },
+                success: function (data) {
+                    if (data && data.skuName) {
+                        $skuInput.val(data.skuName);
+                    } else {
+                        $skuInput.val('');
+                    }
+                }
+            });
+        }
+
+        // Keyboard navigation for Product
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndexProduct < items.length - 1) {
+                        selectedIndexProduct++;
+                        highlightItem(items, selectedIndexProduct);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndexProduct > 0) {
+                        selectedIndexProduct--;
+                        highlightItem(items, selectedIndexProduct);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndexProduct >= 0 && selectedIndexProduct < items.length) {
+                        var selected = $(items[selectedIndexProduct]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.data('id'));
+                        $productList.hide().empty();
+                        fetchSkuForProduct(selected.data('id'));
+                    }
+                }
+            }
+        });
+
+        // ------------------ SKU autocomplete ------------------
+        $skuInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndexSku = -1;
+            if (term.length < 1) {
+                $skuList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetSkus',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $skuList.empty();
+
+                    if (data.length === 0) {
+                        $skuList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $('<li>').text(item.skuName + " (" + item.productName + ")")
+                            .attr('data-id', item.productId)
+                            .attr('data-product', item.productName)
+                            .attr('data-sku', item.skuName)
+                            .on('click', function () {
+                                $skuInput.val(item.skuName);
+                                $productInput.val(item.productName);
+                                $productId.val(item.productId);
+                                $skuList.hide().empty();
+                            })
+                            .appendTo($skuList);
+                    });
+
+                    $skuList.show();
+                },
+                error: function () {
+                    $skuList.hide().empty();
+                }
+            });
+        });
+
+        // Keyboard navigation for SKU
+        $skuInput.on('keydown', function (e) {
+            var items = $skuList.find('li');
+            if ($skuList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndexSku < items.length - 1) {
+                        selectedIndexSku++;
+                        highlightItem(items, selectedIndexSku);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndexSku > 0) {
+                        selectedIndexSku--;
+                        highlightItem(items, selectedIndexSku);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndexSku >= 0 && selectedIndexSku < items.length) {
+                        var selected = $(items[selectedIndexSku]);
+                        $skuInput.val(selected.data('sku'));
+                        $productInput.val(selected.data('product'));
+                        $productId.val(selected.data('id'));
+                        $skuList.hide().empty();
+                    }
+                }
+            }
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#product, #productList, #sku, #skuList').length) {
+                $productList.hide().empty();
+                $skuList.hide().empty();
+            }
+        });
+
+        $productInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+                $skuInput.val('');
+            }
+        });
+
+        $skuInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productInput.val('');
+                $productId.val('');
+            }
+        });
+
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script> *@
+@*  End this Code for show SKUName list AutoComplete Dropdown *@
+
+
+
+
+
+
+
+
+
+
+@*  Start this Code for Only Show The ProductNames in  AutoComplete Dropdown *@
+@* <script>
     $(document).ready(function() {
         var $productInput = $('#product');
         var $productList = $('#productList');
@@ -797,6 +1283,209 @@
             $(items[index]).addClass('highlighted');
         }
     });
-</script>
+</script> *@
+@*  Start this Code for Only Show The ProductNames in  AutoComplete Dropdown *@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@* Start this code for Hide the TotalBox & PerBoxQty *@
+<script>
+    $(document).ready(function() {
+
+        function toggleBoxFields() {
+            if ($('#type').is(':checked')) {
+                $('#totalBoxContainer').show();
+                $('#perBoxQtyContainer').show();
+            } else {
+                $('#totalBoxContainer').hide();
+                $('#perBoxQtyContainer').hide();
+            }
+        }
+
+        toggleBoxFields();
+
+        $('#type').change(function() {
+            toggleBoxFields();
+        });
+    });
+</script>
+@* End this code for Hide the TotalBox & PerBoxQty *@
+
+
+@* Start this code for Calucate the TotalBox & PerBoxQty *@
+<script>
+    $(document).ready(function() {
+        function toggleBoxFields() {
+            if ($('#type').is(':checked')) {
+                // Show the fields
+                $('#totalBoxContainer').show();
+                $('#perBoxQtyContainer').show();
+
+                // Make ProductQuantity read-only
+                $('#productQuantity').prop('readonly', true);
+
+
+                calculateProductQuantity();
+            } else {
+                // Hide the fields
+                $('#totalBoxContainer').hide();
+                $('#perBoxQtyContainer').hide();
+
+                // Make ProductQuantity editable
+                $('#productQuantity').prop('readonly', true);
+            }
+        }
+
+        function calculateProductQuantity() {
+            const totalBox = parseFloat($('#totalBox').val()) || 0;
+            const perBoxQty = parseFloat($('#perBoxQty').val()) || 0;
+            const productQuantity = totalBox * perBoxQty;
+            $('#productQuantity').val(productQuantity);
+        }
+
+        // Initial check on page load
+        toggleBoxFields();
+
+        // When checkbox changes
+        $('#type').change(function() {
+            toggleBoxFields();
+        });
+
+        // When totalBox or perBoxQty changes
+        $('#totalBox, #perBoxQty').on('input', function() {
+            if ($('#type').is(':checked')) {
+                calculateProductQuantity();
+            }
+        });
+    });
+</script>
+@* End this code for Calucate the TotalBox & PerBoxQty *@
+
+
+@* Start this code work for upload excel file and show SuccessMessage & ErrorMessage *@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var messages = "";
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <text>
+             messages += "<p style='color:green;'>@TempData["SuccessMessage"]</p>";
+        </text>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <text>
+              messages += "<p style='color:red;'>@TempData["ErrorMessage"]</p>";
+        </text>
+    }
+
+        if (messages !== "") {
+            Swal.fire({
+                icon: (messages.includes('failed')) ? 'error' : 'success',
+                title: 'Import Result',
+                html: messages,
+                confirmButtonText: 'Okay',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+        }
+    });
+</script>
+@* End this code work for upload excel file and show SuccessMessage & ErrorMessage *@
+
+
+
+
+
+
+
+@* Start This code for select Warehouse So show the rackno List*@
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#warehouse').change(function () {
+                var warehouseId = $(this).val();
+                if (warehouseId) {
+                    $.ajax({
+                        url: '/Inventory/GetRackNosByWarehouse', 
+                        type: 'GET',
+                        data: { warehouseId: warehouseId },
+                        success: function (data) {
+                            var $rackNo = $('#rackNo');
+                            $rackNo.empty();
+                            // $rackNo.append('<option value="">Select Rack No</option>');
+                            $.each(data, function (i, item) {
+                                $rackNo.append('<option value="' + item.rackNo + '">' + item.rackNo + '</option>');
+                            });
+                        },
+                        error: function () {
+                            alert('Failed to load rack numbers');
+                        }
+                    });
+                } else {
+                    $('#rackNo').empty().append('<option value="">Select Rack No</option>');
+                }
+            });
+
+            if ($('#warehouse').val()) {
+                $('#warehouse').trigger('change');
+            }
+        });
+    </script>
+}
+@* End This code for select Warehouse So show the rackno List*@
+
+
+
+@* Start this code for Click On Enter Button Not Add Data in Table Only click on AddButton & Then Add Data In Table *@
+<script>
+    // 1. Prevent Enter from submitting the form except on the #sku field
+    $('#stockForm').on('keydown', function (e) {
+        if (e.key === 'Enter' && e.target.id !== 'sku') {
+            e.preventDefault();
+        }
+    });
+
+    // 2. Allow Enter on the SKU input to fetch and set product
+    $('#sku').on('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); 
+
+            const sku = $(this).val().trim();
+            if (sku.length < 1) {
+                $('#product').val('');
+                $('#FkProductId').val('');
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProductBySku',
+                type: 'GET',
+                data: { sku: sku },
+                success: function (data) {
+                    if (data) {
+                        $('#product').val(data.productName);
+                        $('#FkProductId').val(data.productId);
+                    } else {
+                        alert("Product not found.");
+                        $('#product').val('');
+                        $('#FkProductId').val('');
+                    }
+                },
+                error: function () {
+                    alert("Error fetching product.");
+                    $('#product').val('');
+                    $('#FkProductId').val('');
+                }
+            });
+        }
+    });
+
+</script>
+@* End this code for Click On Enter Button Not Add Data in Table Only click on AddButton & Then Add Data In Table *@

@@ -43,7 +43,9 @@ namespace InventoryManagement.Controllers
             {
                 stockInList = stockInList.Where(x => x.Barcode.Contains(searchTerm) ||
                                                      x.ProductQuantity.Contains(searchTerm) ||
-                                                     x.ProductStatus.Contains(searchTerm));
+                                                     x.ProductStatus.Contains(searchTerm) ||
+                                                     _context.TblProducts.Any(p => p.ProductId == x.FkProductId && p.ProductName.Contains(searchTerm)) ||
+                                                     _context.TblProductAliases.Any(a => a.FkProductId == x.FkProductId && a.AliasName.Contains(searchTerm)));
             }
 
             var groupedStockInList = stockInList
@@ -809,18 +811,97 @@ namespace InventoryManagement.Controllers
             return Json(warehose);
         }
 
+        //[HttpGet]
+        //public JsonResult GetProducts(string term)
+        //{
+        //    var product = _context.TblProducts
+        //        .Where(x => x.IsDeleted == false && x.ProductName.Contains(term))
+        //        .Select(x => new
+        //        {
+        //            id = x.ProductId,
+        //            productName = x.ProductName
+        //        }).ToList();
+
+        //    return Json(product);
+        //}
+
         [HttpGet]
         public JsonResult GetProducts(string term)
         {
-            var product = _context.TblProducts
+            var products = _context.TblProducts
                 .Where(x => x.IsDeleted == false && x.ProductName.Contains(term))
                 .Select(x => new
                 {
                     id = x.ProductId,
-                    productName = x.ProductName
+                    productName = x.ProductName,
+                    skuName = _context.TblSkuBarcodes
+                        .Where(s => s.FkProductId == x.ProductId)
+                        .Select(s => s.Skuname)
+                        .FirstOrDefault()
                 }).ToList();
 
-            return Json(product);
+            return Json(products);
+        }
+
+        [HttpGet]
+        public JsonResult GetProductBySku(string sku)
+        {
+            var result = (from skuEntry in _context.TblSkuBarcodes
+                          join product in _context.TblProducts on skuEntry.FkProductId equals product.ProductId
+                          where skuEntry.Skuname == sku && product.IsDeleted == false
+                          select new
+                          {
+                              productId = product.ProductId,
+                              productName = product.ProductName,
+                              skuName = skuEntry.Skuname
+                          }).FirstOrDefault();
+
+            return Json(result);
+        }
+
+
+        //[HttpGet]
+        //public JsonResult GetSkus(string term)
+        //{
+        //    var skus = _context.TblSkuBarcodes
+        //        .Where(s => s.Skuname.Contains(term))
+        //        .Select(s => new
+        //        {
+        //            skuName = s.Skuname,
+        //            productId = s.FkProductId,
+        //            productName = _context.TblProducts
+        //                .Where(p => p.ProductId == s.FkProductId)
+        //                .Select(p => p.ProductName)
+        //                .FirstOrDefault()
+        //        })
+        //        .ToList();
+
+        //    return Json(skus);
+        //}
+
+        //[HttpGet]
+        //public JsonResult GetProductSkuByProductId(int productId)
+        //{
+        //    var sku = _context.TblSkuBarcodes
+        //        .Where(s => s.FkProductId == productId)
+        //        .Select(s => s.Skuname)
+        //        .FirstOrDefault();
+
+        //    return Json(new { skuName = sku });
+        //}
+
+
+
+        [HttpGet]
+        public JsonResult GetRackNosByWarehouse(int warehouseId)
+        {
+            var rackNos = _context.TblRacks
+                .Where(r => r.FkWarehouseId == warehouseId && r.IsDeleted == 0)
+                .Select(r => new {
+                    RackNo = r.RackNo
+                }).ToList();
+
+            return Json(rackNos);
         }
 
 
@@ -928,11 +1009,13 @@ namespace InventoryManagement.Controllers
                     FkWarehouseId = item.FkWarehouseId,
                     FkProductId = item.FkProductId,
                     Type = item.Type,
+                    TotalBox = item.TotalBox,
+                    PerBoxQty = item.PerBoxQty,
                     ProductQuantity = item.ProductQuantity,
                     AvailableQuantity = item.ProductQuantity,
                     Room = item.Room,
                     RackNo = item.RackNo,
-                    Barcode = item.barcodeNo,
+                    Barcode = item.Barcode,
                     Price = item.Price,
                     IsDeleted = false,
                     CreatedAt = DateTime.Now,
@@ -1082,6 +1165,117 @@ namespace InventoryManagement.Controllers
         //}
 
 
+
+
+        [HttpGet]
+        public JsonResult GetProductsForStockOut(string term)
+        {
+            var products = _context.TblProducts
+                .Where(x => x.IsDeleted == false && x.ProductName.Contains(term))
+                .Select(x => new
+                {
+                    id = x.ProductId,
+                    productName = x.ProductName,
+                    skuName = _context.TblStockIns
+                        .Where(s => s.FkProductId == x.ProductId)
+                        .Select(s => s.Barcode)
+                        .FirstOrDefault()
+                }).ToList();
+
+            return Json(products);
+        }
+
+        //[HttpGet]
+        //public JsonResult GetProductByBarcodeInStockOut(string sku)
+        //{
+        //    var result = (from skuEntry in _context.TblStockIns
+        //                  join product in _context.TblProducts on skuEntry.FkProductId equals product.ProductId
+        //                  where skuEntry.Barcode == sku && product.IsDeleted == false
+        //                  select new
+        //                  {
+        //                      productId = product.ProductId,
+        //                      productName = product.ProductName,
+        //                      skuName = skuEntry.Barcode
+        //                  }).FirstOrDefault();
+
+        //    return Json(result);
+        //}
+
+        [HttpGet]
+        public JsonResult GetProductByBarcodeInStockOut(string sku)
+        {
+            var stocks = _context.TblStockIns
+                .Where(x => EF.Functions.Collate(x.Barcode, "utf8mb4_bin") == sku && x.IsDeleted == false)
+                .ToList();
+
+            if (stocks == null || !stocks.Any())
+            {
+                return Json(null);
+            }
+
+            var firstStock = stocks.First();
+
+            var product = _context.TblProducts
+                .FirstOrDefault(p => p.ProductId == firstStock.FkProductId && p.IsDeleted == false);
+
+            if (product == null)
+            {
+                return Json(null);
+            }
+
+            var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
+
+            var warehouseQuantities = stocks
+                .GroupBy(s => new { s.FkWarehouseId, s.RackNo })
+                .Select(g => new
+                {
+                    warehouseId = g.Key.FkWarehouseId,
+                    rackNo = g.Key.RackNo,
+                    totalQuantity = g.Sum(s => Convert.ToInt32(s.AvailableQuantity))
+                }).ToList();
+
+            var result = new
+            {
+                productId = product.ProductId,
+                productName = product.ProductName,
+                skuName = firstStock.Barcode,
+                stockInQuantity = totalAvailableQuantity,
+                warehouseQuantities = warehouseQuantities,
+                //type = firstStock.Type,
+                //perBoxQty = firstStock.PerBoxQty
+            };
+
+            return Json(result);
+        }
+
+        [HttpGet]
+        public JsonResult CheckStockAvailability(string sku, int warehouseId, string rackNo)
+        {
+            bool exists = _context.TblStockIns.Any(x =>
+                x.IsDeleted == false &&
+                x.Barcode == sku &&
+                x.FkWarehouseId == warehouseId &&
+                x.RackNo == rackNo);
+
+            return Json(exists);
+        }
+
+        
+
+        //[HttpGet]
+        //public JsonResult GetRackNosByWarehouse(int warehouseId)
+        //{
+        //    var rackNos = _context.TblRacks
+        //        .Where(r => r.FkWarehouseId == warehouseId && r.IsDeleted == 0)
+        //        .Select(r => new {
+        //            RackNo = r.RackNo
+        //        }).ToList();
+
+        //    return Json(rackNos);
+        //}
+
+
+
         [HttpGet]
         public IActionResult GetProductByBarcode(string barcode)
         {
@@ -1141,21 +1335,22 @@ namespace InventoryManagement.Controllers
         }
 
 
-        [HttpGet]
-        public IActionResult GetAvailableQuantity(string barcode, int warehouseId)
-        {
-            var stocks = _context.TblStockIns
-                .Where(x => x.IsDeleted == false && x.Barcode == barcode && x.FkWarehouseId == warehouseId)
-                .ToList();
 
-            if (stocks == null || !stocks.Any())
-            {
-                return Json(0); 
-            }
+        //[HttpGet]
+        //public IActionResult GetAvailableQuantity(string barcode, int warehouseId)
+        //{
+        //    var stocks = _context.TblStockIns
+        //        .Where(x => x.IsDeleted == false && x.Barcode == barcode && x.FkWarehouseId == warehouseId)
+        //        .ToList();
 
-            var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
-            return Json(totalAvailableQuantity);
-        }
+        //    if (stocks == null || !stocks.Any())
+        //    {
+        //        return Json(0); 
+        //    }
+
+        //    var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
+        //    return Json(totalAvailableQuantity);
+        //}
 
 
 
@@ -1273,22 +1468,51 @@ namespace InventoryManagement.Controllers
 
             foreach (var item in addStockOut)
             {
+                if (string.IsNullOrEmpty(item.Barcode) || item.FkProductId == 0 || string.IsNullOrEmpty(item.Quantity) || item.FkWarehouseId == 0 || string.IsNullOrEmpty(item.RackNo))
+                {
+                    return BadRequest($"Invalid data for stock item: Barcode, ProductId, Quantity, WarehouseId, or RackNo is missing.");
+                }
+
                 int stockOutQty = int.TryParse(item.Quantity, out var outQty) ? outQty : 0;
+                if (stockOutQty <= 0)
+                {
+                    return BadRequest($"Invalid quantity for barcode {item.Barcode}.");
+                }
 
-                //var stockInList = await _context.TblStockIns
-                //    .Where(x => x.Barcode == item.Barcode.ToString())
-                //    .OrderBy(x => x.StockInId) 
-                //    .ToListAsync();
-
+                // Fetch stock-in records matching Barcode, FkWarehouseId, and RackNo
                 var stockInList = await _context.TblStockIns
-                   .Where(x => x.Barcode == item.Barcode.ToString() && x.FkWarehouseId == item.FkWarehouseId)
-                   .OrderBy(x => x.StockInId)
-                   .ToListAsync();
+                    .Where(x => x.Barcode == item.Barcode &&
+                                x.FkWarehouseId == item.FkWarehouseId &&
+                                x.RackNo == item.RackNo &&
+                                x.IsDeleted == false)
+                    .OrderBy(x => x.StockInId)
+                    .ToListAsync();
+
+                if (!stockInList.Any())
+                {
+                    return BadRequest($"No stock found for barcode {item.Barcode} in warehouse {item.FkWarehouseId} and rack {item.RackNo}.");
+                }
 
                 var product = await _context.TblProducts
-                    .FirstOrDefaultAsync(x => x.ProductId == item.FkProductId);
+                    .FirstOrDefaultAsync(x => x.ProductId == item.FkProductId && x.IsDeleted == false);
+
+                if (product == null)
+                {
+                    return BadRequest($"Product with ID {item.FkProductId} not found.");
+                }
 
                 int currentProductQty = int.TryParse(product.AvailableProductQty, out var productQty) ? productQty : 0;
+                if (currentProductQty < stockOutQty)
+                {
+                    return BadRequest($"Insufficient product quantity for barcode {item.Barcode}. Available: {currentProductQty}, Requested: {stockOutQty}.");
+                }
+
+                int totalAvailableInRack = stockInList.Sum(s => int.TryParse(s.AvailableQuantity, out var qty) ? qty : 0);
+                if (totalAvailableInRack < stockOutQty)
+                {
+                    return BadRequest($"Insufficient stock in rack {item.RackNo} for barcode {item.Barcode}. Available: {totalAvailableInRack}, Requested: {stockOutQty}.");
+                }
+
                 int remainingQtyToDeduct = stockOutQty;
 
                 foreach (var stockIn in stockInList)
@@ -1312,13 +1536,13 @@ namespace InventoryManagement.Controllers
                         break;
                 }
 
-
+                // Update product available quantity
                 product.AvailableProductQty = (currentProductQty - stockOutQty).ToString();
                 _context.TblProducts.Update(product);
 
-                // Save stock-out transaction (linking to the last used stockIn)
+                // Save stock-out transaction, linking to the last used stockIn
                 var usedStockIn = stockInList.LastOrDefault(x => int.TryParse(x.AvailableQuantity, out var qty) && qty > 0)
-                                  ?? stockInList.Last(); // Fallback if all became 0
+                                  ?? stockInList.Last(); // Fallback to last record if all are 0
 
                 var stockOutEntry = new TblStockOut
                 {
@@ -1327,16 +1551,100 @@ namespace InventoryManagement.Controllers
                     Quantity = item.Quantity,
                     Reason = item.Reason,
                     StockOutDate = DateTime.Now,
-                    FkStockInId = usedStockIn.StockInId
+                    FkStockInId = usedStockIn.StockInId,
+                    //FkWarehouseId = item.FkWarehouseId, 
+                    //RackNo = item.RackNo 
                 };
 
                 await _context.TblStockOuts.AddAsync(stockOutEntry);
             }
 
-
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> StockOut([FromBody] List<StockOutViewModel> addStockOut)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    if (addStockOut == null || !addStockOut.Any())
+        //    {
+        //        return BadRequest("No stock data provided.");
+        //    }
+
+        //    foreach (var item in addStockOut)
+        //    {
+        //        int stockOutQty = int.TryParse(item.Quantity, out var outQty) ? outQty : 0;
+
+        //        //var stockInList = await _context.TblStockIns
+        //        //    .Where(x => x.Barcode == item.Barcode.ToString())
+        //        //    .OrderBy(x => x.StockInId) 
+        //        //    .ToListAsync();
+
+        //        var stockInList = await _context.TblStockIns
+        //           .Where(x => x.Barcode == item.Barcode.ToString() && x.FkWarehouseId == item.FkWarehouseId)
+        //           .OrderBy(x => x.StockInId)
+        //           .ToListAsync();
+
+        //        var product = await _context.TblProducts
+        //            .FirstOrDefaultAsync(x => x.ProductId == item.FkProductId);
+
+        //        int currentProductQty = int.TryParse(product.AvailableProductQty, out var productQty) ? productQty : 0;
+        //        int remainingQtyToDeduct = stockOutQty;
+
+        //        foreach (var stockIn in stockInList)
+        //        {
+        //            int currentQty = int.TryParse(stockIn.AvailableQuantity, out var availableQty) ? availableQty : 0;
+
+        //            if (remainingQtyToDeduct >= currentQty)
+        //            {
+        //                remainingQtyToDeduct -= currentQty;
+        //                stockIn.AvailableQuantity = "0";
+        //            }
+        //            else
+        //            {
+        //                stockIn.AvailableQuantity = (currentQty - remainingQtyToDeduct).ToString();
+        //                remainingQtyToDeduct = 0;
+        //            }
+
+        //            _context.TblStockIns.Update(stockIn);
+
+        //            if (remainingQtyToDeduct == 0)
+        //                break;
+        //        }
+
+
+        //        product.AvailableProductQty = (currentProductQty - stockOutQty).ToString();
+        //        _context.TblProducts.Update(product);
+
+        //        // Save stock-out transaction (linking to the last used stockIn)
+        //        var usedStockIn = stockInList.LastOrDefault(x => int.TryParse(x.AvailableQuantity, out var qty) && qty > 0)
+        //                          ?? stockInList.Last(); // Fallback if all became 0
+
+        //        var stockOutEntry = new TblStockOut
+        //        {
+        //            Barcode = item.Barcode,
+        //            FkProductId = item.FkProductId,
+        //            Quantity = item.Quantity,
+        //            Reason = item.Reason,
+        //            StockOutDate = DateTime.Now,
+        //            FkStockInId = usedStockIn.StockInId
+        //        };
+
+        //        await _context.TblStockOuts.AddAsync(stockOutEntry);
+        //    }
+
+
+        //    await _context.SaveChangesAsync();
+        //    return Ok();
+        //}
 
 
 
@@ -2621,9 +2929,10 @@ namespace InventoryManagement.Controllers
                         for (int row = 2; row <= rowCount; row++)
                         {
                             string itemName = worksheet.Cell(row, 3).GetString().Trim();
-                            string itemCode = worksheet.Cell(row, 2).GetString().Trim();
-                            string priceText = worksheet.Cell(row, 5).GetString().Trim();
-                            string qtyText = worksheet.Cell(row, 9).GetString().Trim();
+                            string itemCode = worksheet.Cell(row, 7).GetString().Trim();
+                            string recordsCount = worksheet.Cell(row, 4).GetString().Trim();
+                            //string priceText = worksheet.Cell(row, 5).GetString().Trim();
+                            string qtyText = worksheet.Cell(row, 5).GetString().Trim();
 
                             if (string.IsNullOrWhiteSpace(itemName))
                                 continue;
@@ -2635,7 +2944,7 @@ namespace InventoryManagement.Controllers
                                 continue;
                             }
 
-                            decimal.TryParse(priceText, out decimal price);
+                            //decimal.TryParse(priceText, out decimal price);
                             int.TryParse(qtyText, out int qty);
 
                             int currentQty = 0;
@@ -2644,24 +2953,35 @@ namespace InventoryManagement.Controllers
                                 int.TryParse(product.AvailableProductQty, out currentQty);
                             }
 
-                            int updatedQty = currentQty + qty;
-                            product.AvailableProductQty = updatedQty.ToString();
-
-                            TblStockIn stockIn = new()
+                            if (!int.TryParse(recordsCount, out int count))
                             {
-                                FkProductId = product.ProductId,
-                                Barcode = itemCode,
-                                Price = price,
-                                ProductQuantity = qty.ToString(),
-                                AvailableQuantity = qty.ToString(),
-                                Date = DateTime.Now,
-                                Type = "2",
-                                FkWarehouseId = 1,
-                                FkSupplierId = 1,
-                                BatchNo = batchNumber
-                            };
+                                failedRecords.Add($"Row {row}: Invalid recordsCount value '{recordsCount}'");
+                                continue;
+                            }
 
-                            stockInList.Add(stockIn);
+
+                            for (int i = 0; i < count; i++)
+                            {
+                                TblStockIn stockIn = new()
+                                {
+                                    FkProductId = product.ProductId,
+                                    Barcode = itemCode,
+                                    Price = 0,
+                                    ProductQuantity = qty.ToString(),
+                                    AvailableQuantity = qty.ToString(),
+                                    Date = DateTime.Now,
+                                    Type = "1",
+                                    FkWarehouseId = 1,
+                                    FkSupplierId = 1,
+                                    BatchNo = batchNumber
+                                };
+
+                                stockInList.Add(stockIn);
+                            }
+
+                            // Update available quantity once per item
+                            int updatedQty = currentQty + (qty * count);
+                            product.AvailableProductQty = updatedQty.ToString();
                         }
 
                         if (stockInList.Any())

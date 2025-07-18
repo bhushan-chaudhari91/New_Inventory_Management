@@ -738,7 +738,7 @@ namespace InventoryManagement.Controllers
             var product = new TblProduct
             {
                 ProductName = addProduct.ProductName,
-                SkuIdName = addProduct.SkuIdName,
+                //SkuIdName = addProduct.SkuIdName,
                 LowStockQuantity = addProduct.LowStockQuantity,
                 IsDeleted = false,
                 CreatedAt = DateTime.Now,
@@ -746,6 +746,39 @@ namespace InventoryManagement.Controllers
 
             _context.TblProducts.Add(product);
             await _context.SaveChangesAsync();
+
+            var getProductId = product.ProductId;
+
+            var skuEntries = new List<TblSkuBarcode>();
+
+            if (!string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
+            {
+                skuEntries.Add(new TblSkuBarcode
+                {
+                    FkProductId = getProductId,
+                    Skuname = addProduct.SkuForSignleItem,
+                    IsDeleted = 0,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = userId
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(addProduct.SkuForBox))
+            {
+                skuEntries.Add(new TblSkuBarcode
+                {
+                    FkProductId = getProductId,
+                    Skuname = addProduct.SkuForBox,
+                    IsDeleted = 0,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = userId
+                });
+            }
+
+            if (skuEntries.Any())
+            {
+                _context.TblSkuBarcodes.AddRange(skuEntries);
+            }
 
             var getId = product.ProductId;
 
@@ -777,6 +810,35 @@ namespace InventoryManagement.Controllers
 
 
 
+        //[HttpGet]
+        //public IActionResult EditProduct(int id)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    var product = _context.TblProducts
+        //        .Where(p => p.ProductId == id && p.IsDeleted == false)
+        //        .Select(p => new ProductViewModel
+        //        {
+        //            ProductId = p.ProductId,
+        //            ProductName = p.ProductName,
+        //            SkuIdName = p.SkuIdName,
+        //            LowStockQuantity = p.LowStockQuantity,
+        //            AliasNames = _context.TblProductAliases
+        //                .Where(a => a.FkProductId == p.ProductId && a.IsDeleted == false)
+        //                .Select(a => a.AliasName).ToList()
+        //        }).FirstOrDefault();
+
+
+
+        //    return View(product);
+        //}
+
+
         [HttpGet]
         public IActionResult EditProduct(int id)
         {
@@ -787,28 +849,43 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            var product = _context.TblProducts
-                .Where(p => p.ProductId == id && p.IsDeleted == false)
-                .Select(p => new ProductViewModel
-                {
-                    ProductId = p.ProductId,
-                    ProductName = p.ProductName,
-                    SkuIdName = p.SkuIdName,
-                    LowStockQuantity = p.LowStockQuantity,
-                    AliasNames = _context.TblProductAliases
-                        .Where(a => a.FkProductId == p.ProductId && a.IsDeleted == false)
-                        .Select(a => a.AliasName).ToList()
-                }).FirstOrDefault();
+            // Load product main info
+            var productEntity = _context.TblProducts
+                .FirstOrDefault(p => p.ProductId == id && p.IsDeleted == false);
 
-            //var viewModel = new ProductListViewModel
-            //{
-            //    EditProduct = product
-            //};
+            if (productEntity == null)
+            {
+                return NotFound();
+            }
 
-            return View(product);
+            // Load SKU Barcodes for this product
+            var skuBarcodes = _context.TblSkuBarcodes
+                .Where(s => s.FkProductId == id && s.IsDeleted == 0)
+                .Select(s => s.Skuname)
+                .ToList();
+
+            // Distinguish by prefix
+            var skuForSingleItem = skuBarcodes.FirstOrDefault(s => s.StartsWith("A"));
+            var skuForBox = skuBarcodes.FirstOrDefault(s => s.StartsWith("B"));
+
+            // Load Aliases
+            var aliasNames = _context.TblProductAliases
+                .Where(a => a.FkProductId == id && a.IsDeleted == false)
+                .Select(a => a.AliasName)
+                .ToList();
+
+            var viewModel = new ProductViewModel
+            {
+                ProductId = productEntity.ProductId,
+                ProductName = productEntity.ProductName,
+                LowStockQuantity = productEntity.LowStockQuantity,
+                SkuForSignleItem = skuForSingleItem,
+                SkuForBox = skuForBox,
+                AliasNames = aliasNames
+            };
+
+            return View(viewModel);
         }
-
-
 
 
         [HttpPost]
@@ -831,9 +908,67 @@ namespace InventoryManagement.Controllers
 
             // Update product details
             product.ProductName = updatedProduct.ProductName;
-            product.SkuIdName = updatedProduct.SkuIdName;
+            //product.SkuIdName = updatedProduct.SkuIdName;
             product.LowStockQuantity = updatedProduct.LowStockQuantity;
             product.UpdatedAt = DateTime.Now;
+
+
+
+            // Start Code For SKU Name Update on 15/07/2025 by Bhushan
+            var existingSkus = _context.TblSkuBarcodes
+                .Where(s => s.FkProductId == product.ProductId && s.IsDeleted == 0);
+
+            _context.TblSkuBarcodes.RemoveRange(existingSkus);
+
+            // Validate and add new SKUs
+            var newSkuEntries = new List<TblSkuBarcode>();
+
+            if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForSignleItem))
+            {
+                if (!updatedProduct.SkuForSignleItem.StartsWith("A"))
+                {
+                    ModelState.AddModelError("SkuForSignleItem", "SKU for Single Item must start with 'A'.");
+                }
+                else
+                {
+                    newSkuEntries.Add(new TblSkuBarcode
+                    {
+                        FkProductId = product.ProductId,
+                        Skuname = updatedProduct.SkuForSignleItem,
+                        IsDeleted = 0,
+                        UpdatedAt = DateTime.Now,
+                        UpdatedBy = userId
+                    });
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForBox))
+            {
+                if (!updatedProduct.SkuForBox.StartsWith("B"))
+                {
+                    ModelState.AddModelError("SkuForBox", "SKU for Box must start with 'B'.");
+                }
+                else
+                {
+                    newSkuEntries.Add(new TblSkuBarcode
+                    {
+                        FkProductId = product.ProductId,
+                        Skuname = updatedProduct.SkuForBox,
+                        IsDeleted = 0,
+                        UpdatedAt = DateTime.Now,
+                        UpdatedBy = userId
+                    });
+                }
+            }
+
+            // Save new SKUs
+            if (newSkuEntries.Any())
+            {
+                _context.TblSkuBarcodes.AddRange(newSkuEntries);
+            }
+            // End Code For SKU Name Update on 15/07/2025 by Bhushan
+
+
 
             // Remove existing aliases
             var existingAliases = _context.TblProductAliases
@@ -863,6 +998,171 @@ namespace InventoryManagement.Controllers
 
             return RedirectToAction("Product");
         }
+
+        public IActionResult RackNo(string searchTerm = "", int pageNumber = 1, int pageSize = 10)
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+
+            List<RackNoVeiwModel> getRackNoList = new List<RackNoVeiwModel>();
+
+            var rackNoList = _context.TblRacks.Where(x => x.IsDeleted == 0 && x.RackId != 0).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                rackNoList = rackNoList.Where(x => x.RackNo.Contains(searchTerm));
+            }
+
+            int totalRecords = rackNoList.Count();
+
+            var paginatedWarehouse = rackNoList
+               .Skip((pageNumber - 1) * pageSize)
+               .Take(pageSize)
+               .ToList();
+
+            foreach (var item in paginatedWarehouse)
+            {
+                var warehouseName = _context.TblWarehouses.FirstOrDefault(x => x.WarehouseId == item.FkWarehouseId).Name;
+
+                getRackNoList.Add(new RackNoVeiwModel
+                {
+                    RackId = item.RackId,
+                    RackNo = item.RackNo,
+                   WarehouseName = warehouseName
+                });
+            }
+
+            var getWarehouse = _context.TblWarehouses.Where(x => x.IsDeleted == false).Select(x => new
+            {
+                Id = x.WarehouseId,
+                warehouseName = x.Name
+            }).ToList();
+
+            var viewModel = new RackNoListViewModel
+            {
+                WarehouseList = new SelectList(getWarehouse, "Id", "warehouseName"),
+                rackNo = getRackNoList,
+                Pagination = new PaginationMetadataViewModel
+                {
+                    TotalRecords = totalRecords,
+                    CurrentPage = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm
+                }
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddRackNo(RackNoVeiwModel addRackno)
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var rack = new TblRack
+            {
+                RackNo = addRackno.RackNo,
+                FkWarehouseId = addRackno.FKWarehouseId,
+                CreatedAt = DateTime.Now,
+                CreatedBy = userId
+            };
+
+            _context.TblRacks.Add(rack);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("RackNo");
+        }
+
+        //[HttpGet]
+        //public async Task<IActionResult> EditRackNo(int id)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    var rack = await _context.TblRacks.FindAsync(id);
+        //    if (rack == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+
+        //    var viewModel = new RackNoVeiwModel
+        //    {
+        //        RackId = rack.RackId,
+        //        FKWarehouseId = rack.FkWarehouseId ?? 0,
+        //        RackNo = rack.RackNo
+        //    };
+
+        //    return PartialView("_EditWarehouseModal", viewModel);
+        //}
+
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> EditRackNo(RackNoVeiwModel model)
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var rackdata = await _context.TblRacks.FindAsync(model.RackId);
+            if (rackdata == null)
+                return NotFound();
+
+            rackdata.RackNo = model.RackNo;
+            rackdata.FkWarehouseId = model.FKWarehouseId;
+            rackdata.UpdatedAt = DateTime.Now;
+            rackdata.UpdatedBy = userId;
+
+            _context.TblRacks.Update(rackdata);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("RackNo");
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteRackNo(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var rackData = await _context.TblRacks.FirstOrDefaultAsync(x => x.RackId == id);
+
+            if (rackData == null)
+            {
+                throw new Exception("RackNo not found");
+            }
+
+            rackData.IsDeleted = 1;
+            _context.TblRacks.Update(rackData);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("RackNo", "Master");
+        }
+
 
     }
 }

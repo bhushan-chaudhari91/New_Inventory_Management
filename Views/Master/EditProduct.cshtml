@@ -25,10 +25,22 @@
                         <span asp-validation-for="ProductName" class="text-danger small"></span>
                     </div>
 
-                    <div class="form-group col-md-4">
+                   @*  <div class="form-group col-md-4">
                         <label asp-for="SkuIdName" class="form-label fw-semibold">SKU Name</label>
                         <input asp-for="SkuIdName" class="form-control" />
                         <span asp-validation-for="SkuIdName" class="text-danger small"></span>
+                    </div> *@
+
+                    <div class="form-group col-md-4">
+                        <label asp-for="SkuForSignleItem" class="form-label fw-semibold">SKU For Signle Item</label>
+                        <input asp-for="SkuForSignleItem" class="form-control" />
+                        <span asp-validation-for="SkuForSignleItem" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label asp-for="SkuForBox" class="form-label fw-semibold">SKU For Box</label>
+                        <input asp-for="SkuForBox" class="form-control" />
+                        <span asp-validation-for="SkuForBox" class="text-danger small"></span>
                     </div>
 
                     <div class="form-group col-md-4">
