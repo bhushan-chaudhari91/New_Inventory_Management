@@ -65,7 +65,7 @@
                 <div class="d-flex justify-content-between align-items-end flex-wrap">
 
                     <button class="btn btn-primary mr-3 mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#productFormModal">Add Product</button>
-                    <a asp-action="BarcodePrint" asp-controller="Master" class="btn btn-primary mt-2 mt-xl-0">Print Barcode</a>
+                   @*  <a asp-action="BarcodePrint" asp-controller="Master" class="btn btn-primary mt-2 mt-xl-0">Print Barcode</a> *@
 
                     @* <form asp-action="ProductExportToExcel" asp-controller="Master" method="get" style="display: inline;">
                         <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
@@ -184,7 +184,46 @@
 
                             <td>@SrNo</td>
                             <td>@item.ProductName</td>
-                            <td>@item.SkuIdName</td>
+                            @* <td>@item.SkuIdName</td> *@
+
+                            <td>
+                                @if (item.SKUNames != null && item.SKUNames.Any())
+                                {
+                                    var skuString = string.Join(", ", item.SKUNames);
+                                    var words = skuString.Split(' ');
+                                    var lines = new List<string>();
+                                    var currentLine = "";
+
+                                    foreach (var word in words)
+                                    {
+                                        if ((currentLine.Length + word.Length + (currentLine == "" ? 0 : 1)) <= 25)
+                                        {
+                                            currentLine += (currentLine == "" ? "" : " ") + word;
+                                        }
+                                        else
+                                        {
+                                            lines.Add(currentLine);
+                                            currentLine = word;
+                                        }
+                                    }
+
+                                    if (!string.IsNullOrEmpty(currentLine))
+                                    {
+                                        lines.Add(currentLine);
+                                    }
+
+                                    foreach (var line in lines)
+                                    {
+                                        @line
+
+                                        <br />
+                                    }
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
 
                             <td>
                                 @if (item.AliasNames != null && item.AliasNames.Any())
@@ -237,6 +276,10 @@
                                 <a href="#" class="delete-link text-red-600 hover:underline" onclick="openDeleteModal(@item.ProductId)" title="Delete" style="color: black;">
                                     <i class="fas fa-trash-alt"></i> Delete
                                 </a> *@
+                                &nbsp;|&nbsp;
+                                <a href="#" class="delete-link text-red-600 hover:underline" title="Delete" style="color: black;" onclick="openDeleteModal(@item.ProductId)">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </a>
                             </td>
                         </tr>
 
@@ -442,7 +485,27 @@
     </div>
 </div>
 
-
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Product?</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post" asp-action="DeleteProduct" asp-controller="Master">
+                    <input type="hidden" name="id" id="deleteProductId" />
+                    <button type="submit" class="btn btn-danger">Yes</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     function searchfilterquery() {
@@ -455,6 +518,14 @@
         var pageSize = document.getElementById('rowQuantity').value;
         var searchQuery = document.getElementById('searchQuery').value;
         window.location.href = `/Master/Product?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+    }
+</script>
+
+@* Code For Delete Data *@
+<script>
+    function openDeleteModal(id) {
+        document.getElementById('deleteProductId').value = id;
+        $('#deleteProductModal').modal('show');
     }
 </script>
 

@@ -1,23 +1,6 @@
-﻿@using InventoryManagement.ViewModels
-@model WarehouseListViewModel
-
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
-<style>
-    .view-link i {
-    color: #17a2b8;
-    }
-
-    .edit-link i {
-    color: #28a745;
-    }
-
-    .delete-link i {
-    color: #dc3545;
-    }
-
-
-</style>
+﻿@using InventoryManagement.ViewModels;
+@* @model List<StockReportViewModel> *@
+@model StockReportPagedViewModel
 
 @{
     var pagination = Model.Pagination;
@@ -26,49 +9,97 @@
     int pageSize = pagination.PageSize;
     int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
     string serchquery = pagination.SearchTerm;
+
+    string fromDate = ViewBag.FromDate ?? "";
+    string toDate = ViewBag.ToDate ?? "";
 }
 
+@* Start Code For Pagination CSS for Html Table *@
 <style>
     .custom-pagination .page-item .page-link {
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    margin-left: 2px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        margin-left: 2px;
     }
 
     .custom-pagination .page-item.active .page-link {
-    background-color: #007bff;
-    color: white;
+        background-color: #007bff;
+        color: white;
     }
 
     .custom-pagination .page-link {
-    color: #007bff;
-    text-decoration: none;
+        color: #007bff;
+        text-decoration: none;
     }
 
-    .custom-pagination .page-link:hover {
-    background-color: #f1f1f1;
+        .custom-pagination .page-link:hover {
+            background-color: #f1f1f1;
+        }
+</style>
+@* End Code For Pagination CSS for Html Table *@
+
+
+
+@* Code for Type show in color *@
+<style>
+    .type-box {
+        color: #070807;
+        font-weight: bold;
     }
+
+    .type-single {
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .type-unknown {
+        color: #dc3545;
+        font-style: italic;
+    }
+
 </style>
 
 <div class="main-content">
+
     <div class="row">
         <div class="col-md-12 grid-margin">
             <div class="d-flex justify-content-between flex-wrap">
                 <div class="d-flex align-items-end flex-wrap">
                     <div class="mr-md-3 mr-xl-5">
-                        <h2>Warehouse</h2>
+                        <h2>Daily Report</h2>
 
                     </div>
 
                 </div>
                 <div class="d-flex justify-content-between align-items-end flex-wrap">
 
-                    <button class="btn btn-primary mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#warehouseFormModal">Create Warehouse</button>
+                    @* <button class="btn btn-primary mr-3 mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#productFormModal">Add Product</button> *@
+                   
 
                 </div>
+
             </div>
         </div>
     </div>
+
+    <div class="col-12">
+        <form method="get" asp-controller="Inventory" asp-action="DailyStockReport" class="mb-4">
+            <div class="row">
+                <div class="col-md-3">
+                    <label>From Date</label>
+                    <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" />
+                </div>
+                <div class="col-md-3">
+                    <label>To Date</label>
+                    <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
+                </div>
+                <div class="col-md-3 mt-4">
+                    <button type="submit" class="btn btn-primary mt-2">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
 
     <div class="row" style="margin-top:30px">
         <div class="col-sm-12 col-md-6" style="padding: 0px 32px;">
@@ -76,6 +107,15 @@
                 <label style="font-weight: normal;text-align: left;white-space: nowrap;">
                     Show
                     <select id="rowQuantity" onchange="updateRowQuantity()" class="custom-select custom-select-sm form-control form-control-sm" style=" width: 65px; padding: 0px 9px; display: inline-block; height: 32px; border-radius: 20px; border: 1px solid #5e5a5a; color: #0c0b0b;">
+                        @if (pageSize == 5)
+                        {
+                            <option value="5" selected>5</option>
+                        }
+                        else
+                        {
+                            <option value="5">5</option>
+                        }
+
                         @if (pageSize == 10)
                         {
                             <option value="10" selected>10</option>
@@ -121,13 +161,6 @@
                 <label>
                     Search:<input type="search" id="searchQuery" value="@serchquery" oninput="searchfilterquery();" style="margin-left:.5em;display: inline-block;width: auto;height: 30px; border-radius: 20px; border: 1px solid #5e5a5a;" class="form-control form-control-sm" placeholder="" aria-controls="example">
                 </label>
-                <form asp-action="ExportWarehouseToExcel" method="post" style="display: inline; margin-bottom: 1rem;">
-                    <input type="hidden" name="searchTerm" value="@Model?.Pagination?.SearchTerm" />
-                    <button type="submit" class="btn btn-success mt-2 mt-xl-0">
-                        Export to Excel
-                    </button>
-                </form>
-
             </div>
         </div>
 
@@ -151,51 +184,54 @@
     }
 
     <div class="table-container">
-        @if (Model != null && Model.Warehouses.Any())
-        {
-            int SrNo = pageSize * (currentPage - 1);
-            <table>
-                <!-- class="table table-bordered" -->
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Warehouse Name</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
 
 
-                    @foreach (var item in Model.Warehouses)
-                    {
-                        SrNo++;
-                        <tr>
-                            <td>@SrNo</td>
-                            <td>@item.Name</td>
-                            <td>
-                                <a href="#" class="edit-link text-green-600 hover:underline" onclick="openEditModal(@item.WarehouseId, '@item.Name')" title="Edit" style="color: black;">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
+        <table>
+            @{
+                int SrNo = ((currentPage - 1) * pageSize) + 1;
+            }
+            <thead>
+                <tr>
+                    <th>Sr.No</th>
+                    <th>Product Name</th>
+                    <th>SKU Name</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
 
-                               @*  &nbsp;|&nbsp;
-                                <a href="#" class="delete-link text-red-600 hover:underline" title="Delete" style="color: black;" onclick="openDeleteModal(@item.WarehouseId)">
-                                    <i class="fas fa-trash-alt"></i> Delete
-                                </a> *@
-                            </td>
+                </tr>
+            </thead>
+            <tbody>
 
-                        </tr>
-                    }
+                @foreach (var item in Model.CombinedStockList)
+                {
                     
-                   
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <td>Records Not Found</td>
-        }
-        
+                    <tr>
+                        <td>@SrNo</td>
+                        <td>@item.ProductName</td>
+                        <td>@item.SKUName</td>
+                       @*  <td>@item.Date.ToString("dd-MM-yyyy")</td> *@
+                        <td>@item.FormattedDate</td>
+                        @* <td>@item.Type</td> *@
+                        <td>
+                            @if (item.Type == "StockIn")
+                            {
+                                <span class="badge bg-success">Stock In</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Stock Out</span>
+                            }
+                        </td>
+                        <td>@item.Quantity</td>
+                    </tr>
+                    SrNo++;
+                }
+            </tbody>
+        </table>
+
     </div>
+
 
     <div class="custom-pagination" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 1rem 0;">
         <div class="col-sm-12 col-md-5">
@@ -224,7 +260,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("Warehouse", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                            <a href="@Url.Action("DailyStockReport", new {pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize, fromDate = fromDate, toDate = toDate })" class="page-link">Previous</a>
                         }
                     </li>
 
@@ -234,7 +270,7 @@
                         if (currentPage > 3)
                         {
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("Warehouse", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                                <a href="@Url.Action("DailyStockReport", new {pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize, fromDate = fromDate, toDate = toDate })" class="page-link">1</a>
                             </li>
                             if (currentPage > 4)
                             {
@@ -254,7 +290,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("Warehouse", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("DailyStockReport", new {pageNumber = i, searchTerm = serchquery ,pageSize= pageSize, fromDate = fromDate, toDate = toDate })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -267,7 +303,7 @@
                                 <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
                             }
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("Warehouse", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                                <a href="@Url.Action("DailyStockReport", new {pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize, fromDate = fromDate, toDate = toDate })" class="page-link">@totalPages</a>
                             </li>
                         }
                     }
@@ -285,7 +321,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("Warehouse", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("DailyStockReport", new {pageNumber = i, searchTerm = serchquery,pageSize= pageSize, fromDate = fromDate, toDate = toDate })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -299,7 +335,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("Warehouse", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                            <a href="@Url.Action("DailyStockReport", new {pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize, fromDate = fromDate, toDate = toDate })" class="page-link">Next</a>
                         }
                     </li>
 
@@ -308,131 +344,24 @@
         </div>
     </div>
 
-
 </div>
-
-
-<!-- Modal For Save New Data -->
-<div class="modal fade" id="warehouseFormModal" tabindex="-1" aria-labelledby="warehouseFormModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="warehouseFormModalLabel">Add Warehouse</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-            </div>
-            <div class="modal-body">
-                <form asp-action="AddWarehouse" method="post" class="forms-sample">
-                    <div class="form-group">
-                        <label for="warehouseName">Warehouse Name</label>
-                        <input type="text" name="Name" id="Name" class="form-control" placeholder="Warehouse Name">
-                    </div>
-
-
-
-                    <button type="submit" class="btn btn-primary mr-2">Submit</button>
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- Edit Modal -->
-<div class="modal fade" id="editWarehouseModal" tabindex="-1" aria-labelledby="editWarehouseModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Warehouse</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-            </div>
-            <div class="modal-body">
-                <form asp-action="EditWarehouse" method="post">
-                    <input type="hidden" name="WarehouseId" id="editWarehouseId" />
-                    <div class="form-group">
-                        <label for="editWarehouseName">Warehouse Name</label>
-                        <input type="text" name="Name" id="editWarehouseName" class="form-control" placeholder="Warehouse Name" />
-                    </div>
-                    <button type="submit" class="btn btn-primary">Update</button>
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteWarehouseModal" tabindex="-1" aria-labelledby="deleteWarehouseModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this warehouse?</p>
-            </div>
-            <div class="modal-footer">
-                <form id="deleteForm" method="post" asp-action="DeleteWarehouse" asp-controller="Master">
-                    <input type="hidden" name="id" id="deleteWarehouseId" />
-                    <button type="submit" class="btn btn-danger">Yes</button>
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@* Code For Delete Data *@
-<script>
-    function openDeleteModal(id) {
-        document.getElementById('deleteWarehouseId').value = id;
-        $('#deleteWarehouseModal').modal('show');
-    }
-</script>
-
-@* Code For Get Edit data *@
-<script>
-    function openEditModal(id, name) {
-        $('#editWarehouseId').val(id);
-        $('#editWarehouseName').val(name);
-        $('#editWarehouseModal').modal('show');
-    }
-</script>
-
-
-@* Code For delete data *@
-<script>
-    function openDeleteModal(id, name) {
-        $('#deleteWarehouseId').val(id); 
-        $('#deleteWarehouseModal').modal('show'); 
-    }
-</script>
-
 
 <script>
     function searchfilterquery() {
         var searchQuery = document.getElementById('searchQuery').value;
         var pageSize = document.getElementById('rowQuantity').value;
-        window.location.href = `/Master/Warehouse?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+        var fromDate = '@fromDate';
+        var toDate = '@toDate';
+
+        window.location.href = `/Inventory/DailyStockReport?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}&fromDate=${fromDate}&toDate=${toDate}`;
     }
 
     function updateRowQuantity() {
         var pageSize = document.getElementById('rowQuantity').value;
         var searchQuery = document.getElementById('searchQuery').value;
-        window.location.href = `/Master/Warehouse?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+        var fromDate = '@fromDate';
+        var toDate = '@toDate';
+
+        window.location.href = `/Inventory/DailyStockReport?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}&fromDate=${fromDate}&toDate=${toDate}`;
     }
-</script>
-
-@* Code For Multi Click Not save multiples record on multiple click*@
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.querySelector('#warehouseFormModal form');
-        const submitButton = form.querySelector('button[type="submit"]');
-
-        form.addEventListener('submit', function () {
-            submitButton.disabled = true;
-            submitButton.innerHTML = 'Submitting...';
-        });
-    });
 </script>

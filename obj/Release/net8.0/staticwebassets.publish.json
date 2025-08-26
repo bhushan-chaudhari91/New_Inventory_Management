@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "IJekdrVazg8JLppGowFOdwWwAoj+KSFWXJLtcci/KWo=",
+  "Hash": "LHW9/758oXZHwwx8584Fk5SiFdm6+fGwKTojPHNHHuY=",
   "Source": "InventoryManagement",
   "BasePath": "_content/InventoryManagement",
   "Mode": "Default",
@@ -94,8 +94,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "bpzmz24ada",
-      "Integrity": "wZZZfAvxztf8wZ22jhj3mJrXw7vPVSEdzstVemoJUvU=",
+      "Fingerprint": "vu48nlz07i",
+      "Integrity": "l+WgSR33Co8GWmSGfjaVPGIIbsVWcYdnRSECunKr7cg=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\style.css"
@@ -3314,51 +3314,6 @@
       ]
     },
     {
-      "Route": "css/style.bpzmz24ada.css",
-      "AssetFile": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\Git\\New_Inventory_Management\\wwwroot\\css\\style.css",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "502736"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/css"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"wZZZfAvxztf8wZ22jhj3mJrXw7vPVSEdzstVemoJUvU=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Tue, 06 May 2025 12:23:19 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "bpzmz24ada"
-        },
-        {
-          "Name": "label",
-          "Value": "css/style.css"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-wZZZfAvxztf8wZ22jhj3mJrXw7vPVSEdzstVemoJUvU="
-        }
-      ]
-    },
-    {
       "Route": "css/style.css",
       "AssetFile": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\Git\\New_Inventory_Management\\wwwroot\\css\\style.css",
       "Selectors": [],
@@ -3369,7 +3324,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "502736"
+          "Value": "503591"
         },
         {
           "Name": "Content-Type",
@@ -3377,11 +3332,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"wZZZfAvxztf8wZ22jhj3mJrXw7vPVSEdzstVemoJUvU=\""
+          "Value": "\"l+WgSR33Co8GWmSGfjaVPGIIbsVWcYdnRSECunKr7cg=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 06 May 2025 12:23:19 GMT"
+          "Value": "Tue, 05 Aug 2025 06:07:25 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -3391,7 +3346,52 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-wZZZfAvxztf8wZ22jhj3mJrXw7vPVSEdzstVemoJUvU="
+          "Value": "sha256-l+WgSR33Co8GWmSGfjaVPGIIbsVWcYdnRSECunKr7cg="
+        }
+      ]
+    },
+    {
+      "Route": "css/style.vu48nlz07i.css",
+      "AssetFile": "D:\\Mitroz 2025 All Projects\\Inventory Managment Project\\MVC\\Git\\New_Inventory_Management\\wwwroot\\css\\style.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "503591"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"l+WgSR33Co8GWmSGfjaVPGIIbsVWcYdnRSECunKr7cg=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 05 Aug 2025 06:07:25 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "vu48nlz07i"
+        },
+        {
+          "Name": "label",
+          "Value": "css/style.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-l+WgSR33Co8GWmSGfjaVPGIIbsVWcYdnRSECunKr7cg="
         }
       ]
     },

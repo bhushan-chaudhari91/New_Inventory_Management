@@ -61,12 +61,12 @@
         <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
             <div class="navbar-brand-wrapper d-flex justify-content-center">
                 <div class="navbar-brand-inner-wrapper d-flex justify-content-between align-items-center w-100">
-                    <a class="navbar-brand brand-logo font-weight-bold" href="~/index.html" style="font-size: 1.25rem; color: black;">
+                    <a class="navbar-brand brand-logo font-weight-bold" style="font-size: 2.25rem; color: black;">
                         Inventory 
                     </a>
-                    <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+                   @*  <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
                         <span class="mdi mdi-sort-variant"></span>
-                    </button>
+                    </button> *@
                 </div>
             </div>
 
@@ -123,7 +123,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Inventory" asp-action="InventoryList">
-                            <i class="mdi mdi-view-headline menu-icon"></i>
+                            <i class="mdi mdi-clipboard-text menu-icon"></i>
                             <span class="menu-title">Inventory</span>
                         </a>
                     </li>
@@ -164,12 +164,29 @@
                         </li> *@
                     }
 
+                   
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Master" asp-action="SkuBarcode">
+                            <i class="mdi mdi-barcode-scan menu-icon"></i>
+                            <span class="menu-title">Generate Barcode</span>
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Inventory" asp-action="SalesOrder">
-                            <i class="mdi mdi-view-headline menu-icon"></i>
+                            <i class="mdi mdi-cart menu-icon"></i>
                             <span class="menu-title">Sales Order Matching</span>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Inventory" asp-action="DailyStockReport">
+                            <i class="mdi mdi-calendar-check menu-icon"></i>
+                            <span class="menu-title">Daily Report</span>
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Auth" asp-action="Logout">
                             <i class="mdi mdi-logout menu-icon"></i>

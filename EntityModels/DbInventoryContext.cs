@@ -128,6 +128,7 @@ public partial class DbInventoryContext : DbContext
             entity.Property(e => e.RackNo).HasMaxLength(45);
             entity.Property(e => e.Room).HasMaxLength(45);
             entity.Property(e => e.TotalBox).HasPrecision(10);
+            entity.Property(e => e.AvailableBox).HasPrecision(10);
             entity.Property(e => e.Type).HasMaxLength(45);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
@@ -148,9 +149,14 @@ public partial class DbInventoryContext : DbContext
                .HasColumnType("datetime");
             entity.Property(e => e.FkProductId).HasColumnName("Fk_ProductId");
             entity.Property(e => e.FkStockInId).HasColumnName("FkStockInId");
+            entity.Property(e => e.FkWarehouseId).HasColumnName("Fk_WarehouseId");
+            entity.Property(e => e.RackNo).HasMaxLength(45);
             entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
             entity.Property(e => e.Quantity).HasMaxLength(45);
             entity.Property(e => e.Reason).HasMaxLength(50);
+            entity.Property(e => e.TotalBox).HasPrecision(10);
+            entity.Property(e => e.PerBoxQty).HasPrecision(10);
+            entity.Property(e => e.Type).HasMaxLength(45);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
@@ -216,6 +222,7 @@ public partial class DbInventoryContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime");
             entity.Property(e => e.FkProductId).HasColumnName("Fk_ProductId");
+            entity.Property(e => e.FkSkuId).HasColumnName("Fk_SkuId");
             entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
             entity.Property(e => e.OrderDate).HasColumnType("datetime");
             entity.Property(e => e.OrderNumber).HasMaxLength(45);

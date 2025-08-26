@@ -6,6 +6,7 @@
 
         public string? OrderNumber { get; set; }
 
+        public int? FkSkuId { get; set; }
         public int? FkProductId { get; set; }
 
         public string? ProductName { get; set; }

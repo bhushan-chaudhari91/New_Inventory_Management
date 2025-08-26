@@ -312,6 +312,7 @@ namespace InventoryManagement.Controllers
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 batchesQuery = batchesQuery.Where(x => x.Barcode.Contains(searchTerm) ||
+                                                       x.BatchNo.Contains(searchTerm) ||
                                                        x.ProductQuantity.Contains(searchTerm) ||
                                                        x.ProductStatus.Contains(searchTerm));
             }
@@ -482,7 +483,11 @@ namespace InventoryManagement.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                StockBatchDetails = StockBatchDetails.Where(x => x.Barcode.Contains(searchTerm));
+                StockBatchDetails = StockBatchDetails.Where(x => x.Barcode.Contains(searchTerm) ||
+                  _context.TblProducts.Any(s => s.IsDeleted == false && s.ProductId == x.FkProductId && s.ProductName.Contains(searchTerm)) ||
+                  _context.TblProductAliases.Any(a => a.IsDeleted == false && a.FkProductId == x.FkProductId && a.AliasName.Contains(searchTerm)) ||
+                  _context.TblWarehouses.Any(w => w.WarehouseId == x.FkWarehouseId && w.IsDeleted == false && w.Name.Contains(searchTerm))
+                );
             }
 
             int totalRecords = StockBatchDetails.Count();
@@ -505,7 +510,7 @@ namespace InventoryManagement.Controllers
                 {
                     Id = item.StockInId,
                     ProductName = getProduct?.ProductName,
-                    SKUName = getProduct?.SkuIdName,
+                    SKUName = item?.Barcode,
                     Quantity = item.ProductQuantity,
                     //Quantity = getProduct?.AvailableProductQty,
                     LocationName = getLocation?.Name,
@@ -825,6 +830,8 @@ namespace InventoryManagement.Controllers
         //    return Json(product);
         //}
 
+        
+
         [HttpGet]
         public JsonResult GetProducts(string term)
         {
@@ -902,6 +909,35 @@ namespace InventoryManagement.Controllers
                 }).ToList();
 
             return Json(rackNos);
+        }
+
+        //[HttpGet]
+        //public JsonResult GetRackNo(string term)
+        //{
+        //    var rackNo = _context.TblRacks
+        //        .Where(x => x.IsDeleted == 0 && x.RackNo.Contains(term))
+        //        .Select(x => new
+        //        {
+        //            id = x.RackId,
+        //            rackName = x.RackNo
+        //        }).ToList();
+        //    return Json(rackNo);
+        //}
+
+        [HttpGet]
+        public JsonResult GetRackNo(string term, int warehouseId)
+        {
+            var rackNo = _context.TblRacks
+                .Where(x => x.IsDeleted == 0 &&
+                            x.RackNo.Contains(term) &&
+                            x.FkWarehouseId == warehouseId)
+                .Select(x => new
+                {
+                    id = x.RackId,
+                    rackName = x.RackNo
+                }).ToList();
+
+            return Json(rackNo);
         }
 
 
@@ -1003,13 +1039,15 @@ namespace InventoryManagement.Controllers
 
                 var stockIn = new TblStockIn
                 {
-                    Date = item.Date,
+                    //Date = item.Date,
+                    Date = item.Date.Date.Add(DateTime.Now.TimeOfDay),
                     BatchNo = item.BatchNo,
                     FkSupplierId = item.FkSupplierId,
                     FkWarehouseId = item.FkWarehouseId,
                     FkProductId = item.FkProductId,
                     Type = item.Type,
                     TotalBox = item.TotalBox,
+                    AvailableBox = item.TotalBox,
                     PerBoxQty = item.PerBoxQty,
                     ProductQuantity = item.ProductQuantity,
                     AvailableQuantity = item.ProductQuantity,
@@ -1167,23 +1205,6 @@ namespace InventoryManagement.Controllers
 
 
 
-        [HttpGet]
-        public JsonResult GetProductsForStockOut(string term)
-        {
-            var products = _context.TblProducts
-                .Where(x => x.IsDeleted == false && x.ProductName.Contains(term))
-                .Select(x => new
-                {
-                    id = x.ProductId,
-                    productName = x.ProductName,
-                    skuName = _context.TblStockIns
-                        .Where(s => s.FkProductId == x.ProductId)
-                        .Select(s => s.Barcode)
-                        .FirstOrDefault()
-                }).ToList();
-
-            return Json(products);
-        }
 
         //[HttpGet]
         //public JsonResult GetProductByBarcodeInStockOut(string sku)
@@ -1200,6 +1221,27 @@ namespace InventoryManagement.Controllers
 
         //    return Json(result);
         //}
+
+
+        [HttpGet]
+        public JsonResult GetProductsForStockOut(string term)
+        {
+            var products = _context.TblProducts
+                .Where(x => x.IsDeleted == false && x.ProductName.Contains(term))
+                .Select(x => new
+                {
+                    id = x.ProductId,
+                    productName = x.ProductName,
+                    skuName = _context.TblStockIns
+                        .Where(s => s.FkProductId == x.ProductId)
+                        .Select(s => s.Barcode)
+                        .FirstOrDefault()
+                    //.Distinct()
+                    //.ToList()
+                }).ToList();
+
+            return Json(products);
+        }
 
         [HttpGet]
         public JsonResult GetProductByBarcodeInStockOut(string sku)
@@ -1226,11 +1268,12 @@ namespace InventoryManagement.Controllers
             var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
 
             var warehouseQuantities = stocks
-                .GroupBy(s => new { s.FkWarehouseId, s.RackNo })
+                .GroupBy(s => new { s.FkWarehouseId, s.RackNo, s.Type })
                 .Select(g => new
                 {
                     warehouseId = g.Key.FkWarehouseId,
                     rackNo = g.Key.RackNo,
+                    type = g.Key.Type,
                     totalQuantity = g.Sum(s => Convert.ToInt32(s.AvailableQuantity))
                 }).ToList();
 
@@ -1241,8 +1284,8 @@ namespace InventoryManagement.Controllers
                 skuName = firstStock.Barcode,
                 stockInQuantity = totalAvailableQuantity,
                 warehouseQuantities = warehouseQuantities,
-                //type = firstStock.Type,
-                //perBoxQty = firstStock.PerBoxQty
+                type = firstStock.Type,
+                perBoxQty = firstStock.PerBoxQty
             };
 
             return Json(result);
@@ -1260,19 +1303,43 @@ namespace InventoryManagement.Controllers
             return Json(exists);
         }
 
-        
-
         //[HttpGet]
-        //public JsonResult GetRackNosByWarehouse(int warehouseId)
+        //public IActionResult GetAvailableQuantity(string barcode, int warehouseId)
         //{
-        //    var rackNos = _context.TblRacks
-        //        .Where(r => r.FkWarehouseId == warehouseId && r.IsDeleted == 0)
-        //        .Select(r => new {
-        //            RackNo = r.RackNo
-        //        }).ToList();
+        //    var stocks = _context.TblStockIns
+        //        .Where(x => x.IsDeleted == false && x.Barcode == barcode && x.FkWarehouseId == warehouseId)
+        //        .ToList();
 
-        //    return Json(rackNos);
+        //    if (stocks == null || !stocks.Any())
+        //    {
+        //        return Json(0);
+        //    }
+
+        //    var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
+        //    return Json(totalAvailableQuantity);
         //}
+
+
+        //New 25/07/2025
+        //[HttpGet]
+        //public JsonResult GetAvailableQuantity(int warehouseId, string rackNo)
+        //{
+        //    if (string.IsNullOrWhiteSpace(rackNo))
+        //    {
+        //        return Json(new { success = false, availableQty = 0 });
+        //    }
+
+        //    var totalAvailableQty = _context.TblStockIns
+        //        .Where(s => s.FkWarehouseId == warehouseId &&
+        //                    s.RackNo == rackNo &&
+        //                    s.IsDeleted == false)
+        //        .Sum(s => Convert.ToInt32(s.AvailableQuantity));
+
+        //    return Json(new { success = true, availableQty = totalAvailableQty });
+        //}
+
+
+
 
 
 
@@ -1336,21 +1403,7 @@ namespace InventoryManagement.Controllers
 
 
 
-        //[HttpGet]
-        //public IActionResult GetAvailableQuantity(string barcode, int warehouseId)
-        //{
-        //    var stocks = _context.TblStockIns
-        //        .Where(x => x.IsDeleted == false && x.Barcode == barcode && x.FkWarehouseId == warehouseId)
-        //        .ToList();
-
-        //    if (stocks == null || !stocks.Any())
-        //    {
-        //        return Json(0); 
-        //    }
-
-        //    var totalAvailableQuantity = stocks.Sum(s => Convert.ToInt32(s.AvailableQuantity));
-        //    return Json(totalAvailableQuantity);
-        //}
+        
 
 
 
@@ -1468,7 +1521,7 @@ namespace InventoryManagement.Controllers
 
             foreach (var item in addStockOut)
             {
-                if (string.IsNullOrEmpty(item.Barcode) || item.FkProductId == 0 || string.IsNullOrEmpty(item.Quantity) || item.FkWarehouseId == 0 || string.IsNullOrEmpty(item.RackNo))
+                if (string.IsNullOrEmpty(item.Barcode) || item.FkProductId == 0 || string.IsNullOrEmpty(item.Quantity) || item.FkWarehouseId == 0)
                 {
                     return BadRequest($"Invalid data for stock item: Barcode, ProductId, Quantity, WarehouseId, or RackNo is missing.");
                 }
@@ -1479,18 +1532,39 @@ namespace InventoryManagement.Controllers
                     return BadRequest($"Invalid quantity for barcode {item.Barcode}.");
                 }
 
-                // Fetch stock-in records matching Barcode, FkWarehouseId, and RackNo
-                var stockInList = await _context.TblStockIns
-                    .Where(x => x.Barcode == item.Barcode &&
-                                x.FkWarehouseId == item.FkWarehouseId &&
-                                x.RackNo == item.RackNo &&
-                                x.IsDeleted == false)
+                //var stockInList = await _context.TblStockIns
+                //    .Where(x => x.Barcode == item.Barcode &&
+                //                x.FkWarehouseId == item.FkWarehouseId &&
+                //                x.RackNo == item.RackNo &&
+                //                x.IsDeleted == false)
+                //    .OrderBy(x => x.StockInId)
+                //    .ToListAsync();
+
+
+                var stockInQuery = _context.TblStockIns
+           .Where(x => x.Barcode == item.Barcode &&
+                       x.FkWarehouseId == item.FkWarehouseId &&
+                       x.IsDeleted == false);
+
+                if (!string.IsNullOrEmpty(item.RackNo))
+                {
+                    stockInQuery = stockInQuery.Where(x => x.RackNo == item.RackNo);
+                }
+
+                var stockInList = await stockInQuery
                     .OrderBy(x => x.StockInId)
                     .ToListAsync();
 
+
+                //if (!stockInList.Any())
+                //{
+                //    return BadRequest($"No stock found for barcode {item.Barcode} in warehouse {item.FkWarehouseId} and rack {item.RackNo}.");
+                //}
+
                 if (!stockInList.Any())
                 {
-                    return BadRequest($"No stock found for barcode {item.Barcode} in warehouse {item.FkWarehouseId} and rack {item.RackNo}.");
+                    return BadRequest($"No stock found for barcode {item.Barcode} in warehouse {item.FkWarehouseId}" +
+                                      (string.IsNullOrEmpty(item.RackNo) ? "" : $" and rack {item.RackNo}."));
                 }
 
                 var product = await _context.TblProducts
@@ -1530,19 +1604,40 @@ namespace InventoryManagement.Controllers
                         remainingQtyToDeduct = 0;
                     }
 
+                    // Start This Code For Update the StockIn table "AvailableBox" on 28/07/2025
+                    if (stockIn.FkProductId == item.FkProductId &&
+                        stockIn.Barcode == item.Barcode &&
+                        stockIn.FkWarehouseId == item.FkWarehouseId &&
+                        //stockIn.RackNo == item.RackNo &&
+                        (string.IsNullOrEmpty(item.RackNo) || stockIn.RackNo == item.RackNo) &&
+                        stockIn.Type == "1" &&
+                        item.TotalBox > 0)
+
+                    {
+                        decimal currentAvailableBox = stockIn.AvailableBox ?? 0;
+                        decimal totalBoxToDeduct = item.TotalBox;
+                        stockIn.AvailableBox = currentAvailableBox - totalBoxToDeduct;
+
+                        if (stockIn.AvailableBox < 0)
+                        {
+                            stockIn.AvailableBox = 0;
+                        }
+
+                    }
+                    // End This Code For Update the StockIn table "AvailableBox" on 28/07/2025
+
                     _context.TblStockIns.Update(stockIn);
 
                     if (remainingQtyToDeduct == 0)
                         break;
                 }
 
-                // Update product available quantity
                 product.AvailableProductQty = (currentProductQty - stockOutQty).ToString();
                 _context.TblProducts.Update(product);
 
-                // Save stock-out transaction, linking to the last used stockIn
+
                 var usedStockIn = stockInList.LastOrDefault(x => int.TryParse(x.AvailableQuantity, out var qty) && qty > 0)
-                                  ?? stockInList.Last(); // Fallback to last record if all are 0
+                                  ?? stockInList.Last(); 
 
                 var stockOutEntry = new TblStockOut
                 {
@@ -1552,8 +1647,12 @@ namespace InventoryManagement.Controllers
                     Reason = item.Reason,
                     StockOutDate = DateTime.Now,
                     FkStockInId = usedStockIn.StockInId,
-                    //FkWarehouseId = item.FkWarehouseId, 
-                    //RackNo = item.RackNo 
+                    TotalBox = item.TotalBox,
+                    PerBoxQty = item.PerBoxQty,
+                    FkWarehouseId = item.FkWarehouseId,
+                    //RackNo = item.RackNo,
+                    RackNo = string.IsNullOrEmpty(item.RackNo) ? null : item.RackNo,
+                    Type = item.Type
                 };
 
                 await _context.TblStockOuts.AddAsync(stockOutEntry);
@@ -1562,6 +1661,9 @@ namespace InventoryManagement.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+
+
 
         //[HttpPost]
         //[ValidateAntiForgeryToken]
@@ -1648,10 +1750,7 @@ namespace InventoryManagement.Controllers
 
 
 
-
-
-
-        public IActionResult StocksDetails(int id, int productId, string searchTerm = "", int pageNumber = 1, int pageSize = 10)
+        public IActionResult StocksDetails(int id, int productId, string searchTerm = "", int pageNumber = 1, int pageSize = 10, string stockTypeFilter = "All", string itemTypeFilter = "All", DateTime? fromDate = null, DateTime? toDate = null)
         {
             var userId = HttpContext.Session.GetInt32("userId");
 
@@ -1661,25 +1760,58 @@ namespace InventoryManagement.Controllers
             }
 
             var product = _context.TblProducts
-    .            FirstOrDefault(x => x.IsDeleted == false && x.ProductId == productId);
+                .FirstOrDefault(x => x.IsDeleted == false && x.ProductId == productId);
+
+            var skuName = _context.TblSkuBarcodes
+                .Where(x => x.IsDeleted == 0 && x.FkProductId == productId)
+                .Select(x => x.Skuname)
+                .ToList();
+
+            var skuNamesString = string.Join(", ", skuName);
 
             var aliasList = _context.TblProductAliases
-                .Where(x => x.FkProductId == productId)
+                .Where(x =>x.IsDeleted == false && x.FkProductId == productId)
                 .Select(x => x.AliasName)
                 .ToList();
 
             string aliasNamesString = string.Join(", ", aliasList);
 
 
+            // Total Stock from all available products
+            decimal totalStock = _context.TblProducts
+                .Where(x => x.IsDeleted == false && x.ProductId == productId && x.AvailableProductQty != null)
+                .Sum(x => Convert.ToInt32(x.AvailableProductQty));
+
+            // Total Box Items for this productId where Type == "1"
+            int totalBoxItem = (int)_context.TblStockIns
+                .Where(x => x.IsDeleted == false && x.FkProductId == productId && x.Type == "1" && x.AvailableBox != null)
+                .Sum(x => x.AvailableBox);
+
+            int totalBoxAvailableQty = _context.TblStockIns
+                .Where(x => x.IsDeleted == false && x.FkProductId == productId && x.Type == "1" && x.AvailableQuantity != null)
+                .Sum(x => Convert.ToInt32(x.AvailableQuantity));
+
+            int totalAvailableQtyForSinle = _context.TblStockIns
+                .Where(x => x.IsDeleted == false && x.FkProductId == productId && x.Type == "2" && x.AvailableQuantity != null)
+                .Sum(x => Convert.ToInt32(x.AvailableQuantity));
+
             var model = new StockDetailsViewModel
             {
                 CombinedStockList = new List<StockCombinedViewModel>(),
                 ProductName = product?.ProductName ?? "",
-                SKUName = product?.SkuIdName ?? "",
+                SKUName = skuNamesString,
                 AliasNames = aliasNamesString,
                 StockInId = id,
                 FkProjectId = productId,
-                ProductQty = product?.AvailableProductQty
+                ProductQty = product?.AvailableProductQty,
+                TotalStock = totalStock,
+                TotalBoxItem = totalBoxItem,
+                TotalBoxAvailableQty = totalBoxAvailableQty,
+                TotalAvailableQtyForSingle = totalAvailableQtyForSinle,
+                StockTypeFilter = stockTypeFilter,
+                ItemTypeFilter = itemTypeFilter,
+                FromDate = fromDate,
+                ToDate = toDate
 
             };
 
@@ -1691,9 +1823,77 @@ namespace InventoryManagement.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                stockInQuery = stockInQuery.Where(x => x.Barcode.Contains(searchTerm));
-                stockOutQuery = stockOutQuery.Where(x => x.Reason.Contains(searchTerm));
+                string lowerSearchTerm = searchTerm.ToLower();
+
+
+                stockInQuery = stockInQuery.Where(x =>
+                    (x.Barcode != null && x.Barcode.ToLower().Contains(lowerSearchTerm)) ||
+                    (x.BatchNo != null && x.BatchNo.ToLower().Contains(lowerSearchTerm)) ||
+                    (x.Type != null && x.Type.ToLower().Contains(lowerSearchTerm)) ||
+                    (x.RackNo != null && x.RackNo.ToLower().Contains(lowerSearchTerm)) ||
+                    (_context.TblWarehouses.Any(w => w.WarehouseId == x.FkWarehouseId && w.IsDeleted == false && w.Name.ToLower().Contains(lowerSearchTerm))) ||
+                    (_context.TblProducts.Any(p => p.ProductId == x.FkProductId && p.ProductName.ToLower().Contains(lowerSearchTerm)))
+                );
+
+
+                bool searchStatusStockIn = "stock in".Contains(lowerSearchTerm);
+                bool searchStatusStockOut = "stock out".Contains(lowerSearchTerm);
+
+                stockOutQuery = stockOutQuery.Where(x =>
+                    (x.Reason != null && x.Reason.ToLower().Contains(lowerSearchTerm)) ||
+
+                    (_context.TblProducts.Any(p => p.ProductId == x.FkProductId && p.ProductName.ToLower().Contains(lowerSearchTerm))) ||
+                    (searchStatusStockOut)
+                );
+
+                if (lowerSearchTerm.Contains("stock in") && !lowerSearchTerm.Contains("stock out"))
+                {
+                    stockOutQuery = stockOutQuery.Where(x => false);
+                }
+
+                if (lowerSearchTerm.Contains("stock out") && !lowerSearchTerm.Contains("stock in"))
+                {
+                    stockInQuery = stockInQuery.Where(x => false);
+                }
             }
+
+            // Apply Stock Type Filter
+            if (stockTypeFilter == "StockIn")
+            {
+                stockOutQuery = stockOutQuery.Where(x => false);
+            }
+            else if (stockTypeFilter == "StockOut")
+            {
+                stockInQuery = stockInQuery.Where(x => false);
+            }
+
+            if (!string.IsNullOrEmpty(itemTypeFilter))
+            {
+                itemTypeFilter = itemTypeFilter.Trim();
+
+                if (itemTypeFilter == "Box Item")
+                {
+                    stockInQuery = stockInQuery.Where(x => x.Type == "1");
+                    stockOutQuery = stockOutQuery.Where(x => x.Type == "1");
+                }
+                else if (itemTypeFilter == "Single Item")
+                {
+                    stockInQuery = stockInQuery.Where(x => x.Type == "2");
+                    stockOutQuery = stockOutQuery.Where(x => x.Type == "2");
+                }
+            }
+
+
+            // Apply Date Filter
+            if (fromDate.HasValue && toDate.HasValue)
+            {
+                DateTime from = fromDate.Value.Date;
+                DateTime to = toDate.Value.Date.AddDays(1).AddTicks(-1);
+
+                stockInQuery = stockInQuery.Where(x => x.Date >= from && x.Date <= to);
+                stockOutQuery = stockOutQuery.Where(x => x.StockOutDate >= from && x.StockOutDate <= to);
+            }
+
 
             var stockInList = stockInQuery.ToList();
             var stockOutList = stockOutQuery.ToList();
@@ -1718,8 +1918,10 @@ namespace InventoryManagement.Controllers
                     Reason = "-",
                     RoomName = item.Room,
                     RackName = item.RackNo,
-                    Type = item.Type
-                    
+                    Type = item.Type,
+                    TotalBox = item.TotalBox ?? 0,
+                    PerBoxQty = item.PerBoxQty ?? 0
+
                 });
             }
 
@@ -1767,11 +1969,12 @@ namespace InventoryManagement.Controllers
                     Reason = item.Reason,
                     RoomName = roomName,
                     RackName = rackName,
-                    Type = Type
+                    //Type = Type,
+                    Type = item.Type,
+                    TotalBox = (decimal)item.TotalBox,
+                    PerBoxQty = (decimal)item.PerBoxQty
                 });
             }
-
-           
 
             var sortedList = model.CombinedStockList.OrderByDescending(x => x.CreatedAt).ToList();
 
@@ -1791,6 +1994,198 @@ namespace InventoryManagement.Controllers
 
             return View(model);
         }
+
+
+
+        //    public IActionResult StocksDetails(int id, int productId, string searchTerm = "", int pageNumber = 1, int pageSize = 10)
+        //    {
+        //        var userId = HttpContext.Session.GetInt32("userId");
+
+        //        if (userId == null || userId == 0)
+        //        {
+        //            return RedirectToAction("Login", "Auth");
+        //        }
+
+        //        var product = _context.TblProducts
+        //.            FirstOrDefault(x => x.IsDeleted == false && x.ProductId == productId);
+
+        //        var aliasList = _context.TblProductAliases
+        //            .Where(x => x.FkProductId == productId)
+        //            .Select(x => x.AliasName)
+        //            .ToList();
+
+        //        string aliasNamesString = string.Join(", ", aliasList);
+
+
+        //        // Total Stock from all available products
+        //        decimal totalStock = _context.TblProducts
+        //            .Where(x => x.IsDeleted == false && x.ProductId == productId && x.AvailableProductQty != null)
+        //            .Sum(x => Convert.ToInt32(x.AvailableProductQty));
+
+        //        // Total Box Items for this productId where Type == "1"
+        //        int totalBoxItem = (int)_context.TblStockIns
+        //            .Where(x => x.IsDeleted == false && x.FkProductId == productId && x.Type == "1" && x.AvailableBox != null)
+        //            .Sum(x => x.AvailableBox);
+
+
+        //        var model = new StockDetailsViewModel
+        //        {
+        //            CombinedStockList = new List<StockCombinedViewModel>(),
+        //            ProductName = product?.ProductName ?? "",
+        //            SKUName = product?.SkuIdName ?? "",
+        //            AliasNames = aliasNamesString,
+        //            StockInId = id,
+        //            FkProjectId = productId,
+        //            ProductQty = product?.AvailableProductQty,
+        //            TotalStock = totalStock,
+        //            TotalBoxItem = totalBoxItem
+
+        //        };
+
+        //        var stockInQuery = _context.TblStockIns
+        //            .Where(x => x.IsDeleted == false && x.FkProductId == productId);
+
+        //        var stockOutQuery = _context.TblStockOuts
+        //            .Where(x => x.IsDeleted == false && x.FkProductId == productId);
+
+        //        if (!string.IsNullOrEmpty(searchTerm))
+        //        {
+        //            string lowerSearchTerm = searchTerm.ToLower();
+
+
+        //            stockInQuery = stockInQuery.Where(x =>
+        //                (x.Barcode != null && x.Barcode.ToLower().Contains(lowerSearchTerm)) ||
+        //                (x.BatchNo != null && x.BatchNo.ToLower().Contains(lowerSearchTerm)) ||
+        //                (x.Type != null && x.Type.ToLower().Contains(lowerSearchTerm)) ||
+        //                (x.RackNo != null && x.RackNo.ToLower().Contains(lowerSearchTerm)) ||
+        //                (_context.TblWarehouses.Any(w => w.WarehouseId == x.FkWarehouseId && w.IsDeleted == false && w.Name.ToLower().Contains(lowerSearchTerm))) ||
+        //                (_context.TblProducts.Any(p => p.ProductId == x.FkProductId && p.ProductName.ToLower().Contains(lowerSearchTerm)))
+        //            );
+
+
+        //            bool searchStatusStockIn = "stock in".Contains(lowerSearchTerm);
+        //            bool searchStatusStockOut = "stock out".Contains(lowerSearchTerm);
+
+        //            stockOutQuery = stockOutQuery.Where(x =>
+        //                (x.Reason != null && x.Reason.ToLower().Contains(lowerSearchTerm)) ||
+
+        //                (_context.TblProducts.Any(p => p.ProductId == x.FkProductId && p.ProductName.ToLower().Contains(lowerSearchTerm))) ||
+        //                (searchStatusStockOut)  
+        //            );
+
+        //            if (lowerSearchTerm.Contains("stock in") && !lowerSearchTerm.Contains("stock out"))
+        //            {
+        //                stockOutQuery = stockOutQuery.Where(x => false); 
+        //            }
+
+        //            if (lowerSearchTerm.Contains("stock out") && !lowerSearchTerm.Contains("stock in"))
+        //            {
+        //                stockInQuery = stockInQuery.Where(x => false); 
+        //            }
+        //        }
+
+        //        var stockInList = stockInQuery.ToList();
+        //        var stockOutList = stockOutQuery.ToList();
+
+        //        foreach (var item in stockInList)
+        //        {
+        //            var getProduct = _context.TblProducts.FirstOrDefault(x => x.IsDeleted == false && x.ProductId == item.FkProductId);
+        //            var getSupplier = _context.TblSuppliers.FirstOrDefault(x => x.IsDeleted == false && x.SupplierId == item.FkSupplierId);
+        //            var getLocation = _context.TblWarehouses.FirstOrDefault(x => x.IsDeleted == false && x.WarehouseId == item.FkWarehouseId);
+
+        //            model.CombinedStockList.Add(new StockCombinedViewModel
+        //            {
+        //                Id = item.StockInId,
+        //                Date = item.Date ?? DateTime.MinValue,
+        //                CreatedAt = item.CreatedAt ?? DateTime.MinValue,
+        //                BatchNo = item.BatchNo ?? null,
+        //                Quantity = item.ProductQuantity,
+        //                ProductName = getProduct?.ProductName,
+        //                SupplierName = getSupplier?.SupplierName,
+        //                LocationName = getLocation?.Name,
+        //                Status = "Stock In",
+        //                Reason = "-",
+        //                RoomName = item.Room,
+        //                RackName = item.RackNo,
+        //                Type = item.Type,
+        //                TotalBox = (decimal)item.TotalBox,
+        //                PerBoxQty = (decimal)item.PerBoxQty
+
+        //            });
+        //        }
+
+        //        foreach (var item in stockOutList)
+        //        {
+        //            var getProduct = _context.TblProducts.FirstOrDefault(x => x.IsDeleted == false && x.ProductId == item.FkProductId);
+        //            var getStockInData = _context.TblStockIns.FirstOrDefault(x => x.IsDeleted == false && x.StockInId == item.FkStockInId);
+
+        //            string supplierName = "";
+        //            string locationName = "";
+        //            string batchNo = "";
+        //            string roomName = "";
+        //            string rackName = "";
+        //            string Type = "";
+
+        //            if (getStockInData != null)
+        //            {
+
+        //                var getSupplier = _context.TblSuppliers
+        //                    .FirstOrDefault(x => x.IsDeleted == false && x.SupplierId == getStockInData.FkSupplierId);
+
+        //                var getLocation = _context.TblWarehouses
+        //                    .FirstOrDefault(x => x.IsDeleted == false && x.WarehouseId == getStockInData.FkWarehouseId);
+
+        //                supplierName = getSupplier?.SupplierName ?? "";
+        //                locationName = getLocation?.Name ?? "";
+        //                batchNo = getStockInData.BatchNo ?? "";
+        //                roomName = getStockInData.Room ?? "";
+        //                rackName = getStockInData.RackNo ?? "";
+        //                Type = getStockInData.Type ?? "";
+        //            }
+
+        //            model.CombinedStockList.Add(new StockCombinedViewModel
+        //            {
+        //                Id = item.StockOutId,
+        //                Date = item.StockOutDate ?? DateTime.MinValue,
+        //                CreatedAt = item.CreatedAt ?? DateTime.MinValue,
+        //                BatchNo = batchNo,
+        //                Quantity = item.Quantity,
+        //                ProductName = getProduct?.ProductName,
+        //                //SupplierName = supplierName,
+        //                SupplierName = "-",
+        //                LocationName = locationName,
+        //                Status = "Stock Out",
+        //                Reason = item.Reason,
+        //                RoomName = roomName,
+        //                RackName = rackName,
+        //                Type = Type,
+        //                TotalBox = (decimal)item.TotalBox,
+        //                PerBoxQty = (decimal)item.PerBoxQty
+        //            });
+        //        }
+
+        //        var sortedList = model.CombinedStockList.OrderByDescending(x => x.CreatedAt).ToList();
+
+        //        int totalRecords = sortedList.Count;
+        //        model.CombinedStockList = sortedList
+        //            .Skip((pageNumber - 1) * pageSize)
+        //            .Take(pageSize)
+        //            .ToList();
+
+        //        model.Pagination = new PaginationMetadataViewModel
+        //        {
+        //            TotalRecords = totalRecords,
+        //            CurrentPage = pageNumber,
+        //            PageSize = pageSize,
+        //            SearchTerm = searchTerm
+        //        };
+
+        //        return View(model);
+        //    }
+
+
+
+
 
 
 
@@ -2127,9 +2522,9 @@ namespace InventoryManagement.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                saleOrderList = saleOrderList.Where(x => x.ProductName.Contains(searchTerm) ||
-                                                         x.Status.Contains(searchTerm) ||
-                                                         x.OrderProductQty.Contains(searchTerm));
+                saleOrderList = saleOrderList.Where(x => x.OrderProductQty.Contains(searchTerm) ||
+                 _context.TblProducts.Any(w => w.ProductId == x.FkProductId && w.IsDeleted == false && w.ProductName.Contains(searchTerm))
+                );
             }
 
 
@@ -2145,22 +2540,38 @@ namespace InventoryManagement.Controllers
             foreach(var item in paginatedProduct)
             {
                 var product = _context.TblProducts.FirstOrDefault(x => x.IsDeleted == false && x.ProductId == item.FkProductId);
+                var skuName = _context.TblSkuBarcodes.FirstOrDefault(x => x.IsDeleted == 0 && x.SkuId == item.FkSkuId);
                 var StockIn = _context.TblStockIns.FirstOrDefault(x => x.IsDeleted == false && x.FkProductId == item.FkProductId);
 
+                var getType = _context.TblStockIns.Where(x => x.IsDeleted == false && x.Barcode == item.ProductName)
+                    .Select(x => x.Type).FirstOrDefault();
+
+                // Sum AvailableQuantity from StockIns with same Barcode and Type
+                var getAvailableQty = _context.TblStockIns
+                    .Where(x => x.IsDeleted == false
+                             && x.Barcode == item.ProductName
+                             && x.Type == getType)
+                    .Sum(x => Convert.ToInt32(x.AvailableQuantity));
+
                 int orderQty = int.TryParse(item.OrderProductQty, out var oq) ? oq : 0;
-                int availableQty = int.TryParse(product?.AvailableProductQty, out var aq) ? aq : 0;
+                //int availableQty = int.TryParse(product?.AvailableProductQty, out var aq) ? aq : 0;
+                int availableQty = getAvailableQty;
 
                 string status = availableQty >= orderQty ? "Available" : "Not Available";
 
                 getSaleOrderList.Add(new SaleOrderViewModel
                 {
                     OrderId = item.OrderId,
+                    OrderNumber = item.OrderNumber,
                     ProductName = product.ProductName,
-                    SKUName = product.SkuIdName,
+                    //SKUName = product.SkuIdName,
+                    SKUName = skuName.Skuname,
                     OrderQuantity = item.OrderProductQty,
-                    AvailableQuantity = product?.AvailableProductQty ?? "0",
+                    //AvailableQuantity = product?.AvailableProductQty ?? "0",
+                    AvailableQuantity = Convert.ToString(getAvailableQty),
                     OrderDate = (DateTime)item.OrderDate,
                     Status = status,
+                    Type = getType
                 });
             }
 
@@ -2479,11 +2890,11 @@ namespace InventoryManagement.Controllers
                         for (int row = 2; row <= rowCount; row++)
                         {
                             string orderNumber = worksheet.Cell(row, 1).GetString().Trim();
-                            string productName = worksheet.Cell(row, 2).GetString().Trim();
+                            string skuName = worksheet.Cell(row, 2).GetString().Trim();
                             string productQty = worksheet.Cell(row, 3).GetString().Trim();
                             string orderDateString = worksheet.Cell(row, 4).GetString().Trim();
 
-                            if (string.IsNullOrEmpty(orderNumber) || string.IsNullOrEmpty(productName) || string.IsNullOrEmpty(productQty) || string.IsNullOrEmpty(orderDateString))
+                            if (string.IsNullOrEmpty(orderNumber) || string.IsNullOrEmpty(skuName) || string.IsNullOrEmpty(productQty) || string.IsNullOrEmpty(orderDateString))
                             {
                                 continue;
                             }
@@ -2514,31 +2925,22 @@ namespace InventoryManagement.Controllers
 
                             var existingSaleOrder = _context.TblSaleOrders.AsNoTracking().FirstOrDefault(u => u.OrderNumber == orderNumber);
 
-                            var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+                            //var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+                            var skuBarcode = _context.TblSkuBarcodes.FirstOrDefault(p => p.Skuname == skuName);
 
-                            if (product != null)
+                            if (skuBarcode != null)
                             {
                                 if (existingSaleOrder != null)
                                 {
                                     existingSaleOrder.OrderNumber = orderNumber;
-                                    existingSaleOrder.ProductName = productName;
+                                    existingSaleOrder.ProductName = skuName;
                                     existingSaleOrder.OrderProductQty = productQty;
                                     existingSaleOrder.OrderDate = orderDate;
                                     existingSaleOrder.UpdatedAt = DateTime.Now;
-                                    existingSaleOrder.FkProductId = product.ProductId;
+                                    existingSaleOrder.FkSkuId = skuBarcode.SkuId;
+                                    existingSaleOrder.FkProductId = skuBarcode.FkProductId;
 
                                     saleOrderToUpdate.Add(existingSaleOrder);
-
-                                    //if (product != null)
-                                    //{
-                                    //    existingSaleOrder.FkProductId = product.ProductId;
-                                    //    saleOrderToUpdate.Add(existingSaleOrder);
-                                    //}
-                                    //else
-                                    //{
-                                    //    TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
-                                    //    return RedirectToAction("SalesOrder");
-                                    //}
 
                                 }
                                 else
@@ -2546,35 +2948,24 @@ namespace InventoryManagement.Controllers
                                     var newSaleOrder = new TblSaleOrder
                                     {
                                         OrderNumber = orderNumber,
-                                        ProductName = productName,
+                                        ProductName = skuName,
                                         OrderProductQty = productQty,
                                         OrderDate = orderDate,
                                         CreatedAt = DateTime.Now,
-                                        FkProductId = product.ProductId
+                                        FkSkuId = skuBarcode.SkuId,
+                                        FkProductId = skuBarcode.FkProductId
                                     };
 
                                     saleOrderToInsert.Add(newSaleOrder);
-
-                                    //var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
-                                    //if (product != null)
-                                    //{
-                                    //    newSaleOrder.FkProductId = product.ProductId;
-                                    //    saleOrderToInsert.Add(newSaleOrder);
-                                    //}
-                                    //else
-                                    //{
-                                    //    TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
-                                    //    return RedirectToAction("SalesOrder");
-                                    //}
                                 }
-                                
+
                             }
                             else
                             {
-                                
-                                TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+
+                                TempData["ErrorMessage"] = $"SkuName '{skuName}' not found. Please enter a correct sku name.";
                                 //return RedirectToAction("SalesOrder");
-                                invalidProducts.Add(productName);
+                                invalidProducts.Add(skuName);
                             }
 
                         }
@@ -2612,6 +3003,235 @@ namespace InventoryManagement.Controllers
             }
         }
 
+
+
+        //[HttpPost]
+        //public IActionResult ImportExcel(IFormFile file)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    if (file == null || file.Length == 0)
+        //    {
+        //        TempData["ErrorMessage"] = "Please select an Excel file.";
+        //        return RedirectToAction("Create");
+        //    }
+
+        //    List<string> invalidProducts = new List<string>();
+        //    List<TblSaleOrder> saleOrderToInsert = new List<TblSaleOrder>();
+        //    List<TblSaleOrder> saleOrderToUpdate = new List<TblSaleOrder>();
+
+        //    try
+        //    {
+        //        using (var stream = new MemoryStream())
+        //        {
+        //            file.CopyTo(stream);
+        //            stream.Position = 0;
+
+        //            // Use ClosedXML Labibary
+        //            using (var workbook = new XLWorkbook(stream))
+        //            {
+        //                var worksheet = workbook.Worksheets.Worksheet(1);
+        //                var rowCount = worksheet.RowsUsed().Count();
+
+
+
+        //                for (int row = 2; row <= rowCount; row++)
+        //                {
+        //                    string orderNumber = worksheet.Cell(row, 1).GetString().Trim();
+        //                    string productName = worksheet.Cell(row, 2).GetString().Trim();
+        //                    string productQty = worksheet.Cell(row, 3).GetString().Trim();
+        //                    string orderDateString = worksheet.Cell(row, 4).GetString().Trim();
+
+        //                    if (string.IsNullOrEmpty(orderNumber) || string.IsNullOrEmpty(productName) || string.IsNullOrEmpty(productQty) || string.IsNullOrEmpty(orderDateString))
+        //                    {
+        //                        continue;
+        //                    }
+
+        //                    DateTime orderDate;
+        //                    bool validDate = false;
+
+        //                    // First try parsing with common formats
+        //                    string[] formats = {
+        //                        "d/M/yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "MM/dd/yyyy",
+        //                        "d/M/yyyy h:mm:ss tt", "dd/MM/yyyy h:mm:ss tt",
+        //                        "yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss"
+        //                    };
+
+        //                    validDate = DateTime.TryParseExact(orderDateString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out orderDate);
+
+        //                    // If TryParseExact fails, fallback to TryParse (more flexible)
+        //                    if (!validDate)
+        //                    {
+        //                        validDate = DateTime.TryParse(orderDateString, out orderDate);
+        //                    }
+
+        //                    if (!validDate)
+        //                    {
+        //                        continue;
+        //                    }
+
+
+        //                    var existingSaleOrder = _context.TblSaleOrders.AsNoTracking().FirstOrDefault(u => u.OrderNumber == orderNumber);
+
+        //                    var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+
+        //                    if (product != null)
+        //                    {
+        //                        if (existingSaleOrder != null)
+        //                        {
+        //                            existingSaleOrder.OrderNumber = orderNumber;
+        //                            existingSaleOrder.ProductName = productName;
+        //                            existingSaleOrder.OrderProductQty = productQty;
+        //                            existingSaleOrder.OrderDate = orderDate;
+        //                            existingSaleOrder.UpdatedAt = DateTime.Now;
+        //                            existingSaleOrder.FkProductId = product.ProductId;
+
+        //                            saleOrderToUpdate.Add(existingSaleOrder);
+
+        //                            //if (product != null)
+        //                            //{
+        //                            //    existingSaleOrder.FkProductId = product.ProductId;
+        //                            //    saleOrderToUpdate.Add(existingSaleOrder);
+        //                            //}
+        //                            //else
+        //                            //{
+        //                            //    TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+        //                            //    return RedirectToAction("SalesOrder");
+        //                            //}
+
+        //                        }
+        //                        else
+        //                        {
+        //                            var newSaleOrder = new TblSaleOrder
+        //                            {
+        //                                OrderNumber = orderNumber,
+        //                                ProductName = productName,
+        //                                OrderProductQty = productQty,
+        //                                OrderDate = orderDate,
+        //                                CreatedAt = DateTime.Now,
+        //                                FkProductId = product.ProductId
+        //                            };
+
+        //                            saleOrderToInsert.Add(newSaleOrder);
+
+        //                            //var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == productName);
+        //                            //if (product != null)
+        //                            //{
+        //                            //    newSaleOrder.FkProductId = product.ProductId;
+        //                            //    saleOrderToInsert.Add(newSaleOrder);
+        //                            //}
+        //                            //else
+        //                            //{
+        //                            //    TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+        //                            //    return RedirectToAction("SalesOrder");
+        //                            //}
+        //                        }
+
+        //                    }
+        //                    else
+        //                    {
+
+        //                        TempData["ErrorMessage"] = $"Product '{productName}' not found. Please enter a correct product name.";
+        //                        //return RedirectToAction("SalesOrder");
+        //                        invalidProducts.Add(productName);
+        //                    }
+
+        //                }
+
+        //                if (saleOrderToInsert.Count > 0)
+        //                {
+        //                    _context.TblSaleOrders.AddRange(saleOrderToInsert);
+        //                    _context.SaveChanges();
+        //                }
+
+        //                if (saleOrderToUpdate.Count > 0)
+        //                {
+        //                    _context.TblSaleOrders.UpdateRange(saleOrderToUpdate);
+        //                    _context.SaveChanges();
+        //                }
+
+        //                int rowsAffected = saleOrderToInsert.Count + saleOrderToUpdate.Count;
+        //                if (rowsAffected > 0)
+        //                {
+        //                    TempData["SuccessMessage"] = $"Successfully imported {rowsAffected} records!";
+        //                }
+        //                else
+        //                {
+        //                    TempData["ErrorMessage"] = "No valid user data found in the file.";
+        //                }
+
+        //                return RedirectToAction("SalesOrder");
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ErrorMessage"] = "Error importing data: " + ex.Message;
+        //        return RedirectToAction("SalesOrder");
+        //    }
+        //}
+
+
+
+
+        //[HttpPost]
+        //public async Task<ActionResult> AddProduct(ProductViewModel addProduct)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    var product = new TblProduct
+        //    {
+        //        ProductName = addProduct.ProductName,
+        //        SkuIdName = addProduct.SkuIdName,
+        //        LowStockQuantity = addProduct.LowStockQuantity,
+        //        IsDeleted = false,
+        //        CreatedAt = DateTime.Now,
+        //    };
+
+        //    _context.TblProducts.Add(product);
+        //    await _context.SaveChangesAsync();
+
+        //    var getId = product.ProductId;
+
+        //    if (addProduct.AliasNames != null && addProduct.AliasNames.Any())
+        //    {
+        //        foreach (var alias in addProduct.AliasNames)
+        //        {
+        //            if (!string.IsNullOrWhiteSpace(alias))
+        //            {
+
+        //                var aliasData = new TblProductAlias
+        //                {
+        //                    FkProductId = getId,
+        //                    AliasName = alias,
+        //                    IsDeleted = false,
+        //                    CreatedAt = DateTime.Now
+        //                };
+
+        //                _context.TblProductAliases.Add(aliasData);
+        //            }
+        //        }
+
+        //        await _context.SaveChangesAsync();
+        //    }
+
+
+
+        //    return RedirectToAction("StockIn");
+        //}
+
+
+
         [HttpPost]
         public async Task<ActionResult> AddProduct(ProductViewModel addProduct)
         {
@@ -2625,7 +3245,7 @@ namespace InventoryManagement.Controllers
             var product = new TblProduct
             {
                 ProductName = addProduct.ProductName,
-                SkuIdName = addProduct.SkuIdName,
+                //SkuIdName = addProduct.SkuIdName,
                 LowStockQuantity = addProduct.LowStockQuantity,
                 IsDeleted = false,
                 CreatedAt = DateTime.Now,
@@ -2633,6 +3253,39 @@ namespace InventoryManagement.Controllers
 
             _context.TblProducts.Add(product);
             await _context.SaveChangesAsync();
+
+            var getProductId = product.ProductId;
+
+            var skuEntries = new List<TblSkuBarcode>();
+
+            if (!string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
+            {
+                skuEntries.Add(new TblSkuBarcode
+                {
+                    FkProductId = getProductId,
+                    Skuname = addProduct.SkuForSignleItem,
+                    IsDeleted = 0,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = userId
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(addProduct.SkuForBox))
+            {
+                skuEntries.Add(new TblSkuBarcode
+                {
+                    FkProductId = getProductId,
+                    Skuname = addProduct.SkuForBox,
+                    IsDeleted = 0,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = userId
+                });
+            }
+
+            if (skuEntries.Any())
+            {
+                _context.TblSkuBarcodes.AddRange(skuEntries);
+            }
 
             var getId = product.ProductId;
 
@@ -2666,6 +3319,12 @@ namespace InventoryManagement.Controllers
 
 
 
+
+
+
+
+
+
         //[HttpPost]
         //public async Task<IActionResult> StockInDataExcelImport(IFormFile file)
         //{
@@ -2683,8 +3342,6 @@ namespace InventoryManagement.Controllers
         //    }
 
         //    string batchNumber = "";
-
-        //    // 1. Get Batch Number from stored procedure
         //    using (var connection = new MySqlConnection(_context.Database.GetConnectionString()))
         //    {
         //        var parameters = new DynamicParameters();
@@ -2694,6 +3351,7 @@ namespace InventoryManagement.Controllers
         //    }
 
         //    List<TblStockIn> stockInList = new();
+        //    List<string> failedRecords = new();
 
         //    try
         //    {
@@ -2709,19 +3367,24 @@ namespace InventoryManagement.Controllers
 
         //                for (int row = 2; row <= rowCount; row++)
         //                {
-        //                    string itemName = worksheet.Cell(row, 1).GetString().Trim();       
-        //                    string itemCode = worksheet.Cell(row, 2).GetString().Trim();      
-        //                    string priceText = worksheet.Cell(row, 5).GetString().Trim();      
-        //                    string qtyText = worksheet.Cell(row, 9).GetString().Trim();        
+        //                    string itemName = worksheet.Cell(row, 1).GetString().Trim();
+        //                    string itemCode = worksheet.Cell(row, 2).GetString().Trim();
+        //                    string priceText = worksheet.Cell(row, 5).GetString().Trim();
+        //                    string qtyText = worksheet.Cell(row, 9).GetString().Trim();
+        //                    string rackNo = worksheet.Cell(row, 11).GetString().Trim();
 
-        //                    if (string.IsNullOrWhiteSpace(itemName)) continue;
+        //                    if (string.IsNullOrWhiteSpace(itemName))
+        //                        continue;
 
         //                    var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
-        //                    if (product == null) continue;
+        //                    if (product == null)
+        //                    {
+        //                        failedRecords.Add($"Row {row}: Product '{itemName}' not found");
+        //                        continue;
+        //                    }
 
         //                    decimal.TryParse(priceText, out decimal price);
         //                    int.TryParse(qtyText, out int qty);
-
 
         //                    int currentQty = 0;
         //                    if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
@@ -2732,20 +3395,19 @@ namespace InventoryManagement.Controllers
         //                    int updatedQty = currentQty + qty;
         //                    product.AvailableProductQty = updatedQty.ToString();
 
-
-
         //                    TblStockIn stockIn = new()
         //                    {
         //                        FkProductId = product.ProductId,
         //                        Barcode = itemCode,
         //                        Price = price,
-        //                        ProductQuantity = Convert.ToString(qty),
-        //                        AvailableQuantity = Convert.ToString(qty),
+        //                        ProductQuantity = qty.ToString(),
+        //                        AvailableQuantity = qty.ToString(),
         //                        Date = DateTime.Now,
         //                        Type = "2",
         //                        FkWarehouseId = 1,
         //                        FkSupplierId = 1,
-        //                        BatchNo = batchNumber
+        //                        BatchNo = batchNumber,
+        //                        RackNo = rackNo
         //                    };
 
         //                    stockInList.Add(stockIn);
@@ -2755,12 +3417,14 @@ namespace InventoryManagement.Controllers
         //                {
         //                    _context.TblStockIns.AddRange(stockInList);
         //                    await _context.SaveChangesAsync();
-        //                    TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully!";
         //                }
-        //                else
+
+        //                TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
+        //                if (failedRecords.Any())
         //                {
-        //                    TempData["ErrorMessage"] = "No valid records found.";
+        //                    TempData["ErrorMessage"] = $"{failedRecords.Count} records failed to import due to incorrect product names.";
         //                }
+
         //            }
         //        }
 
@@ -2772,6 +3436,7 @@ namespace InventoryManagement.Controllers
         //        return RedirectToAction("InventoryList");
         //    }
         //}
+
 
 
         [HttpPost]
@@ -2820,15 +3485,130 @@ namespace InventoryManagement.Controllers
                             string itemCode = worksheet.Cell(row, 2).GetString().Trim();
                             string priceText = worksheet.Cell(row, 5).GetString().Trim();
                             string qtyText = worksheet.Cell(row, 9).GetString().Trim();
+                            string minumumQty = worksheet.Cell(row, 10).GetString().Trim();
+                            string roomName = worksheet.Cell(row, 11).GetString().Trim();
+                            string rackNo = worksheet.Cell(row, 12).GetString().Trim();
 
                             if (string.IsNullOrWhiteSpace(itemName))
                                 continue;
 
+                            if (string.IsNullOrWhiteSpace(itemCode))
+                            {
+                                failedRecords.Add($"Row {row}: SKUName is not available.");
+                                continue; 
+                            }
+
+
+                            if (!string.IsNullOrWhiteSpace(itemCode))
+                            {
+                                if (!itemCode.StartsWith("A", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    failedRecords.Add($"Row {row}: Invalid SKU '{itemCode}'. Please add correct SKUName e.g. 'A001' (must start with 'A').");
+                                    continue; 
+                                }
+                            }
+
+                            // 🔹 Default empty values to "0"
+                            //if (string.IsNullOrWhiteSpace(priceText)) priceText = "0";
+                            //if (string.IsNullOrWhiteSpace(minumumQty)) minumumQty = "0";
+
                             var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
                             if (product == null)
                             {
-                                failedRecords.Add($"Row {row}: Product '{itemName}' not found");
-                                continue;
+                                // Create new product
+                                product = new TblProduct
+                                {
+                                    ProductName = itemName,
+                                    LowStockQuantity = minumumQty,
+                                    AvailableProductQty = "0", 
+                                    CreatedAt = DateTime.Now,
+                                    IsDeleted = false
+                                };
+                                _context.TblProducts.Add(product);
+                                await _context.SaveChangesAsync(); 
+                            }
+
+                           
+
+                            bool aliasExists =
+                            _context.TblProductAliases.Any(a => a.FkProductId == product.ProductId && a.AliasName == itemName)
+                            || _context.ChangeTracker.Entries<TblProductAlias>()
+                                .Any(e => e.Entity.FkProductId == product.ProductId &&
+                                          e.Entity.AliasName == itemName &&
+                                          e.State == EntityState.Added);
+
+                            if (!aliasExists)
+                            {
+                                var alias = new TblProductAlias
+                                {
+                                    FkProductId = product.ProductId,
+                                    AliasName = itemName
+                                };
+                                _context.TblProductAliases.Add(alias);
+                            }
+
+
+                            if (!string.IsNullOrWhiteSpace(itemCode))
+                            {
+                                // Save SKU if not already exists
+                                bool skuExists = _context.TblSkuBarcodes
+                                .Any(s => s.FkProductId == product.ProductId && s.Skuname == itemCode)
+                                || _context.ChangeTracker.Entries<TblSkuBarcode>()
+                                   .Any(e => e.Entity.FkProductId == product.ProductId && e.Entity.Skuname == itemCode && e.State == EntityState.Added);
+
+                                if (!skuExists)
+                                {
+                                    var sku = new TblSkuBarcode
+                                    {
+                                        FkProductId = product.ProductId,
+                                        Skuname = itemCode
+                                    };
+                                    _context.TblSkuBarcodes.Add(sku);
+                                }
+
+                            }
+
+                            // 🔹 4. Warehouse check/create (Room column)
+                            TblWarehouse warehouse = null;
+                            if (!string.IsNullOrWhiteSpace(roomName))
+                            {
+                                warehouse = _context.TblWarehouses
+                                    .FirstOrDefault(w => w.Name == roomName && w.IsDeleted == false);
+
+                                if (warehouse == null)
+                                {
+                                    warehouse = new TblWarehouse
+                                    {
+                                        Name = roomName,
+                                        IsDeleted = false,
+                                        CreatedAt = DateTime.Now
+                                    };
+                                    _context.TblWarehouses.Add(warehouse);
+                                    await _context.SaveChangesAsync(); 
+                                }
+                            }
+
+                            int warehouseId = warehouse?.WarehouseId ?? 1;
+
+                            // ✅ Check Rack
+                            TblRack rack = null;
+                            if (!string.IsNullOrWhiteSpace(rackNo))
+                            {
+                                rack = _context.TblRacks
+                                    .FirstOrDefault(r => r.RackNo == rackNo && r.FkWarehouseId == warehouseId && r.IsDeleted == 0);
+
+                                if (rack == null)
+                                {
+                                    rack = new TblRack
+                                    {
+                                        FkWarehouseId = warehouseId,
+                                        RackNo = rackNo,
+                                        IsDeleted = 0,
+                                        CreatedAt = DateTime.Now
+                                    };
+                                    _context.TblRacks.Add(rack);
+                                    await _context.SaveChangesAsync(); 
+                                }
                             }
 
                             decimal.TryParse(priceText, out decimal price);
@@ -2852,19 +3632,30 @@ namespace InventoryManagement.Controllers
                                 AvailableQuantity = qty.ToString(),
                                 Date = DateTime.Now,
                                 Type = "2",
-                                FkWarehouseId = 1,
+                                FkWarehouseId = warehouseId,
                                 FkSupplierId = 1,
-                                BatchNo = batchNumber
+                                BatchNo = batchNumber,
+                                RackNo = rackNo
                             };
 
                             stockInList.Add(stockIn);
+                        }
+
+                        if (failedRecords.Any())
+                        {
+                            TempData["ErrorMessage"] =
+                                $"{failedRecords.Count} records failed. <br/>{string.Join("<br/>", failedRecords)}";
+
+                            return RedirectToAction("InventoryList"); 
                         }
 
                         if (stockInList.Any())
                         {
                             _context.TblStockIns.AddRange(stockInList);
                             await _context.SaveChangesAsync();
+                            TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
                         }
+                        await _context.SaveChangesAsync();
 
                         TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
                         if (failedRecords.Any())
@@ -2883,6 +3674,10 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("InventoryList");
             }
         }
+
+
+
+
 
 
 
@@ -2926,26 +3721,221 @@ namespace InventoryManagement.Controllers
                         var worksheet = workbook.Worksheets.Worksheet(1);
                         var rowCount = worksheet.RowsUsed().Count();
 
+                        //for (int row = 2; row <= rowCount; row++)
+                        //{
+                        //    string itemName = worksheet.Cell(row, 3).GetString().Trim();
+                        //    string itemCode = worksheet.Cell(row, 7).GetString().Trim();
+                        //    string recordsCount = worksheet.Cell(row, 4).GetString().Trim(); 
+                        //    string qtyText = worksheet.Cell(row, 5).GetString().Trim();      
+                        //    string rackNo = worksheet.Cell(row, 8).GetString().Trim();
+
+                        //    if (string.IsNullOrWhiteSpace(itemName))
+                        //        continue;
+
+                        //    var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
+                        //    if (product == null)
+                        //    {
+                        //        failedRecords.Add($"Row {row}: Product '{itemName}' not found");
+                        //        continue;
+                        //    }
+
+
+                        //    if (!int.TryParse(recordsCount, out int boxCount))
+                        //    {
+                        //        failedRecords.Add($"Row {row}: Invalid recordsCount value '{recordsCount}'");
+                        //        continue;
+                        //    }
+
+                        //    if (!int.TryParse(qtyText, out int perBoxQty))
+                        //    {
+                        //        failedRecords.Add($"Row {row}: Invalid qtyText value '{qtyText}'");
+                        //        continue;
+                        //    }
+
+                        //    int totalQty = boxCount * perBoxQty;
+
+                        //    int currentQty = 0;
+                        //    if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
+                        //    {
+                        //        int.TryParse(product.AvailableProductQty, out currentQty);
+                        //    }
+
+                        //    TblStockIn stockIn = new()
+                        //    {
+                        //        FkProductId = product.ProductId,
+                        //        Barcode = itemCode,
+                        //        Price = 0,
+                        //        ProductQuantity = totalQty.ToString(),
+                        //        AvailableQuantity = totalQty.ToString(),
+                        //        Date = DateTime.Now,
+                        //        Type = "1",
+                        //        FkWarehouseId = 1,
+                        //        FkSupplierId = 1,
+                        //        BatchNo = batchNumber,
+                        //        RackNo = rackNo,
+                        //        TotalBox = Convert.ToInt32(recordsCount),
+                        //        AvailableBox = Convert.ToInt32(recordsCount),
+                        //        PerBoxQty = Convert.ToInt32(qtyText)
+                        //    };
+
+                        //    stockInList.Add(stockIn);
+
+                        //    // Update available quantity
+                        //    int updatedQty = currentQty + totalQty;
+                        //    product.AvailableProductQty = updatedQty.ToString();
+                        //}
+
+
                         for (int row = 2; row <= rowCount; row++)
                         {
                             string itemName = worksheet.Cell(row, 3).GetString().Trim();
                             string itemCode = worksheet.Cell(row, 7).GetString().Trim();
                             string recordsCount = worksheet.Cell(row, 4).GetString().Trim();
-                            //string priceText = worksheet.Cell(row, 5).GetString().Trim();
                             string qtyText = worksheet.Cell(row, 5).GetString().Trim();
+                            string roomName = worksheet.Cell(row, 8).GetString().Trim();
+                            string rackNo = worksheet.Cell(row, 9).GetString().Trim();
+                            //string lowStockQty = worksheet.Cell(row, 10).GetString().Trim();
+                            string price = worksheet.Cell(row, 10).GetString().Trim();
 
                             if (string.IsNullOrWhiteSpace(itemName))
                                 continue;
 
-                            var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
-                            if (product == null)
+                            if (string.IsNullOrWhiteSpace(itemCode))
                             {
-                                failedRecords.Add($"Row {row}: Product '{itemName}' not found");
+                                failedRecords.Add($"Row {row}: SKUName is not available.");
                                 continue;
                             }
 
-                            //decimal.TryParse(priceText, out decimal price);
-                            int.TryParse(qtyText, out int qty);
+                            if (!string.IsNullOrWhiteSpace(itemCode))
+                            {
+                                if (!itemCode.StartsWith("B", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    failedRecords.Add($"Row {row}: Invalid SKU '{itemCode}'. Please add correct SKUName e.g. 'B001' (must start with 'A').");
+                                    continue; 
+                                }
+                            }
+
+                            // 🔹 Step 1: Check Product
+                            var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName && p.IsDeleted == false);
+                            if (product == null)
+                            {
+                                product = new TblProduct
+                                {
+                                    ProductName = itemName,
+                                    //LowStockQuantity = lowStockQty,
+                                    IsDeleted = false,
+                                    CreatedAt = DateTime.Now,
+                                    AvailableProductQty = "0"
+                                };
+                                _context.TblProducts.Add(product);
+                                await _context.SaveChangesAsync(); 
+
+                                // Add Alias
+                                TblProductAlias alias = new TblProductAlias
+                                {
+                                    FkProductId = product.ProductId,
+                                    AliasName = itemName,
+                                    IsDeleted = false,
+                                    CreatedAt = DateTime.Now
+                                };
+                                _context.TblProductAliases.Add(alias);
+                            }
+
+                            // 🔹 Step 2: Check SKU
+                            //if (!string.IsNullOrWhiteSpace(itemCode))
+                            //{
+                            //    var sku = _context.TblSkuBarcodes.FirstOrDefault(s => s.Skuname == itemCode && s.IsDeleted == 0);
+                            //    if (sku == null)
+                            //    {
+                            //        TblSkuBarcode newSku = new TblSkuBarcode
+                            //        {
+                            //            Skuname = itemCode,
+                            //            FkProductId = product.ProductId,
+                            //            IsDeleted = 0,
+                            //            CreatedAt = DateTime.Now
+                            //        };
+                            //        _context.TblSkuBarcodes.Add(newSku);
+                            //    }
+                            //}
+
+                            if (!string.IsNullOrWhiteSpace(itemCode))
+                            {
+                                // Check both database and in-memory context for duplicate SKU
+                                bool skuExists = _context.TblSkuBarcodes
+                                    .Any(s => s.FkProductId == product.ProductId && s.Skuname == itemCode)
+                                    || _context.ChangeTracker.Entries<TblSkuBarcode>()
+                                        .Any(e => e.Entity.FkProductId == product.ProductId && e.Entity.Skuname == itemCode && e.State == EntityState.Added);
+
+                                if (!skuExists)
+                                {
+                                    var sku = new TblSkuBarcode
+                                    {
+                                        Skuname = itemCode,
+                                        FkProductId = product.ProductId,
+                                        IsDeleted = 0,
+                                        CreatedAt = DateTime.Now
+                                    };
+                                    _context.TblSkuBarcodes.Add(sku);
+                                }
+                            }
+
+
+                            // 🔹 4. Warehouse check/create (Room column)
+                            TblWarehouse warehouse = null;
+                            if (!string.IsNullOrWhiteSpace(roomName))
+                            {
+                                warehouse = _context.TblWarehouses
+                                    .FirstOrDefault(w => w.Name == roomName && w.IsDeleted == false);
+
+                                if (warehouse == null)
+                                {
+                                    warehouse = new TblWarehouse
+                                    {
+                                        Name = roomName,
+                                        IsDeleted = false,
+                                        CreatedAt = DateTime.Now
+                                    };
+                                    _context.TblWarehouses.Add(warehouse);
+                                    await _context.SaveChangesAsync();
+                                }
+                            }
+
+                            int warehouseId = warehouse?.WarehouseId ?? 1;
+
+
+                            // 🔹 Step 3: Check Rack
+                            TblRack rack = null;
+                            if (!string.IsNullOrWhiteSpace(rackNo))
+                            {
+                                rack = _context.TblRacks.FirstOrDefault(r => r.RackNo == rackNo && r.FkWarehouseId == warehouseId && r.IsDeleted == 0);
+
+                                if (rack == null)
+                                {
+                                    rack = new TblRack
+                                    {
+                                        FkWarehouseId = warehouseId,
+                                        RackNo = rackNo,
+                                        IsDeleted = 0,
+                                        CreatedAt = DateTime.Now
+                                    };
+                                    _context.TblRacks.Add(rack);
+                                }
+                            }
+
+                            // 🔹 Step 4: Parse qty
+                            if (!int.TryParse(recordsCount, out int boxCount))
+                            {
+                                failedRecords.Add($"Row {row}: Invalid recordsCount value '{recordsCount}'");
+                                continue;
+                            }
+
+                            if (!int.TryParse(qtyText, out int perBoxQty))
+                            {
+                                failedRecords.Add($"Row {row}: Invalid qtyText value '{qtyText}'");
+                                continue;
+                            }
+
+                            int totalQty = boxCount * perBoxQty;
 
                             int currentQty = 0;
                             if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
@@ -2953,42 +3943,48 @@ namespace InventoryManagement.Controllers
                                 int.TryParse(product.AvailableProductQty, out currentQty);
                             }
 
-                            if (!int.TryParse(recordsCount, out int count))
+                            TblStockIn stockIn = new()
                             {
-                                failedRecords.Add($"Row {row}: Invalid recordsCount value '{recordsCount}'");
-                                continue;
-                            }
+                                FkProductId = product.ProductId,
+                                Barcode = itemCode,
+                                Price = Convert.ToInt32(price),
+                                ProductQuantity = totalQty.ToString(),
+                                AvailableQuantity = totalQty.ToString(),
+                                Date = DateTime.Now,
+                                Type = "1",
+                                FkWarehouseId = warehouseId,
+                                FkSupplierId = 1,
+                                BatchNo = batchNumber,
+                                RackNo = rackNo,
+                                TotalBox = boxCount,
+                                AvailableBox = boxCount,
+                                PerBoxQty = perBoxQty
+                            };
 
+                            stockInList.Add(stockIn);
 
-                            for (int i = 0; i < count; i++)
-                            {
-                                TblStockIn stockIn = new()
-                                {
-                                    FkProductId = product.ProductId,
-                                    Barcode = itemCode,
-                                    Price = 0,
-                                    ProductQuantity = qty.ToString(),
-                                    AvailableQuantity = qty.ToString(),
-                                    Date = DateTime.Now,
-                                    Type = "1",
-                                    FkWarehouseId = 1,
-                                    FkSupplierId = 1,
-                                    BatchNo = batchNumber
-                                };
-
-                                stockInList.Add(stockIn);
-                            }
-
-                            // Update available quantity once per item
-                            int updatedQty = currentQty + (qty * count);
+                            // Update available quantity
+                            int updatedQty = currentQty + totalQty;
                             product.AvailableProductQty = updatedQty.ToString();
+                        }
+
+
+                        if (failedRecords.Any())
+                        {
+                            TempData["ErrorMessage"] =
+                                $"{failedRecords.Count} records failed. <br/>{string.Join("<br/>", failedRecords)}";
+
+                            return RedirectToAction("InventoryList"); 
                         }
 
                         if (stockInList.Any())
                         {
                             _context.TblStockIns.AddRange(stockInList);
                             await _context.SaveChangesAsync();
+                            TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
                         }
+
+                        await _context.SaveChangesAsync();
 
                         TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
                         if (failedRecords.Any())
@@ -3007,5 +4003,373 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("InventoryList");
             }
         }
+
+
+
+
+
+
+
+
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> ImportBoxItems(IFormFile file)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    if (file == null || file.Length == 0)
+        //    {
+        //        TempData["ErrorMessage"] = "Please select an Excel file.";
+        //        return RedirectToAction("Create");
+        //    }
+
+        //    string batchNumber = "";
+        //    using (var connection = new MySqlConnection(_context.Database.GetConnectionString()))
+        //    {
+        //        var parameters = new DynamicParameters();
+        //        parameters.Add("@newBatchNo", dbType: DbType.String, direction: ParameterDirection.Output, size: 255);
+        //        await connection.ExecuteAsync("GenerateBatchNumber", parameters, commandType: CommandType.StoredProcedure);
+        //        batchNumber = parameters.Get<string>("@newBatchNo");
+        //    }
+
+        //    List<TblStockIn> stockInList = new();
+        //    List<string> failedRecords = new();
+
+        //    try
+        //    {
+        //        using (var stream = new MemoryStream())
+        //        {
+        //            await file.CopyToAsync(stream);
+        //            stream.Position = 0;
+
+        //            using (var workbook = new XLWorkbook(stream))
+        //            {
+        //                var worksheet = workbook.Worksheets.Worksheet(1);
+        //                var rowCount = worksheet.RowsUsed().Count();
+
+        //                //for (int row = 2; row <= rowCount; row++)
+        //                //{
+        //                //    string itemName = worksheet.Cell(row, 3).GetString().Trim();
+        //                //    string itemCode = worksheet.Cell(row, 7).GetString().Trim();
+        //                //    string recordsCount = worksheet.Cell(row, 4).GetString().Trim();
+        //                //    //string priceText = worksheet.Cell(row, 5).GetString().Trim();
+        //                //    string qtyText = worksheet.Cell(row, 5).GetString().Trim();
+        //                //    string rackNo = worksheet.Cell(row, 8).GetString().Trim();
+
+        //                //    if (string.IsNullOrWhiteSpace(itemName))
+        //                //        continue;
+
+        //                //    var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
+        //                //    if (product == null)
+        //                //    {
+        //                //        failedRecords.Add($"Row {row}: Product '{itemName}' not found");
+        //                //        continue;
+        //                //    }
+
+        //                //    //decimal.TryParse(priceText, out decimal price);
+        //                //    int.TryParse(qtyText, out int qty);
+
+        //                //    int currentQty = 0;
+        //                //    if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
+        //                //    {
+        //                //        int.TryParse(product.AvailableProductQty, out currentQty);
+        //                //    }
+
+        //                //    if (!int.TryParse(recordsCount, out int count))
+        //                //    {
+        //                //        failedRecords.Add($"Row {row}: Invalid recordsCount value '{recordsCount}'");
+        //                //        continue;
+        //                //    }
+
+
+        //                //    for (int i = 0; i < count; i++)
+        //                //    {
+        //                //        TblStockIn stockIn = new()
+        //                //        {
+        //                //            FkProductId = product.ProductId,
+        //                //            Barcode = itemCode,
+        //                //            Price = 0,
+        //                //            ProductQuantity = qty.ToString(),
+        //                //            AvailableQuantity = qty.ToString(),
+        //                //            Date = DateTime.Now,
+        //                //            Type = "1",
+        //                //            FkWarehouseId = 1,
+        //                //            FkSupplierId = 1,
+        //                //            BatchNo = batchNumber,
+        //                //            RackNo = rackNo,
+        //                //            //TotalBox = recordsCount,
+        //                //            //PerBoxQty = qtyText
+        //                //        };
+
+        //                //        stockInList.Add(stockIn);
+        //                //    }
+
+        //                //    // Update available quantity once per item
+        //                //    int updatedQty = currentQty + (qty * count);
+        //                //    product.AvailableProductQty = updatedQty.ToString();
+        //                //}
+
+        //                for (int row = 2; row <= rowCount; row++)
+        //                {
+        //                    string itemName = worksheet.Cell(row, 3).GetString().Trim();
+        //                    string itemCode = worksheet.Cell(row, 7).GetString().Trim();
+        //                    string recordsCount = worksheet.Cell(row, 4).GetString().Trim(); // TotalBox
+        //                    string qtyText = worksheet.Cell(row, 5).GetString().Trim();      // PerBoxQty
+        //                    string rackNo = worksheet.Cell(row, 8).GetString().Trim();
+
+        //                    if (string.IsNullOrWhiteSpace(itemName))
+        //                        continue;
+
+        //                    var product = _context.TblProducts.FirstOrDefault(p => p.ProductName == itemName);
+        //                    if (product == null)
+        //                    {
+        //                        failedRecords.Add($"Row {row}: Product '{itemName}' not found");
+        //                        continue;
+        //                    }
+
+        //                    if (!int.TryParse(recordsCount, out int boxCount))
+        //                    {
+        //                        failedRecords.Add($"Row {row}: Invalid recordsCount value '{recordsCount}'");
+        //                        continue;
+        //                    }
+
+        //                    if (!int.TryParse(qtyText, out int perBoxQty))
+        //                    {
+        //                        failedRecords.Add($"Row {row}: Invalid qtyText value '{qtyText}'");
+        //                        continue;
+        //                    }
+
+        //                    int totalQty = boxCount * perBoxQty;
+
+        //                    int currentQty = 0;
+        //                    if (!string.IsNullOrWhiteSpace(product.AvailableProductQty))
+        //                    {
+        //                        int.TryParse(product.AvailableProductQty, out currentQty);
+        //                    }
+
+        //                    TblStockIn stockIn = new()
+        //                    {
+        //                        FkProductId = product.ProductId,
+        //                        Barcode = itemCode,
+        //                        Price = 0,
+        //                        ProductQuantity = totalQty.ToString(),
+        //                        AvailableQuantity = totalQty.ToString(),
+        //                        Date = DateTime.Now,
+        //                        Type = "1",
+        //                        FkWarehouseId = 1,
+        //                        FkSupplierId = 1,
+        //                        BatchNo = batchNumber,
+        //                        RackNo = rackNo,
+        //                        TotalBox = Convert.ToInt32(recordsCount),  
+        //                        AvailableBox = Convert.ToInt32(recordsCount),  
+        //                        PerBoxQty = Convert.ToInt32(qtyText)
+        //                    };
+
+        //                    stockInList.Add(stockIn);
+
+        //                    // Update available quantity
+        //                    int updatedQty = currentQty + totalQty;
+        //                    product.AvailableProductQty = updatedQty.ToString();
+        //                }
+
+
+
+        //                if (stockInList.Any())
+        //                {
+        //                    _context.TblStockIns.AddRange(stockInList);
+        //                    await _context.SaveChangesAsync();
+        //                }
+
+        //                TempData["SuccessMessage"] = $"{stockInList.Count} records imported successfully.";
+        //                if (failedRecords.Any())
+        //                {
+        //                    TempData["ErrorMessage"] = $"{failedRecords.Count} records failed to import due to incorrect product names.";
+        //                }
+
+        //            }
+        //        }
+
+        //        return RedirectToAction("InventoryList");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ErrorMessage"] = "Error importing data: " + ex.Message;
+        //        return RedirectToAction("InventoryList");
+        //    }
+        //}
+
+
+
+
+
+        //public IActionResult DailyStockReport(DateTime? fromDate, DateTime? toDate, string searchTerm, int pageNumber = 1, int pageSize = 10)
+        //{
+        //    var today = DateTime.Today;
+
+        //    var from = fromDate ?? today;
+        //    //var to = toDate ?? today;
+        //    var to = (toDate?.Date ?? today).AddDays(1).AddTicks(-1);
+
+        //    var products = _context.TblProducts.ToList();
+
+        //    // Prepare stock-in data
+        //    var stockInQuery = _context.TblStockIns
+        //        .Where(x => x.Date >= from && x.Date <= to)
+        //        .AsEnumerable()
+        //        .GroupBy(x => new { x.FkProductId, Date = x.Date?.Date })
+        //        .Select(g => new StockReportViewModel
+        //        {
+        //            ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
+        //            Date = g.Key.Date ?? DateTime.MinValue,
+        //            Type = "StockIn",
+        //            Quantity = g.Sum(x => Convert.ToInt32(x.ProductQuantity))
+        //        });
+
+        //    // Prepare stock-out data
+        //    var stockOutQuery = _context.TblStockOuts
+        //        .Where(x => x.StockOutDate >= from && x.StockOutDate <= to)
+        //        .AsEnumerable()
+        //        .GroupBy(x => new { x.FkProductId, Date = x.StockOutDate?.Date })
+        //        .Select(g => new StockReportViewModel
+        //        {
+        //            ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
+        //            Date = g.Key.Date ?? DateTime.MinValue,
+        //            Type = "StockOut",
+        //            Quantity = g.Sum(x => Convert.ToInt32(x.Quantity))
+        //        });
+
+        //    // Combine and apply search filtering (after projecting to StockReportViewModel)
+        //    var combinedList = stockInQuery.Concat(stockOutQuery).ToList();
+
+        //    if (!string.IsNullOrEmpty(searchTerm))
+        //    {
+        //        searchTerm = searchTerm.Trim().ToLower();
+        //        combinedList = combinedList
+        //            .Where(x => x.ProductName.ToLower().Contains(searchTerm) || x.Type.ToLower().Contains(searchTerm))
+        //            .ToList();
+        //    }
+
+        //    // Order, paginate
+        //    var sortedList = combinedList
+        //        .OrderByDescending(x => x.Date)
+        //        .ThenBy(x => x.ProductName)
+        //        .ThenBy(x => x.Type)
+        //        .ToList();
+
+        //    int totalRecords = sortedList.Count;
+
+        //    var pagedList = sortedList
+        //        .Skip((pageNumber - 1) * pageSize)
+        //        .Take(pageSize)
+        //        .ToList();
+
+        //    var model = new StockReportPagedViewModel
+        //    {
+        //        CombinedStockList = pagedList,
+        //        Pagination = new PaginationMetadataViewModel
+        //        {
+        //            TotalRecords = totalRecords,
+        //            CurrentPage = pageNumber,
+        //            PageSize = pageSize,
+        //            SearchTerm = searchTerm
+        //        }
+        //    };
+
+        //    ViewBag.FromDate = from.ToString("yyyy-MM-dd");
+        //    ViewBag.ToDate = to.ToString("yyyy-MM-dd");
+
+        //    return View(model);
+        //}
+
+
+        public IActionResult DailyStockReport(DateTime? fromDate, DateTime? toDate, string searchTerm, int pageNumber = 1, int pageSize = 10)
+        {
+            var today = DateTime.Today;
+
+            var from = fromDate ?? today;
+            //var to = toDate ?? today;
+            var to = (toDate?.Date ?? today).AddDays(1).AddTicks(-1);
+
+            var products = _context.TblProducts.ToList();
+
+            // Prepare stock-in data
+            var stockInQuery = _context.TblStockIns
+                .Where(x => x.Date >= from && x.Date <= to)
+                .AsEnumerable()
+                .GroupBy(x => new { x.FkProductId, x.Barcode, Date = x.Date.Value.Date })
+                .Select(g => new StockReportViewModel
+                {
+                    ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
+                    SKUName = g.Key.Barcode,
+                    Date = g.Min(x => x.Date ?? DateTime.MinValue),
+                    Type = "StockIn",
+                    Quantity = g.Sum(x => Convert.ToInt32(x.ProductQuantity))
+                });
+
+            // Prepare stock-out data
+            var stockOutQuery = _context.TblStockOuts
+                .Where(x => x.StockOutDate >= from && x.StockOutDate <= to)
+                .AsEnumerable()
+                .GroupBy(x => new { x.FkProductId, x.Barcode, Date = x.StockOutDate.Value.Date })
+                .Select(g => new StockReportViewModel
+                {
+                    ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
+                    SKUName = g.Key.Barcode,
+                    Date = g.Min(x => x.StockOutDate ?? DateTime.MinValue),
+                    Type = "StockOut",
+                    Quantity = g.Sum(x => Convert.ToInt32(x.Quantity))
+                });
+
+            // Combine and apply search filtering (after projecting to StockReportViewModel)
+            var combinedList = stockInQuery.Concat(stockOutQuery).ToList();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                searchTerm = searchTerm.Trim().ToLower();
+                combinedList = combinedList
+                    .Where(x => x.ProductName.ToLower().Contains(searchTerm) || x.Type.ToLower().Contains(searchTerm))
+                    .ToList();
+            }
+
+            // Order, paginate
+            var sortedList = combinedList
+                .OrderByDescending(x => x.Date)
+                .ThenBy(x => x.ProductName)
+                .ThenBy(x => x.Type)
+                .ToList();
+
+            int totalRecords = sortedList.Count;
+
+            var pagedList = sortedList
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var model = new StockReportPagedViewModel
+            {
+                CombinedStockList = pagedList,
+                Pagination = new PaginationMetadataViewModel
+                {
+                    TotalRecords = totalRecords,
+                    CurrentPage = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm
+                }
+            };
+
+            ViewBag.FromDate = from.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = to.ToString("yyyy-MM-dd");
+
+            return View(model);
+        }
+
+
+
     }
 }

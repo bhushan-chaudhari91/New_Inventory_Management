@@ -1,184 +1,757 @@
 ﻿@model InventoryManagement.ViewModels.ProductViewModel
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<html>
+    <head>
+            <style>
+                .barcode-card {
+                    border: 1.5px solid #2f80ed;
+                    border-radius: 15px;
+                    padding: 30px;
+                    background: white;
+                }
 
-<style>
-    .barcode-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin-top: 20px;
-    }
+                .section-title {
+                    color: #2f80ed;
+                    font-weight: 600;
+                    margin-bottom: 25px;
+                    font-size: 20px;
+                }
 
-    .barcode-item {
-        text-align: center;
-        border: 1px solid #ccc;
-        padding: 10px;
-        width: 200px;
-    }
+                .form-label {
+                    font-weight: 500;
+                    font-size: 14px;
+                }
 
-        .barcode-item svg {
-            width: 100%;
-            height: auto;
-        }
+                .form-control {
+                    border-radius: 6px;
+                }
 
-    style attribute {
-        fill: #121414 !important;
-    }
-</style>
+                .toggle-buttons .btn {
+                    width: 100px;
+                }
 
-@* <div class="form-group">
-    <label for="ProductId">Select Product</label>
-    <select id="ProductId" name="ProductId" class="form-control">
-        <option value="">-- Select Product --</option>
-        @foreach (var product in Model.ProductNames)
-        {
-            <option value="@product.ProductId">@product.ProductName</option>
-        }
-    </select>
-</div>
+                .btn-generate {
+                    background-color: #2f80ed;
+                    color: #fff;
+                    font-weight: 500;
+                }
 
-<div class="form-group">
-    <label>SKU ID Name</label>
-    <input type="text" id="SkuIdName" class="form-control" readonly />
-</div>
+                .btn-preview {
+                    background-color: #2f80ed;
+                    color: #fff;
+                    font-weight: 500;
+                }
 
-<div class="form-group">
-    <label>Quantity</label>
-    <input type="number" id="Quantity" class="form-control" min="1" />
-</div>
+                .btn-print {
+                    background-color: #27ae60;
+                    color: #fff;
+                    font-weight: 500;
+                }
 
-<div class="form-group">
-    <button id="generateBarcodeBtn" class="btn btn-primary">Generate Barcodes</button>
-    <button id="printBarcodeBtn" class="btn btn-success" style="display:none;">Print Barcodes</button>
-</div>
+                .preview-box {
+                    border: 1px solid #ccc;
+                    padding: 20px;
+                    border-radius: 8px;
+                    text-align: center;
+                    min-height: 180px;
+                }
 
-<div id="barcodeSection" class="barcode-container">
-</div> *@
+                .preview-code {
+                    font-size: 16px;
+                    font-weight: bold;
+                    margin-top: 10px;
+                }
 
-<div class="container mt-4">
+                /* Optional: Autocomplete List */
+                .autocomplete-list {
+                    position: absolute;
+                    z-index: 1000;
+                    width: 100%;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    background: #fff;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
 
-    <div class="mt-4" style="padding-bottom: 25px;">
-        <h3>Print Barcodes</h3>
-    </div>
+                .autocomplete-list li {
+                    padding: 8px 12px;
+                    cursor: pointer;
+                }
 
-    <div class="row">
-        <!-- Product Select Dropdown -->
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="ProductId">Select Product</label>
-                <select id="ProductId" name="ProductId" class="form-control">
-                    <option value="">-- Select Product --</option>
-                    @foreach (var product in Model.ProductNames)
-                    {
-                        <option value="@product.ProductId">@product.ProductName</option>
+                .autocomplete-list li:hover {
+                    background: #f0f0f0;
+                }
+
+                .autocomplete-list li.highlighted {
+                    background-color: #007bff;
+                    color: white;
+                }
+
+            </style>
+
+
+    </head>
+
+    <body>
+
+        
+        <div class="container mt-4">
+            <h4 class="section-title">Generate & Print Barcode</h4>
+
+            <div class="barcode-card">
+                <div class="row">
+                    <!-- Left Side -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="product">Product Name</label>
+                            <input type="text" class="form-control" id="product" placeholder="ProductName" />
+                            <input type="hidden" id="FkProductId" name="FkProductId" />
+                            <ul id="productList" class="autocomplete-list" style="display: none;"></ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sku">Product Code</label>
+                            <input type="text" class="form-control" id="sku" placeholder="Barcode" />
+                            <ul id="skuList" class="autocomplete-list" style="display: none;"></ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Header</label>
+                            <input type="text" id="header" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Quantity</label>
+                            <input type="number" id="Quantity" class="form-control" value="1" min="1" />
+                        </div>
+
+              
+                    </div>
+
+                    <!-- Right Side -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="labelSize" class="block font-medium mb-1">Select Label Size:</label>
+                            <select id="labelSize" class="border rounded px-3 py-2 w-full">
+                                <option value="50x25">1 Label (50 × 25 mm)</option>
+                                <option value="50x58">2 Label (50 × 58 mm)</option>
+                                <option value="101x88">3 Label (101 × 88 mm)</option>
+                                <option value="custom">4 Label Custom</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <div id="customSizeInputs" class="mb-4" style="display: none;">
+                                <label class="block font-medium mb-1">Enter Custom Size (mm):</label>
+                                <div class="flex gap-2">
+                                    <input type="number" id="customWidth" class="border rounded px-3 py-2 w-1/2" placeholder="Width (mm)">
+                                    <input type="number" id="customHeight" class="border rounded px-3 py-2 w-1/2" placeholder="Height (mm)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="preview-box w-100 mb-3">
+                            <div id="barcodePreview" class="mt-4 p-3 border rounded shadow-sm" style="background: #f9f9f9;">
+                                <h5 id="previewHeader" class="mb-2"></h5>
+                                <svg id="previewBarcode"></svg>
+                            </div>
+
+                        </div>
+
+                        <div id="printArea" style="display: none;"></div>
+
+                        <div class="d-flex justify-content-center gap-3">
+                            <button id="printLabelsBtn" class="btn btn-primary mt-3">Print Barcode</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+        <script>
+            $(document).ready(function () {
+                $('#labelSize').on('change', function () {
+                    const selected = $(this).val();
+
+                    if (selected === 'custom') {
+                        $('#customSizeInputs').show(); 
+                    } else {
+                        $('#customSizeInputs').hide(); 
                     }
-                </select>
-            </div>
-        </div>
+                });
 
-        <!-- SKU ID Name Input -->
-        <div class="col-md-4">
-            <div class="form-group">
-                <label>SKU ID Name</label>
-                <input type="text" id="SkuIdName" class="form-control" readonly />
-            </div>
-        </div>
-
-        <!-- Quantity Input -->
-        <div class="col-md-4">
-            <div class="form-group">
-                <label>Quantity</label>
-                <input type="number" id="Quantity" class="form-control" value="1" min="1" />
-            </div>
-        </div>
-    </div>
-
-    <!-- Buttons in a New Row -->
-    <div class="row mt-3">
-        <div class="col-md-3">
-            <button id="generateBarcodeBtn" class="btn btn-primary w-100">Generate Barcodes</button>
-        </div>
-        <div class="col-md-2">
-            <button id="printBarcodeBtn" class="btn btn-success w-100" style="display:none;">Print Barcodes</button>
-        </div>
-    </div>
-
-    <!-- Barcode Section -->
-    <div id="barcodeSection" class="barcode-container mt-4">
-        <!-- Barcode content will appear here -->
-    </div>
-</div>
+                $('#labelSize').trigger('change');
+            });
+        </script>
 
 
 
 
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#ProductId').change(function () {
-                var productId = $(this).val();
-                if (productId) {
+
+
+
+
+
+        @* <script>
+            $('#printLabelsBtn').on('click', function () {
+            const quantity = parseInt($('#Quantity').val()) || 1;
+            const header = $('#header').val().trim();
+            const svgOriginal = document.getElementById("previewBarcode");
+
+            if (!header || !svgOriginal || svgOriginal.innerHTML.trim() === "") {
+                alert("Header or barcode is missing!");
+                return;
+            }
+
+            // Convert SVG to image URL (base64)
+            const svgData = new XMLSerializer().serializeToString(svgOriginal);
+            const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+            const imageUrl = URL.createObjectURL(svgBlob);
+
+            // Determine label size
+            let widthMM = 50;
+            let heightMM = 25;
+            const labelSize = $('#labelSize').val();
+
+            if (labelSize === 'custom') {
+                widthMM = parseFloat($('#customWidth').val()) || 50;
+                heightMM = parseFloat($('#customHeight').val()) || 25;
+            } else {
+                const [w, h] = labelSize.split('x');
+                widthMM = parseFloat(w) || 50;
+                heightMM = parseFloat(h) || 25;
+            }
+
+            // Open print window
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write('<html><head><title>Print</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write(`
+                @@media print {
+                    @@page {
+                        size: ${widthMM}mm ${heightMM}mm;
+                        margin: 0;
+                    }
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        font-family: Arial, sans-serif;
+                    }
+                }
+
+                body {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: start;
+                }
+
+                .label {
+                    width: ${widthMM}mm;
+                    height: ${heightMM}mm;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    page-break-after: always;
+                    page-break-inside: avoid;
+                    border: 1px dashed #ccc;
+                    padding: 4mm;
+                    box-sizing: border-box;
+                }
+
+                .label h3 {
+                    font-size: 10pt;
+                    margin: 0 0 3mm 0;
+                }
+
+                .label img {
+                    width: 90%;
+                    height: auto;
+                }
+            `);
+            printWindow.document.write('</style></head><body>');
+
+            for (let i = 0; i < quantity; i++) {
+                printWindow.document.write(`
+                    <div class="label">
+                        <h3>${header}</h3>
+                        <img src="${imageUrl}" />
+                    </div>
+                `);
+            }
+
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+
+            printWindow.onload = function () {
+                printWindow.focus();
+                printWindow.print();
+                setTimeout(() => {
+                    printWindow.close();
+                }, 1000);
+            };
+        });
+
+        </script> *@
+
+       
+        <script>
+             $('#printLabelsBtn').on('click', function () {
+            const quantity = parseInt($('#Quantity').val()) || 1;
+            const header = $('#header').val().trim();
+            const svgOriginal = document.getElementById("previewBarcode");
+
+            if (!header || !svgOriginal || svgOriginal.innerHTML.trim() === "") {
+                alert("Header or barcode is missing!");
+                return;
+            }
+
+            const svgData = new XMLSerializer().serializeToString(svgOriginal);
+            const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+            const imageUrl = URL.createObjectURL(svgBlob);
+
+            // Determine label size
+            let widthMM = 50;
+            let heightMM = 25;
+            let designType = 'small'; // default
+
+            const labelSize = $('#labelSize').val();
+            if (labelSize === 'custom') {
+                widthMM = parseFloat($('#customWidth').val()) || 50;
+                heightMM = parseFloat($('#customHeight').val()) || 25;
+                designType = 'custom';
+            } else {
+                const [w, h] = labelSize.split('x');
+                widthMM = parseFloat(w);
+                heightMM = parseFloat(h);
+
+                // Select design type based on height
+                if (widthMM === 50 && heightMM === 25) {
+                    designType = 'small';
+                } else {
+                    designType = 'large';
+                }
+            }
+
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write('<html><head><title>Print</title><style>');
+
+            // Common styles
+            printWindow.document.write(`
+                @@media print {
+                    @@page {
+                        size: ${widthMM}mm ${heightMM}mm;
+                        margin: 0;
+                    }
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        font-family: Arial, sans-serif;
+                    }
+                }
+                body {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: start;
+                }
+            `);
+
+            // Small label design (50x25mm)
+            if (designType === 'small') {
+                printWindow.document.write(`
+                    .label {
+                        width: ${widthMM}mm;
+                        height: ${heightMM}mm;
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                        position: relative;
+                        page-break-after: always;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        text-align: center;
+                    }
+                    .label h3 {
+                        font-size: 7pt;
+                        font-weight: bold;
+                        margin: 0 0 1mm 0;
+                        white-space: nowrap;
+                    }
+                    .label img {
+                        width: 42mm;
+                        height: 14mm;
+                        object-fit: contain;
+                        display: block;
+                    }
+                `);
+            }
+
+            // Large label design (50x58, 101x88, etc.)
+            else if (designType === 'large') {
+                printWindow.document.write(`
+                    .label {
+                        width: ${widthMM}mm;
+                        height: ${heightMM}mm;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        text-align: center;
+                        page-break-after: always;
+                        page-break-inside: avoid;
+                        padding: 4mm;
+                        box-sizing: border-box;
+                    }
+                    .label h3 {
+                        font-size: 12pt;
+                        margin: 0 0 3mm 0;
+                    }
+                    .label img {
+                        width: 90%;
+                        height: auto;
+                    }
+                `);
+            }
+
+            printWindow.document.write('</style></head><body>');
+
+            for (let i = 0; i < quantity; i++) {
+                printWindow.document.write(`
+                    <div class="label">
+                        <h3>${header}</h3>
+                        <img src="${imageUrl}" />
+                    </div>
+                `);
+            }
+
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+
+            printWindow.onload = function () {
+                printWindow.focus();
+                printWindow.print();
+                setTimeout(() => {
+                    printWindow.close();
+                }, 1000);
+            };
+        });
+        </script>
+
+
+
+    @*     <script>
+            $(document).ready(function () {
+                $('#labelSize').on('change', function () {
+                    const selected = $(this).val();
+                    $('#customSizeInputs').toggle(selected === 'custom');
+                }).trigger('change');
+
+                $('#printLabelsBtn').on('click', function () {
+                    const quantity = parseInt($('#Quantity').val()) || 1;
+                    const header = $('#header').val().trim(); // Changed from previewHeader to actual input
+                    const svgOriginal = document.getElementById("previewBarcode");
+
+                    if (!header || !svgOriginal || svgOriginal.innerHTML.trim() === "") {
+                        alert("Header or barcode is missing!");
+                        return;
+                    }
+
+                    // Convert SVG to image URL (base64)
+                    const svgData = new XMLSerializer().serializeToString(svgOriginal);
+                    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+                    const imageUrl = URL.createObjectURL(svgBlob);
+
+                    // Determine label size
+                    let widthMM = 50;
+                    let heightMM = 25;
+
+                    const labelSize = $('#labelSize').val();
+                    if (labelSize === 'custom') {
+                        widthMM = parseFloat($('#customWidth').val()) || 50;
+                        heightMM = parseFloat($('#customHeight').val()) || 25;
+                    } else {
+                        const [w, h] = labelSize.split('x');
+                        widthMM = parseFloat(w) || 50;
+                        heightMM = parseFloat(h) || 25;
+                    }
+
+                    // Open print window
+                    const printWindow = window.open('', '', 'width=800,height=600');
+                    printWindow.document.write('<html><head><title>Print</title><style>');
+                    printWindow.document.write(`
+                        * { box-sizing: border-box; }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            font-family: Arial, sans-serif;
+                        }
+                        .label {
+                            width: ${widthMM}mm;
+                            height: ${heightMM}mm;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: flex-start;
+                            text-align: center;
+                            page-break-after: always;
+                            border: 1px dashed #ccc;
+                            padding-top: 3mm;
+                        }
+                        .label h3 {
+                            font-size: 10pt;
+                            margin: 0 0 2mm 0;
+                        }
+                        .label img {
+                            width: 90%;
+                            height: auto;
+                        }
+                    `);
+                    printWindow.document.write('</style></head><body>');
+
+                    for (let i = 0; i < quantity; i++) {
+                        printWindow.document.write(`
+                            <div class="label">
+                                <h3>${header}</h3>
+                                <img src="${imageUrl}" />
+                            </div>
+                        `);
+                    }
+
+                    printWindow.document.write('</body></html>');
+                    printWindow.document.close();
+
+                    printWindow.onload = function () {
+                        printWindow.focus();
+                        printWindow.print();
+                        setTimeout(() => {
+                            printWindow.close();
+                        }, 1000);
+                    };
+                });
+            });
+        </script> *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        @* Start This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
+
+        <script>
+            $(document).ready(function () {
+                var $productInput = $('#product');
+                var $productList = $('#productList');
+                var $productId = $('#FkProductId');
+                var $skuInput = $('#sku');
+                var $headerInput = $('#header');
+                var selectedIndex = -1;
+
+                // Update the preview section
+                function updatePreview(headerText, skuText) {
+                    if (headerText && skuText) {
+                        $('#previewHeader').text(headerText);
+
+                        JsBarcode("#previewBarcode", skuText, {
+                            format: "CODE128",
+                            lineColor: "#000",
+                            width: 2,
+                            height: 60,
+                            displayValue: true
+                        });
+
+                        $('#barcodePreview').show();
+                    } else {
+                        $('#barcodePreview').hide();
+                    }
+                }
+
+                // ProductName Input Autocomplete
+                $productInput.on('input', function () {
+                    var term = $(this).val().trim();
+                    selectedIndex = -1;
+
+                    if (term.length < 1) {
+                        $productList.hide().empty();
+                        return;
+                    }
+
                     $.ajax({
-                        url: '/Master/GetSkuIdName',
+                        url: '/Inventory/GetProducts',
                         type: 'GET',
-                        data: { productId: productId },
-                        success: function (response) {
-                            $('#SkuIdName').val(response.skuIdName);
-                            $('#barcodeSection').empty();
-                            $('#printBarcodeBtn').hide();
+                        dataType: 'json',
+                        data: { term: term },
+                        success: function (data) {
+                            $productList.empty();
+                            if (data.length === 0) {
+                                $productList.hide();
+                                return;
+                            }
+
+                            $.each(data, function (index, item) {
+                                $productList.append(
+                                    $('<li>').text(item.productName)
+                                        .attr('data-id', item.id)
+                                        .attr('data-sku', item.skuName)
+                                        .on('click', function () {
+                                            $productInput.val(item.productName);
+                                            $skuInput.val(item.skuName); // show SKU
+                                            $productId.val(item.id);
+                                            $headerInput.val(item.productName);
+                                            updatePreview(item.productName, item.skuName);
+                                            $productList.hide().empty();
+                                        })
+                                );
+                            });
+
+                            $productList.show();
                         },
                         error: function () {
-                            alert('Error retrieving SKU ID Name.');
+                            $productList.hide().empty();
                         }
                     });
-                } else {
-                    $('#SkuIdName').val('');
-                }
-            });
+                });
 
-            $('#generateBarcodeBtn').click(function () {
-                var skuIdName = $('#SkuIdName').val();
-                var quantity = parseInt($('#Quantity').val()) || 1;
+                $productInput.on('keydown', function (e) {
+                    var items = $productList.find('li');
+                    if ($productList.is(':visible')) {
+                        if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            if (selectedIndex < items.length - 1) {
+                                selectedIndex++;
+                                highlightItem(items, selectedIndex);
+                            }
+                        } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            if (selectedIndex > 0) {
+                                selectedIndex--;
+                                highlightItem(items, selectedIndex);
+                            }
+                        } else if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (selectedIndex >= 0 && selectedIndex < items.length) {
+                                var selected = $(items[selectedIndex]);
+                                $productInput.val(selected.text());
+                                $productId.val(selected.data('id'));
+                                $skuInput.val(selected.data('sku'));
+                                $headerInput.val(selected.text());
+                                updatePreview(selected.text(), selected.data('sku'));
+                                $productList.hide().empty();
+                            }
+                        }
+                    }
+                });
 
-                if (!skuIdName) {
-                    alert("Please select a product to generate barcodes.");
-                    return;
-                }
+                $(document).on('click', function (e) {
+                    if (!$(e.target).closest('#product, #productList').length) {
+                        $productList.hide().empty();
+                    }
+                });
 
-                if (quantity < 1) {
-                    alert("Please enter a valid quantity.");
-                    return;
-                }
+                // Handle SKU Input (Scan barcode)
+                $skuInput.on('change', function () {
+                    var sku = $(this).val().trim();
+                    if (sku.length < 1) {
+                        $productInput.val('');
+                        $productId.val('');
+                        $headerInput.val('');
+                        updatePreview('', '');
+                        return;
+                    }
 
-                // Clear previous barcodes
-                $('#barcodeSection').empty();
-
-                // Generate barcodes based on quantity
-                for (var i = 0; i < quantity; i++) {
-                    var barcodeId = 'barcode' + i;
-                    var $barcodeDiv = $('<div class="barcode-item"></div>');
-                    var $svg = $('<svg id="' + barcodeId + '"></svg>');
-                    $barcodeDiv.append($svg);
-                    $barcodeDiv.append('<p>' + skuIdName + '</p>');
-                    $('#barcodeSection').append($barcodeDiv);
-
-                    JsBarcode('#' + barcodeId, skuIdName, {
-                        format: "CODE128",
-                        lineColor: "#121414",
-                        width: 2,
-                        height: 40,
-                        displayValue: false
+                    $.ajax({
+                        url: '/Inventory/GetProductBySku',
+                        type: 'GET',
+                        data: { sku: sku },
+                        success: function (data) {
+                            if (data) {
+                                $productInput.val(data.productName);
+                                $productId.val(data.productId);
+                                $headerInput.val(data.productName);
+                                updatePreview(data.productName, sku);
+                            } else {
+                                $productInput.val('');
+                                $productId.val('');
+                                $headerInput.val('');
+                                updatePreview('', '');
+                            }
+                        },
+                        error: function () {
+                            $productInput.val('');
+                            $productId.val('');
+                            $headerInput.val('');
+                            updatePreview('', '');
+                        }
                     });
+                });
+
+                $productInput.on('change', function () {
+                    if ($(this).val().trim() === '') {
+                        $productId.val('');
+                        $skuInput.val('');
+                        $headerInput.val('');
+                        updatePreview('', '');
+                    }
+                });
+
+                $headerInput.on('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        var headerText = $(this).val().trim();
+                        var skuText = $skuInput.val().trim();
+                        updatePreview(headerText, skuText);
+                    }
+                });
+
+                function highlightItem(items, index) {
+                    items.removeClass('highlighted');
+                    $(items[index]).addClass('highlighted');
                 }
-
-                // Show print button
-                $('#printBarcodeBtn').show();
             });
+        </script>
 
-            $('#printBarcodeBtn').click(function () {
-                window.print();
-            });
-        });
-    </script>
-}
+        @* End This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
+
+
+    </body>
+</html>
+
+
+
+
+
+
+
+
+

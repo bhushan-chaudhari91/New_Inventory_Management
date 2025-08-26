@@ -41,51 +41,193 @@
 @* Code for Type show in color *@
 <style>
     .type-box {
-        color: #070807;
-        font-weight: bold;
+    color: #070807;
+    font-weight: bold;
     }
 
     .type-single {
-        color: #28a745;
-        font-weight: bold;
+    color: #28a745;
+    font-weight: bold;
     }
 
     .type-unknown {
-        color: #dc3545;
-        font-style: italic;
+    color: #dc3545;
+    font-style: italic;
+    }
+
+</style>
+<style>
+
+    .One-badge {
+        border-radius: 0;
+        font-size: 12px;
+        line-height: 1;
+        padding: .375rem .5625rem;
+        font-weight: normal;
+        color: black;
+    }
+
+    .One-bg-success {
+        background-color: #4ec1db !important;
     }
 
 </style>
 
-
 <div class="main-content">
 
+    <div class="row">
+        <div class="col-6">
+            <div class="card mb-4" style="background-color: #f0f7ff; border: none; border-radius: .75rem;">
+                <div class="card-body d-flex justify-content-between align-items-center">
 
-    <div class="col-6">
-        <div class="card mb-4" style="background-color: #f0f7ff; border: none; border-radius: .75rem;">
-            <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3>Stock Details</h3>
+                        <h5 class="text-primary">@Model.ProductName</h5>
+                        @* <small class="text-warning">@Model.SKUName</small> *@
+                        <small class="text-warning">
+                            @foreach (var sku in Model.SKUName.Split(','))
+                            {
+                                <span class="One-badge rounded-pill One-bg-success me-1">@sku.Trim()</span>
+                            }
+                        </small>
+                        <div class="mt-2">
+                            @foreach (var alias in Model.AliasNames.Split(','))
+                            {
+                                <span class="badge rounded-pill bg-success me-1">@alias.Trim()</span>
+                            }
 
-                <div>
-                    <h5 class="mb-1 text-primary">@Model.ProductName</h5>
-                    <small class="text-warning">@Model.SKUName</small>
-                    <div class="mt-2">
-                        @foreach (var alias in Model.AliasNames.Split(','))
-                        {
-                            <span class="badge rounded-pill bg-success me-1">@alias.Trim()</span>
-                        }
-
+                        </div>
                     </div>
-                </div>
 
-                <div class="text-center">
-                    <div class="d-flex align-items-center justify-content-center mb-1"
-                    style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
-                        <span class="h4 text-primary mb-0">@Model.ProductQty</span>
+                    @*  <div class="d-flex gap-3 align-items-center justify-content-end">
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-1 mr-3"
+                             style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
+                            <span class="h4 text-primary mb-0">@Model.TotalStock</span>
+
+                        </div>
+                        <small class="text-primary mr-3">Total Stock</small>
                     </div>
-                    <small class="text-primary">Total Stock</small>
+
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-1 mr-3"
+                             style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
+                            <span class="h4 text-primary mb-0">@Model.TotalAvailableQtyForSingle</span>
+
+                        </div>
+                        <small class="text-primary mr-3">Total Qty Single</small>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-1 mr-3"
+                             style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
+                            <span class="h4 text-primary mb-0">@Model.TotalBoxItem</span>
+
+                        </div>
+                        <small class="text-primary mr-3">Total Box</small>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-1"
+                             style="width: 60px; height: 60px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #f0f7ff;">
+                            <span class="h4 text-primary mb-0">@Model.TotalBoxAvailableQty</span>
+                        </div>
+                        <small class="text-primary">Total Box Qty</small>
+                    </div>
+                </div> *@
+
+
                 </div>
             </div>
         </div>
+
+        <!-- Second Card (Totals) -->
+        <div class="col-6">
+            <div class="card mb-4" style="background-color: #ffffff; border: none; border-radius: .75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
+                <div class="card-body">
+
+                    <!-- Row 1: Total Stock -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Total Stock</h5>
+                        <h5 class="text-primary fw-bold mb-0" style="font-weight: 900;">@Model.TotalStock</h5>
+                    </div>
+
+                    <hr />
+
+                    <!-- Row 2: Total Box -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Total Box</span>
+                        <span class="fw-bold" style="font-weight: 700;">@Model.TotalBoxItem</span>
+                    </div>
+
+                    <hr />
+
+                    <!-- Row 3: Box Item Qty + Single Item Qty -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Box Item Qty :- &nbsp;&nbsp;</span>
+                            <span class="fw-bold" style="font-weight: 700;">@Model.TotalBoxAvailableQty</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center text-end">
+                            <span>Single Item Qty :- &nbsp;&nbsp;</span>
+                            <span class="fw-bold" style="font-weight: 700;">@Model.TotalAvailableQtyForSingle</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <div class="col-12">
+        <form method="get" asp-action="StocksDetails" asp-controller="Inventory" class="p-3 border rounded shadow-sm bg-light">
+            <input type="hidden" name="productId" value="@Model.FkProjectId" />
+
+            <div class="row g-3">
+                <!-- Stock Type Filter -->
+                <div class="col-md-3">
+                    <label for="stockTypeFilter" class="form-label">Stock Type</label>
+                    <select name="stockTypeFilter" id="stockTypeFilter" class="form-control">
+                        <option value="All" selected="@(Model.StockTypeFilter == "All")">All Stock</option>
+                        <option value="StockIn" selected="@(Model.StockTypeFilter == "StockIn")">Stock In</option>
+                        <option value="StockOut" selected="@(Model.StockTypeFilter == "StockOut")">Stock Out</option>
+                    </select>
+                </div>
+
+                <!-- Item Type Filter -->
+                <div class="col-md-3">
+                    <label for="itemTypeFilter" class="form-label">Item Type</label>
+                    <select name="itemTypeFilter" id="itemTypeFilter" class="form-control">
+                        <option value="All" selected="@(Model.ItemTypeFilter == "All")">All Items</option>
+                        <option value="Single Item" selected="@(Model.ItemTypeFilter == "Single Item")">Single Item</option>
+                        <option value="Box Item" selected="@(Model.ItemTypeFilter == "Box Item")">Box Item</option>
+                    </select>
+                </div>
+
+                <!-- Date From -->
+                <div class="col-md-2">
+                    <label for="fromDate" class="form-label">From Date</label>
+                    <input type="date" name="fromDate" id="fromDate" class="form-control" value="@((Model.FromDate ?? DateTime.Today).ToString("yyyy-MM-dd"))" />
+                </div>
+
+                <!-- Date To -->
+                <div class="col-md-2">
+                    <label for="toDate" class="form-label">To Date</label>
+                    <input type="date" name="toDate" id="toDate" class="form-control" value="@((Model.ToDate ?? DateTime.Today).ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="col-md-2  d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-primary px-4">Apply Filter</button>
+                </div>
+
+                <!-- Submit Button -->
+               @*  <div class="col-md-12 d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-primary px-4">Apply Filter</button>
+                </div> *@
+            </div>
+        </form>
     </div>
 
 
@@ -194,32 +336,35 @@
 
 
         <table>
-                @{
-                    int SrNo = ((currentPage - 1) * pageSize) + 1;
-                }
-                <thead>
-                    <tr>
-                        <th>Sr.No</th>
-                        <th>Date</th>
-                        <th>Product Name</th>
-                        <th>Batch ID</th>
-                        <th>Status</th>
+            @{
+                int SrNo = ((currentPage - 1) * pageSize) + 1;
+            }
+            <thead>
+                <tr>
+                    <th>Sr.No</th>
+                    <th>Date</th>
+                    <th>Product Name</th>
+                    <th>Batch ID</th>
+                    <th>Status</th>
                     <th>Reason</th>
+                    <th>Total Box</th>
+                    <th>Per Box Qty</th>
                     @*  <th>Supplier Name</th> *@
-                        <th>Quantity</th>
-                        <th>Type</th>
-                        <th>Location</th>
-                        
-                    </tr>
-                </thead>
-                <tbody>
-                
-                    @foreach (var item in Model.CombinedStockList)
-                    {
+                    <th>Quantity</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Rack No.</th>
+
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var item in Model.CombinedStockList)
+                {
                     string typeLabel = item.Type == "1" ? "Box" : item.Type == "2" ? "Single Unit" : "Unknown";
                     string typeClass = item.Type == "1" ? "type-box" : item.Type == "2" ? "type-single" : "type-unknown";
-                    
-                        <tr>
+
+                    <tr>
                         <td>@SrNo</td>
                         <td>@item.Date.ToShortDateString()</td>
                         <td>@item.ProductName</td>
@@ -235,7 +380,17 @@
                             }
                         </td>
                         <td style="text-align: center;">@item.Reason</td>
-                    @*  <td style="text-align: center;">@item.SupplierName</td> *@
+                        @if(item.Type == "1")
+                        {
+                            <td style="text-align: center;"> @item.TotalBox</td>
+                            <td style="text-align: center;"> @item.PerBoxQty</td>
+                        }
+                        else
+                        {
+                            <td style="text-align: center;">-</td>
+                            <td style="text-align: center;">-</td>
+                        }
+                        @*  <td style="text-align: center;">@item.SupplierName</td> *@
                         <td>@item.Quantity</td>
                         <td><span class="@typeClass">@typeLabel</span></td>
                      @* <td>@item.LocationName / @item.RoomName / @item.RackName</td> *@
@@ -272,7 +427,7 @@
                                     }
                                 }
                             </td>
-                            
+                        <td>@item.RackName</td>
                             
                            
                         </tr>

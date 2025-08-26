@@ -83,7 +83,7 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="barcodeNo">Barcode</label>
-                                    <input asp-for="SKUName" type="text" class="form-control" id="barcodeNo" placeholder="barcode" />
+                                    <input asp-for="SKUName" type="text" class="form-control" id="barcodeNo" placeholder="barcode" autofocus />
                                     <ul id="skuList" class="autocomplete-list" style="display: none;"></ul>
                                 </div>
                             </div>
@@ -156,7 +156,7 @@
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="productQuantity">Stock Out Quantity</label>
-                                    <input type="number" class="form-control" id="productQuantity" value="1" placeholder="Quantity" min="1" step="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                    <input type="number" class="form-control" id="productQuantity" value="1" placeholder="Quantity" min="1" step="1" readonly oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     <small id="quantityError" style="color: red;"></small>
                                 </div>
                             </div>
@@ -180,6 +180,8 @@
                                         <th>Barcode Id</th>
                                         <th>Product Name</th>
                                         <th>Product Quantity</th>
+                                        <th>Total Box</th>
+                                        <th>Per Box Qty</th>
                                         <th>Reason</th>
                                         <th>Room / Warehouse</th>
                                         <th>Rack No</th>
@@ -322,7 +324,73 @@
 </script> *@
 @*End Code for click on AddButton so that time textbox data add in html Table 30/05/2025 *@
 
+
 <script>
+    document.getElementById('saveStock').addEventListener('click', function () {
+        const rows = document.querySelectorAll("#stockOutTable tbody tr");
+        const stockData = [];
+
+        if (rows.length === 0) {
+            alert("No items to save.");
+            return;
+        }
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+
+            const type = row.dataset.type; 
+            const totalBoxText = cells[4] ? cells[4].textContent.trim() : null;
+            const perBoxQtyText = cells[5] ? cells[5].textContent.trim() : null;
+            const rackNo = row.dataset.rackNo === '' ? null : row.dataset.rackNo;
+
+            const stockItem = {
+                Barcode: cells[1].textContent.trim(),
+                FkProductId: row.dataset.productId,
+                Reason: row.dataset.reason,
+                Quantity: cells[3].querySelector('input.quantity-input').value.trim(),
+                FkWarehouseId: row.dataset.warehouseId,
+                RackNo: rackNo,
+                Type: type
+            };
+
+            if (type === "1") {
+                if (totalBoxText && totalBoxText !== "-") {
+                    stockItem.TotalBox = totalBoxText;
+                }
+
+                if (perBoxQtyText && perBoxQtyText !== "-") {
+                    stockItem.PerBoxQty = perBoxQtyText;
+                }
+            }
+
+            stockData.push(stockItem);
+        });
+
+        fetch("/Inventory/StockOut", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(stockData)
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = "/Inventory/InventoryList";
+            } else {
+                alert("Failed to save records.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("An error occurred while saving.");
+        });
+    });
+</script>
+
+
+
+@* <script>
     document.getElementById('saveStock').addEventListener('click', function () {
         const rows = document.querySelectorAll("#stockOutTable tbody tr");
         const stockData = [];
@@ -341,6 +409,10 @@
                 Reason: row.dataset.reason,
                 // Quantity: cells[3].textContent.trim(),
                 Quantity: cells[3].querySelector('input.quantity-input').value.trim(),
+                // TotalBox: cells[4].textContent.trim(),
+                // PerBoxQty: cells[5].textContent.trim(),
+                TotalBox: cells[4] ? (cells[4].textContent.trim() || null) : null,
+                PerBoxQty: cells[5] ? (cells[5].textContent.trim() || null) : null,
                 FkWarehouseId: row.dataset.warehouseId,
                 RackNo: row.dataset.rackNo
             };
@@ -370,7 +442,7 @@
             alert("An error occurred while saving.");
         });
     });
-</script>
+</script> *@
 
 
 
@@ -452,8 +524,14 @@
 
 
 
-<script>
+
+
+
+@*Start Code For Working Perfect But That time RackNo Not Available So that time data not add in Table Commet on 19/08/2025 by Bhushan*@
+@* <script>
     let serialNumber = 1;
+    let productType = 1;
+    let perBoxQty = 1;
 
     $(document).ready(function () {
         var $productInput = $('#product');
@@ -465,30 +543,52 @@
         var $availableQuantity = $('#availableQuantity');
         var $productQuantity = $('#productQuantity');
         var selectedIndex = -1;
+        var warehouseQuantities = [];
 
-        // Load rack numbers for barcode scan using warehouseQuantities
-        function loadRackNos(sku, warehouseId, warehouseQuantities = null) {
-            if (warehouseId && sku && warehouseQuantities) {
-                // Use warehouseQuantities from GetProductByBarcodeInStockOut
-                const racksForWarehouse = warehouseQuantities
-                    .filter(q => q.warehouseId == warehouseId && q.totalQuantity > 0)
-                    .map(q => q.rackNo);
-                const currentRack = $rackNoDropdown.val(); // Preserve current selection
-                $rackNoDropdown.empty();
-                if (racksForWarehouse.length === 0) {
-                    $rackNoDropdown.append('<option value="">No Racks Found</option>');
-                } else {
-                    $rackNoDropdown.append('<option value="">Select Rack</option>');
-                    $.each(racksForWarehouse, function (index, rack) {
-                        $rackNoDropdown.append(`<option value="${rack}">${rack}</option>`);
-                    });
-                    // Restore previous selection if still valid
-                    if (currentRack && racksForWarehouse.includes(currentRack)) {
-                        $rackNoDropdown.val(currentRack);
-                    }
-                }
+        // Load rack numbers and update AvailableQuantity
+        function loadRackNos(sku, warehouseId, quantities) {
+            warehouseQuantities = quantities || [];
+            const currentRack = $rackNoDropdown.val();
+            $rackNoDropdown.empty();
+
+            if (!warehouseId || !sku || !warehouseQuantities) {
+                $rackNoDropdown.append('<option value="">Select Warehouse First</option>');
+                $availableQuantity.val('0');
+                return;
+            }
+
+            const racksForWarehouse = [...new Set(warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.totalQuantity > 0 && q.type == productType)
+                .map(q => q.rackNo))];
+
+            if (racksForWarehouse.length === 0) {
+                $rackNoDropdown.append('<option value="">No Racks Found</option>');
+                $availableQuantity.val('0');
             } else {
-                $rackNoDropdown.empty().append('<option value="">Select Warehouse First</option>');
+                $rackNoDropdown.append('<option value="">Select Rack</option>');
+                $.each(racksForWarehouse, function (index, rack) {
+                    $rackNoDropdown.append(`<option value="${rack}">${rack}</option>`);
+                });
+
+                if (currentRack && racksForWarehouse.includes(currentRack)) {
+                    $rackNoDropdown.val(currentRack);
+                    updateAvailableQuantity(warehouseId, currentRack);
+                } else {
+                    $rackNoDropdown.val('');
+                    $availableQuantity.val('0');
+                }
+            }
+        }
+
+        // Update AvailableQuantity based on selected warehouse, rack, and type
+        function updateAvailableQuantity(warehouseId, rackNo) {
+            if (warehouseId && rackNo && warehouseQuantities) {
+                const rackData = warehouseQuantities.find(
+                    q => q.warehouseId == parseInt(warehouseId) && q.rackNo == rackNo && q.type == productType
+                );
+                $availableQuantity.val(rackData ? rackData.totalQuantity : '0');
+            } else {
+                $availableQuantity.val('0');
             }
         }
 
@@ -510,18 +610,2843 @@
                             $skuInput.val(data.skuName);
                             $('#getStockInQuantity').val(data.stockInQuantity);
 
+                            productType = data.type;
+                            perBoxQty = data.perBoxQty;
+
+                            const currentSelectedWarehouse = $warehouseDropdown.val();
+                            let selectedWarehouseId = currentSelectedWarehouse;
+                            const currentSelectedRack = $rackNoDropdown.val();
+
+                            // Filter warehouseQuantities by type and stock
+                            const validWarehouses = [...new Set(data.warehouseQuantities
+                                .filter(q => q.totalQuantity > 0 && q.type == productType)
+                                .map(q => q.warehouseId))];
+
+                            if (!currentSelectedWarehouse || currentSelectedWarehouse === '' || !validWarehouses.includes(parseInt(currentSelectedWarehouse))) {
+                                if (validWarehouses.length > 0) {
+                                    selectedWarehouseId = validWarehouses[0];
+                                    $warehouseDropdown.val(selectedWarehouseId).trigger('change');
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'No Stock Available',
+                                        text: `No available quantity for this barcode with type ${productType} in any warehouse.`,
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                    resetForm();
+                                    return;
+                                }
+                            }
+
+                            // Load racks for the selected warehouse
+                            loadRackNos(data.skuName, selectedWarehouseId, data.warehouseQuantities);
+
+                            // Handle warehouse change
+                            $warehouseDropdown.off('change.rack').on('change.rack', function () {
+                                const newWarehouseId = $(this).val();
+                                loadRackNos(data.skuName, newWarehouseId, warehouseQuantities);
+                            });
+
+                            // Handle rack selection change
+                            $rackNoDropdown.off('change.quantity').on('change.quantity', function () {
+                                const selectedRack = $(this).val();
+                                updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                            });
+
+                            // Validate rack stock after loading racks
+                            setTimeout(() => {
+                                const selectedRack = currentSelectedRack && warehouseQuantities.some(
+                                    q => q.warehouseId == parseInt(selectedWarehouseId) && q.rackNo == currentSelectedRack && q.totalQuantity > 0 && q.type == productType
+                                ) ? currentSelectedRack : $rackNoDropdown.val();
+
+                                if ($productId.val() && selectedWarehouseId && selectedRack) {
+                                    const rackHasStock = warehouseQuantities.some(
+                                        q => q.warehouseId == parseInt(selectedWarehouseId) && q.rackNo == selectedRack && q.totalQuantity > 0 && q.type == productType
+                                    );
+                                    if (!rackHasStock) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'No Stock Available',
+                                            text: `No available quantity for rack ${selectedRack} with type ${productType} in the selected warehouse.`,
+                                            confirmButtonColor: '#3085d6',
+                                            confirmButtonText: 'OK'
+                                        });
+                                        $availableQuantity.val('0');
+                                        return;
+                                    }
+                                    $rackNoDropdown.val(selectedRack);
+                                    updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                                    autoAddToTable();
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Incomplete Data',
+                                        text: 'Please ensure a warehouse and rack are selected.',
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            }, 500);
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Barcode or No Stock',
+                                text: 'No product or stock found for this barcode.',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            resetForm();
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong while fetching product details.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        resetForm();
+                    }
+                });
+            }
+        });
+
+        // ProductName Input Autocomplete (unchanged)
+        $productInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProductsForStockOut',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $productList.empty();
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $productList.append(
+                            $('<li>').text(item.productName)
+                                .attr('data-id', item.id)
+                                .attr('data-barcodeNo', item.skuName)
+                                .on('click', function () {
+                                    $productInput.val(item.productName);
+                                    $skuInput.val(item.skuName);
+                                    $productId.val(item.id);
+                                    $productList.hide().empty();
+                                    $warehouseDropdown.trigger('change');
+                                })
+                        );
+                    });
+
+                    $productList.show();
+                },
+                error: function () {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+        // Product input keyboard navigation (unchanged)
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.attr('data-id'));
+                        $skuInput.val(selected.attr('data-barcodeNo'));
+                        $productList.hide().empty();
+                        $warehouseDropdown.trigger('change');
+                    }
+                }
+            }
+        });
+
+        // Hide product list when clicking outside (unchanged)
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#product, #productList').length) {
+                $productList.hide().empty();
+            }
+        });
+
+        // Clear product ID and barcode if product input cleared (unchanged)
+        $productInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+                $skuInput.val('');
+                $availableQuantity.val('');
+            }
+        });
+
+        // Add button logic
+        $('#addButton').on('click', function (e) {
+            e.preventDefault();
+            autoAddToTable();
+        });
+
+        // Add row to table with rack validation
+        function autoAddToTable() {
+            const barcodeNo = $skuInput.val();
+            const productId = $productId.val();
+            const productText = $productInput.val();
+            let rawQty = parseInt($productQuantity.val()) || 0;
+            let productQuantityVal = productType == 1 ? rawQty * perBoxQty : rawQty;
+            const reason = $('#reason option:selected').text();
+            const warehouseId = $warehouseDropdown.val();
+            const warehouseText = $warehouseDropdown.find('option:selected').text();
+            const rackNo = $rackNoDropdown.val();
+            const stockInQuantity = parseInt($availableQuantity.val()) || 0;
+            const perBoxQtyDisplay = productType == 1 ? perBoxQty : '-';
+
+            // Validate required fields
+            if (!barcodeNo || !productId || !productQuantityVal || !reason || !warehouseId || !rackNo) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Fields',
+                    text: 'Please fill all required fields including Rack No.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Validate available quantity
+            if (stockInQuantity <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    text: `No available quantity for this barcode with type ${productType} in the selected warehouse and rack.`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Validate warehouse + rack + barcode + type combo exists
+            $.ajax({
+                url: '/Inventory/CheckStockAvailability',
+                type: 'GET',
+                data: {
+                    sku: barcodeNo,
+                    warehouseId: warehouseId,
+                    rackNo: rackNo
+                },
+                success: function (exists) {
+                    if (!exists) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Invalid Rack or Warehouse',
+                            text: `No stock found for this barcode with type ${productType} in selected warehouse and rack ${rackNo}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    // Proceed to add or update row
+                    const table = $('#stockOutTable tbody');
+                    let totalQtyForProductWarehouseRackType = 0;
+                    table.find('tr').each(function () {
+                        const rowProductId = $(this).data('product-id');
+                        const rowWarehouseId = $(this).data('warehouse-id');
+                        const rowRackNo = $(this).data('rack-no');
+                        const rowType = $(this).data('type');
+                        if (rowProductId == productId && rowWarehouseId == warehouseId && rowRackNo == rackNo && rowType == productType) {
+                            const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
+                            totalQtyForProductWarehouseRackType += qtyVal;
+                        }
+                    });
+
+                    let existingRow = null;
+                    table.find('tr').each(function () {
+                        const rowBarcode = $(this).find('td:eq(1)').text();
+                        const rowProductId = $(this).data('product-id');
+                        const rowWarehouseId = $(this).data('warehouse-id');
+                        const rowReason = $(this).data('reason');
+                        const rowRackNo = $(this).data('rack-no');
+                        const rowType = $(this).data('type');
+                        if (rowBarcode === barcodeNo && rowProductId == productId && rowWarehouseId == warehouseId && rowReason === reason && rowRackNo == rackNo && rowType == productType) {
+                            existingRow = $(this);
+                            return false;
+                        }
+                    });
+
+                    if (existingRow) {
+                        const qtyCell = existingRow.find('td:eq(3)');
+                        const scanCountCell = existingRow.find('td:eq(4)');
+
+                        const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
+                        const currentScanCount = parseInt(scanCountCell.text()) || 0;
+
+                        let newScanCount = productType == 1 ? currentScanCount + 1 : currentScanCount;
+                        let newQty = productType == 1
+                            ? newScanCount * perBoxQty
+                            : currentQty + productQuantityVal;
+
+                        const newTotalQty = totalQtyForProductWarehouseRackType - currentQty + newQty;
+
+                        if (newTotalQty > stockInQuantity) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Stock Limit Exceeded',
+                                text: `Total quantity cannot exceed available stock of ${stockInQuantity} for rack ${rackNo} with type ${productType}.`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+
+                        // Update quantity input and scan count cell
+                        qtyCell.find('input.quantity-input').val(newQty);
+                        if (productType == 1) {
+                            scanCountCell.text(newScanCount);
+                        }
+                    } else {
+                        let qtyToShow = productType == 1 ? 1 : productQuantityVal;
+
+                        if ((totalQtyForProductWarehouseRackType + qtyToShow) > stockInQuantity) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Stock Limit Exceeded',
+                                text: `Total quantity cannot exceed available stock of ${stockInQuantity} for rack ${rackNo} with type ${productType}.`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+
+                        const quantityInputHtml = `
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control quantity-input" value="${productQuantityVal}" data-original-qty="${rawQty}" min="1" style="width: 60px;"
+                                        ${productType == 1 ? 'readonly' : ''}
+                                        oninput="restrictAndValidateInput(this, ${stockInQuantity}, ${productId}, ${warehouseId}, ${productType})"
+                                        onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                </div>
+                            </td>
+                        `;
+
+                        const newRow = `
+                            <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}" data-rack-no="${rackNo}" data-type="${productType}">
+                                <td>${serialNumber++}</td>
+                                <td>${barcodeNo}</td>
+                                <td>${productText}</td>
+                                ${quantityInputHtml}
+                                <td>${productType == 1 ? qtyToShow : '-'}</td>
+                                <td>${perBoxQtyDisplay}</td>
+                                <td>${reason}</td>
+                                <td>${warehouseText}</td>
+                                <td>${rackNo}</td>
+                                <td><button type="button" class="btn btn-danger btn-sm removeRow">Remove</button></td>
+                            </tr>
+                        `;
+                        table.append(newRow);
+                    }
+
+                    // Reset form
+                    resetForm();
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to validate stock availability.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+
+        // Reset form fields
+        function resetForm() {
+            $skuInput.val('');
+            $productInput.val('');
+            $productId.val('');
+            $availableQuantity.val('');
+            $productQuantity.val('1');
+            $skuInput.focus();
+        }
+
+        // Remove row handler
+        $('#stockOutTable').on('click', '.removeRow', function () {
+            $(this).closest('tr').remove();
+            updateSerialNumbers();
+        });
+
+        // Update serial numbers
+        function updateSerialNumbers() {
+            const rows = $('#stockOutTable tbody tr');
+            serialNumber = 1;
+            rows.each(function () {
+                $(this).find('td:first').text(serialNumber++);
+            });
+        }
+
+        // Highlight autocomplete item
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script>*@
+@*End Code For Working Perfect But That time RackNo Not Available So that time data not add in Table Commet on 19/08/2025 by Bhushan*@
+
+
+
+
+
+
+
+
+@* Start This Code this code is correct but that time Selected Warehouse Data Not Available So that time Autom Change Warehouse and add data in table 20/08/2025*@
+@* 
+<script>
+    let serialNumber = 1;
+    let productType = 1;
+    let perBoxQty = 1;
+
+    $(document).ready(function () {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var $skuInput = $('#barcodeNo');
+        var $warehouseDropdown = $('#warehouse');
+        var $rackNoDropdown = $('#rackNo');
+        var $availableQuantity = $('#availableQuantity');
+        var $productQuantity = $('#productQuantity');
+        var selectedIndex = -1;
+        var warehouseQuantities = [];
+
+        // Load rack numbers and update AvailableQuantity
+        function loadRackNos(sku, warehouseId, quantities) {
+            warehouseQuantities = quantities || [];
+            const currentRack = $rackNoDropdown.val();
+            $rackNoDropdown.empty();
+
+            if (!warehouseId || !sku || !warehouseQuantities) {
+                $rackNoDropdown.append('<option value="">Select Warehouse First</option>');
+                $availableQuantity.val('0');
+                return;
+            }
+
+            // Filter racks excluding null, undefined, or empty rackNo
+            const racksForWarehouse = [...new Set(warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.totalQuantity > 0 && q.type == productType && q.rackNo && q.rackNo.trim() !== '')
+                .map(q => q.rackNo))];
+
+            if (racksForWarehouse.length === 0) {
+                $rackNoDropdown.append('<option value="">No Racks Available</option>');
+                // Calculate total quantity for the warehouse
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                $rackNoDropdown.append('<option value="">Select Rack</option>');
+                $.each(racksForWarehouse, function (index, rack) {
+                    $rackNoDropdown.append(`<option value="${rack}">${rack}</option>`);
+                });
+
+                if (currentRack && racksForWarehouse.includes(currentRack)) {
+                    $rackNoDropdown.val(currentRack);
+                    updateAvailableQuantity(warehouseId, currentRack);
+                } else {
+                    $rackNoDropdown.val('');
+                    $availableQuantity.val('0');
+                }
+            }
+        }
+
+        // Update AvailableQuantity based on selected warehouse, rack, and type
+        function updateAvailableQuantity(warehouseId, rackNo) {
+            if (warehouseId && rackNo && warehouseQuantities) {
+                const rackData = warehouseQuantities.find(
+                    q => q.warehouseId == parseInt(warehouseId) && q.rackNo == rackNo && q.type == productType
+                );
+                $availableQuantity.val(rackData ? rackData.totalQuantity : '0');
+            } else if (warehouseId && !rackNo && warehouseQuantities) {
+                // Sum quantities for the warehouse
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                $availableQuantity.val('0');
+            }
+        }
+
+        // Barcode input handling (Enter key or scan)
+        $skuInput.on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const barcode = $(this).val().trim();
+                if (barcode === '') return;
+
+                $.ajax({
+                    url: '/Inventory/GetProductByBarcodeInStockOut',
+                    type: 'GET',
+                    data: { sku: barcode },
+                    success: function (data) {
+                        if (data && data.productId && data.warehouseQuantities && data.warehouseQuantities.length > 0) {
+                            $productInput.val(data.productName);
+                            $productId.val(data.productId);
+                            $skuInput.val(data.skuName);
+                            $('#getStockInQuantity').val(data.stockInQuantity);
+
+                            productType = data.type;
+                            perBoxQty = data.perBoxQty;
+
+                            const currentSelectedWarehouse = $warehouseDropdown.val();
+                            let selectedWarehouseId = currentSelectedWarehouse;
+                            const currentSelectedRack = $rackNoDropdown.val();
+
+                            // Filter warehouseQuantities by type and stock
+                            const validWarehouses = [...new Set(data.warehouseQuantities
+                                .filter(q => q.totalQuantity > 0 && q.type == productType)
+                                .map(q => q.warehouseId))];
+
+                            if (!currentSelectedWarehouse || currentSelectedWarehouse === '' || !validWarehouses.includes(parseInt(currentSelectedWarehouse))) {
+                                if (validWarehouses.length > 0) {
+                                    selectedWarehouseId = validWarehouses[0];
+                                    $warehouseDropdown.val(selectedWarehouseId).trigger('change');
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'No Stock Available',
+                                        text: `No available quantity for this barcode with type ${productType} in any warehouse.`,
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                    resetForm();
+                                    return;
+                                }
+                            }
+
+                            // Load racks for the selected warehouse
+                            loadRackNos(data.skuName, selectedWarehouseId, data.warehouseQuantities);
+
+                            // Handle warehouse change
+                            $warehouseDropdown.off('change.rack').on('change.rack', function () {
+                                const newWarehouseId = $(this).val();
+                                loadRackNos(data.skuName, newWarehouseId, warehouseQuantities);
+                            });
+
+                            // Handle rack selection change
+                            $rackNoDropdown.off('change.quantity').on('change.quantity', function () {
+                                const selectedRack = $(this).val();
+                                updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                            });
+
+                            // Validate stock and add to table
+                            setTimeout(() => {
+                                const selectedRack = currentSelectedRack && warehouseQuantities.some(
+                                    q => q.warehouseId == parseInt(selectedWarehouseId) && q.rackNo == currentSelectedRack && q.totalQuantity > 0 && q.type == productType
+                                ) ? currentSelectedRack : $rackNoDropdown.val();
+
+                                if ($productId.val() && selectedWarehouseId) {
+                                    const totalWarehouseQty = warehouseQuantities
+                                        .filter(q => q.warehouseId == parseInt(selectedWarehouseId) && q.type == productType)
+                                        .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+                                    if (totalWarehouseQty <= 0) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'No Stock Available',
+                                            text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                                            confirmButtonColor: '#3085d6',
+                                            confirmButtonText: 'OK'
+                                        });
+                                        return;
+                                    }
+
+                                    if (selectedRack && $rackNoDropdown.find('option:first').text() === 'Select Rack') {
+                                        const rackHasStock = warehouseQuantities.some(
+                                            q => q.warehouseId == parseInt(selectedWarehouseId) && q.rackNo == selectedRack && q.totalQuantity > 0 && q.type == productType
+                                        );
+                                        if (!rackHasStock) {
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'No Stock Available',
+                                                text: `No available quantity for rack ${selectedRack} with type ${productType} in the selected warehouse.`,
+                                                confirmButtonColor: '#3085d6',
+                                                confirmButtonText: 'OK'
+                                            });
+                                            $availableQuantity.val('0');
+                                            return;
+                                        }
+                                    }
+
+                                    $rackNoDropdown.val(selectedRack);
+                                    updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                                    autoAddToTable();
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Incomplete Data',
+                                        text: 'Please ensure a warehouse is selected.',
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            }, 500);
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Barcode or No Stock',
+                                text: 'No product or stock found for this barcode.',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            resetForm();
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong while fetching product details.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        resetForm();
+                    }
+                });
+            }
+        });
+
+        // ProductName Input Autocomplete (unchanged)
+        $productInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProductsForStockOut',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $productList.empty();
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $productList.append(
+                            $('<li>').text(item.productName)
+                                .attr('data-id', item.id)
+                                .attr('data-barcodeNo', item.skuName)
+                                .on('click', function () {
+                                    $productInput.val(item.productName);
+                                    $skuInput.val(item.skuName);
+                                    $productId.val(item.id);
+                                    $productList.hide().empty();
+                                    $warehouseDropdown.trigger('change');
+                                })
+                        );
+                    });
+
+                    $productList.show();
+                },
+                error: function () {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+        // Product input keyboard navigation (unchanged)
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.attr('data-id'));
+                        $skuInput.val(selected.attr('data-barcodeNo'));
+                        $productList.hide().empty();
+                        $warehouseDropdown.trigger('change');
+                    }
+                }
+            }
+        });
+
+        // Hide product list when clicking outside (unchanged)
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#product, #productList').length) {
+                $productList.hide().empty();
+            }
+        });
+
+        // Clear product ID and barcode if product input cleared (unchanged)
+        $productInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+                $skuInput.val('');
+                $availableQuantity.val('');
+            }
+        });
+
+        // Add button logic
+        $('#addButton').on('click', function (e) {
+            e.preventDefault();
+            autoAddToTable();
+        });
+
+        // Add row to table with rack validation
+        function autoAddToTable() {
+            const barcodeNo = $skuInput.val();
+            const productId = $productId.val();
+            const productText = $productInput.val();
+            let rawQty = parseInt($productQuantity.val()) || 0;
+            let productQuantityVal = productType == 1 ? rawQty * perBoxQty : rawQty;
+            const reason = $('#reason option:selected').text();
+            const warehouseId = $warehouseDropdown.val();
+            const warehouseText = $warehouseDropdown.find('option:selected').text();
+            const rackNo = $rackNoDropdown.val();
+            const stockInQuantity = parseInt($availableQuantity.val()) || 0;
+            const perBoxQtyDisplay = productType == 1 ? perBoxQty : '-';
+            const firstOptionText = $rackNoDropdown.find('option:first').text();
+            const racksAvailable = firstOptionText === 'Select Rack';
+
+            // Validate required fields (excluding rackNo if no racks are available)
+            if (!barcodeNo || !productId || !productQuantityVal || !reason || !warehouseId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Fields',
+                    text: 'Please fill all required fields.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Validate available quantity
+            if (stockInQuantity <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Calculate total warehouse quantity for validation
+            const totalWarehouseQty = warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+            if (totalWarehouseQty <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            function proceedToAddOrUpdate() {
+                // Proceed to add or update row
+                const table = $('#stockOutTable tbody');
+                let totalQtyForProductWarehouseRackType = 0;
+                table.find('tr').each(function () {
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    const rowRackNo = $(this).data('rack-no') || '';
+                    const rowType = $(this).data('type');
+                    if (rowProductId == productId && rowWarehouseId == warehouseId && rowRackNo == (rackNo || '') && rowType == productType) {
+                        const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
+                        totalQtyForProductWarehouseRackType += qtyVal;
+                    }
+                });
+
+                let existingRow = null;
+                table.find('tr').each(function () {
+                    const rowBarcode = $(this).find('td:eq(1)').text();
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    const rowReason = $(this).data('reason');
+                    const rowRackNo = $(this).data('rack-no') || '';
+                    const rowType = $(this).data('type');
+                    if (rowBarcode === barcodeNo && rowProductId == productId && rowWarehouseId == warehouseId && rowReason === reason && rowRackNo == (rackNo || '') && rowType == productType) {
+                        existingRow = $(this);
+                        return false;
+                    }
+                });
+
+                if (existingRow) {
+                    const qtyCell = existingRow.find('td:eq(3)');
+                    const scanCountCell = existingRow.find('td:eq(4)');
+
+                    const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
+                    const currentScanCount = parseInt(scanCountCell.text()) || 0;
+
+                    let newScanCount = productType == 1 ? currentScanCount + 1 : currentScanCount;
+                    let newQty = productType == 1
+                        ? newScanCount * perBoxQty
+                        : currentQty + productQuantityVal;
+
+                    const newTotalQty = totalQtyForProductWarehouseRackType - currentQty + newQty;
+
+                    if (newTotalQty > stockInQuantity) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock Limit Exceeded',
+                            text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    // Update quantity input and scan count cell
+                    qtyCell.find('input.quantity-input').val(newQty);
+                    if (productType == 1) {
+                        scanCountCell.text(newScanCount);
+                    }
+                } else {
+                    let qtyToShow = productType == 1 ? 1 : productQuantityVal;
+
+                    if ((totalQtyForProductWarehouseRackType + qtyToShow) > stockInQuantity) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock Limit Exceeded',
+                            text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    const quantityInputHtml = `
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control quantity-input" value="${productQuantityVal}" data-original-qty="${rawQty}" min="1" style="width: 60px;"
+                                    ${productType == 1 ? 'readonly' : ''}
+                                    oninput="restrictAndValidateInput(this, ${stockInQuantity}, ${productId}, ${warehouseId}, ${productType})"
+                                    onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                            </div>
+                        </td>
+                    `;
+
+                    const newRow = `
+                        <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}" data-rack-no="${rackNo || ''}" data-type="${productType}">
+                            <td>${serialNumber++}</td>
+                            <td>${barcodeNo}</td>
+                            <td>${productText}</td>
+                            ${quantityInputHtml}
+                            <td>${productType == 1 ? qtyToShow : '-'}</td>
+                            <td>${perBoxQtyDisplay}</td>
+                            <td>${reason}</td>
+                            <td>${warehouseText}</td>
+                            <td>${rackNo || '-'}</td>
+                            <td><button type="button" class="btn btn-danger btn-sm removeRow">Remove</button></td>
+                        </tr>
+                    `;
+                    table.append(newRow);
+                }
+
+                // Reset form
+                resetForm();
+            }
+
+            if (racksAvailable) {
+                // Validate warehouse + rack + barcode + type combo exists
+                $.ajax({
+                    url: '/Inventory/CheckStockAvailability',
+                    type: 'GET',
+                    data: {
+                        sku: barcodeNo,
+                        warehouseId: warehouseId,
+                        rackNo: rackNo
+                    },
+                    success: function (exists) {
+                        if (!exists) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Rack or Warehouse',
+                                text: `No stock found for this barcode with type ${productType} in selected warehouse and rack ${rackNo}.`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+                        proceedToAddOrUpdate();
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to validate stock availability.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            } else {
+                // For no racks available, rely on local warehouse quantity check
+                if (totalWarehouseQty > 0) {
+                    proceedToAddOrUpdate();
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Stock Available',
+                        text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+        }
+
+        // Reset form fields
+        function resetForm() {
+            $skuInput.val('');
+            $productInput.val('');
+            $productId.val('');
+            $availableQuantity.val('');
+            $productQuantity.val('1');
+            $skuInput.focus();
+        }
+
+        // Remove row handler
+        $('#stockOutTable').on('click', '.removeRow', function () {
+            $(this).closest('tr').remove();
+            updateSerialNumbers();
+        });
+
+        // Update serial numbers
+        function updateSerialNumbers() {
+            const rows = $('#stockOutTable tbody tr');
+            serialNumber = 1;
+            rows.each(function () {
+                $(this).find('td:first').text(serialNumber++);
+            });
+        }
+
+        // Highlight autocomplete item
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script>
+ *@
+ @* End This Code this code is correct but that time Selected Warehouse Data Not Available So that time Autom Change Warehouse and add data in table 20/08/2025*@
+
+
+
+<script>
+    let serialNumber = 1;
+    let productType = 1;
+    let perBoxQty = 1;
+
+    $(document).ready(function () {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var $skuInput = $('#barcodeNo');
+        var $warehouseDropdown = $('#warehouse');
+        var $rackNoDropdown = $('#rackNo');
+        var $availableQuantity = $('#availableQuantity');
+        var $productQuantity = $('#productQuantity');
+        var selectedIndex = -1;
+        var warehouseQuantities = [];
+
+        // Load rack numbers and update AvailableQuantity
+        function loadRackNos(sku, warehouseId, quantities) {
+            warehouseQuantities = quantities || [];
+            const currentRack = $rackNoDropdown.val();
+            $rackNoDropdown.empty();
+
+            if (!warehouseId || !sku || !warehouseQuantities) {
+                $rackNoDropdown.append('<option value="">Select Warehouse First</option>');
+                $availableQuantity.val('0');
+                return;
+            }
+
+            // Filter racks excluding null, undefined, or empty rackNo
+            const racksForWarehouse = [...new Set(warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.totalQuantity > 0 && q.type == productType && q.rackNo && q.rackNo.trim() !== '')
+                .map(q => q.rackNo))];
+
+            if (racksForWarehouse.length === 0) {
+                $rackNoDropdown.append('<option value="">No Racks Available</option>');
+                // Calculate total quantity for the warehouse
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                // Populate rack options
+                racksForWarehouse.forEach(rack => {
+                    $rackNoDropdown.append(`<option value="${rack}">${rack}</option>`);
+                });
+
+                // Select the first available rack by default, or keep current rack if valid
+                if (currentRack && racksForWarehouse.includes(currentRack)) {
+                    $rackNoDropdown.val(currentRack);
+                } else {
+                    $rackNoDropdown.val(racksForWarehouse[0]); // Select first available rack
+                }
+                updateAvailableQuantity(warehouseId, $rackNoDropdown.val());
+            }
+        }
+
+        // Update AvailableQuantity based on selected warehouse, rack, and type
+        function updateAvailableQuantity(warehouseId, rackNo) {
+            if (warehouseId && rackNo && warehouseQuantities) {
+                const rackData = warehouseQuantities.find(
+                    q => q.warehouseId == parseInt(warehouseId) && q.rackNo == rackNo && q.type == productType
+                );
+                $availableQuantity.val(rackData ? rackData.totalQuantity : '0');
+            } else if (warehouseId && !rackNo && warehouseQuantities) {
+                // Sum quantities for the warehouse
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                $availableQuantity.val('0');
+            }
+        }
+
+        // Barcode input handling (Enter key or scan)
+        $skuInput.on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const barcode = $(this).val().trim();
+                if (barcode === '') return;
+
+                $.ajax({
+                    url: '/Inventory/GetProductByBarcodeInStockOut',
+                    type: 'GET',
+                    data: { sku: barcode },
+                    success: function (data) {
+                        if (data && data.productId && data.warehouseQuantities && data.warehouseQuantities.length > 0) {
+                            $productInput.val(data.productName);
+                            $productId.val(data.productId);
+                            $skuInput.val(data.skuName);
+                            $('#getStockInQuantity').val(data.stockInQuantity);
+
+                            productType = data.type;
+                            perBoxQty = data.perBoxQty;
+
+                            const currentSelectedWarehouse = $warehouseDropdown.val();
+                            let selectedWarehouseId = currentSelectedWarehouse;
+                            const currentSelectedRack = $rackNoDropdown.val();
+
+                            // Filter warehouseQuantities by type and stock
+                            const validWarehouses = [...new Set(data.warehouseQuantities
+                                .filter(q => q.totalQuantity > 0 && q.type == productType)
+                                .map(q => q.warehouseId))];
+
+                            if (!currentSelectedWarehouse || currentSelectedWarehouse === '' || !validWarehouses.includes(parseInt(currentSelectedWarehouse))) {
+                                if (validWarehouses.length > 0) {
+                                    selectedWarehouseId = validWarehouses[0];
+                                    $warehouseDropdown.val(selectedWarehouseId).trigger('change');
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'No Stock Available',
+                                        text: `No available quantity for this barcode with type ${productType} in any warehouse.`,
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                    resetForm();
+                                    return;
+                                }
+                            }
+
+                            // Load racks for the selected warehouse
+                            loadRackNos(data.skuName, selectedWarehouseId, data.warehouseQuantities);
+
+                            // Handle warehouse change
+                            $warehouseDropdown.off('change.rack').on('change.rack', function () {
+                                const newWarehouseId = $(this).val();
+                                loadRackNos(data.skuName, newWarehouseId, warehouseQuantities);
+                            });
+
+                            // Handle rack selection change
+                            $rackNoDropdown.off('change.quantity').on('change.quantity', function () {
+                                const selectedRack = $(this).val();
+                                updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                            });
+
+                            // Validate stock and add to table
+                            setTimeout(() => {
+                                const selectedRack = $rackNoDropdown.val();
+
+                                if ($productId.val() && selectedWarehouseId) {
+                                    const totalWarehouseQty = warehouseQuantities
+                                        .filter(q => q.warehouseId == parseInt(selectedWarehouseId) && q.type == productType)
+                                        .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+                                    if (totalWarehouseQty <= 0) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'No Stock Available',
+                                            text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                                            confirmButtonColor: '#3085d6',
+                                            confirmButtonText: 'OK'
+                                        });
+                                        return;
+                                    }
+
+                                    if (selectedRack && $rackNoDropdown.find('option').length > 1) {
+                                        const rackHasStock = warehouseQuantities.some(
+                                            q => q.warehouseId == parseInt(selectedWarehouseId) && q.rackNo == selectedRack && q.totalQuantity > 0 && q.type == productType
+                                        );
+                                        if (!rackHasStock) {
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'No Stock Available',
+                                                text: `No available quantity for rack ${selectedRack} with type ${productType} in the selected warehouse.`,
+                                                confirmButtonColor: '#3085d6',
+                                                confirmButtonText: 'OK'
+                                            });
+                                            $availableQuantity.val('0');
+                                            return;
+                                        }
+                                    }
+
+                                    updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                                    autoAddToTable();
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Incomplete Data',
+                                        text: 'Please ensure a warehouse is selected.',
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            }, 500);
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Barcode or No Stock',
+                                text: 'No product or stock found for this barcode.',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            resetForm();
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong while fetching product details.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        resetForm();
+                    }
+                });
+            }
+        });
+
+        // ProductName Input Autocomplete (unchanged)
+        $productInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProductsForStockOut',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $productList.empty();
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $productList.append(
+                            $('<li>').text(item.productName)
+                                .attr('data-id', item.id)
+                                .attr('data-barcodeNo', item.skuName)
+                                .on('click', function () {
+                                    $productInput.val(item.productName);
+                                    $skuInput.val(item.skuName);
+                                    $productId.val(item.id);
+                                    $productList.hide().empty();
+                                    $warehouseDropdown.trigger('change');
+                                })
+                        );
+                    });
+
+                    $productList.show();
+                },
+                error: function () {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+        // Product input keyboard navigation (unchanged)
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.attr('data-id'));
+                        $skuInput.val(selected.attr('data-barcodeNo'));
+                        $productList.hide().empty();
+                        $warehouseDropdown.trigger('change');
+                    }
+                }
+            }
+        });
+
+        // Hide product list when clicking outside (unchanged)
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#product, #productList').length) {
+                $productList.hide().empty();
+            }
+        });
+
+        // Clear product ID and barcode if product input cleared (unchanged)
+        $productInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+                $skuInput.val('');
+                $availableQuantity.val('');
+            }
+        });
+
+        // Add button logic
+        $('#addButton').on('click', function (e) {
+            e.preventDefault();
+            autoAddToTable();
+        });
+
+        // Add row to table with rack validation
+        function autoAddToTable() {
+            const barcodeNo = $skuInput.val();
+            const productId = $productId.val();
+            const productText = $productInput.val();
+            let rawQty = parseInt($productQuantity.val()) || 0;
+            let productQuantityVal = productType == 1 ? rawQty * perBoxQty : rawQty;
+            const reason = $('#reason option:selected').text();
+            const warehouseId = $warehouseDropdown.val();
+            const warehouseText = $warehouseDropdown.find('option:selected').text();
+            const rackNo = $rackNoDropdown.val();
+            const stockInQuantity = parseInt($availableQuantity.val()) || 0;
+            const perBoxQtyDisplay = productType == 1 ? perBoxQty : '-';
+            const racksAvailable = $rackNoDropdown.find('option').length > 1;
+
+            // Validate required fields (excluding rackNo if no racks are available)
+            if (!barcodeNo || !productId || !productQuantityVal || !reason || !warehouseId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Fields',
+                    text: 'Please fill all required fields.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Validate available quantity
+            if (stockInQuantity <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Calculate total warehouse quantity for validation
+            const totalWarehouseQty = warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+            if (totalWarehouseQty <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            function proceedToAddOrUpdate() {
+                // Proceed to add or update row
+                const table = $('#stockOutTable tbody');
+                let totalQtyForProductWarehouseRackType = 0;
+                table.find('tr').each(function () {
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    const rowRackNo = $(this).data('rack-no') || '';
+                    const rowType = $(this).data('type');
+                    if (rowProductId == productId && rowWarehouseId == warehouseId && rowRackNo == (rackNo || '') && rowType == productType) {
+                        const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
+                        totalQtyForProductWarehouseRackType += qtyVal;
+                    }
+                });
+
+                let existingRow = null;
+                table.find('tr').each(function () {
+                    const rowBarcode = $(this).find('td:eq(1)').text();
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    const rowReason = $(this).data('reason');
+                    const rowRackNo = $(this).data('rack-no') || '';
+                    const rowType = $(this).data('type');
+                    if (rowBarcode === barcodeNo && rowProductId == productId && rowWarehouseId == warehouseId && rowReason === reason && rowRackNo == (rackNo || '') && rowType == productType) {
+                        existingRow = $(this);
+                        return false;
+                    }
+                });
+
+                if (existingRow) {
+                    const qtyCell = existingRow.find('td:eq(3)');
+                    const scanCountCell = existingRow.find('td:eq(4)');
+
+                    const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
+                    const currentScanCount = parseInt(scanCountCell.text()) || 0;
+
+                    let newScanCount = productType == 1 ? currentScanCount + 1 : currentScanCount;
+                    let newQty = productType == 1
+                        ? newScanCount * perBoxQty
+                        : currentQty + productQuantityVal;
+
+                    const newTotalQty = totalQtyForProductWarehouseRackType - currentQty + newQty;
+
+                    if (newTotalQty > stockInQuantity) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock Limit Exceeded',
+                            text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    // Update quantity input and scan count cell
+                    qtyCell.find('input.quantity-input').val(newQty);
+                    if (productType == 1) {
+                        scanCountCell.text(newScanCount);
+                    }
+                } else {
+                    let qtyToShow = productType == 1 ? 1 : productQuantityVal;
+
+                    if ((totalQtyForProductWarehouseRackType + qtyToShow) > stockInQuantity) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock Limit Exceeded',
+                            text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    const quantityInputHtml = `
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control quantity-input" value="${productQuantityVal}" data-original-qty="${rawQty}" min="1" style="width: 60px;"
+                                    ${productType == 1 ? 'readonly' : ''}
+                                    oninput="restrictAndValidateInput(this, ${stockInQuantity}, ${productId}, ${warehouseId}, ${productType})"
+                                    onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                            </div>
+                        </td>
+                    `;
+
+                    const newRow = `
+                        <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}" data-rack-no="${rackNo || ''}" data-type="${productType}">
+                            <td>${serialNumber++}</td>
+                            <td>${barcodeNo}</td>
+                            <td>${productText}</td>
+                            ${quantityInputHtml}
+                            <td>${productType == 1 ? qtyToShow : '-'}</td>
+                            <td>${perBoxQtyDisplay}</td>
+                            <td>${reason}</td>
+                            <td>${warehouseText}</td>
+                            <td>${rackNo || '-'}</td>
+                            <td><button type="button" class="btn btn-danger btn-sm removeRow">Remove</button></td>
+                        </tr>
+                    `;
+                    table.append(newRow);
+                }
+
+                // Reset form
+                resetForm();
+            }
+
+            if (racksAvailable) {
+                // Validate warehouse + rack + barcode + type combo exists
+                $.ajax({
+                    url: '/Inventory/CheckStockAvailability',
+                    type: 'GET',
+                    data: {
+                        sku: barcodeNo,
+                        warehouseId: warehouseId,
+                        rackNo: rackNo
+                    },
+                    success: function (exists) {
+                        if (!exists) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Rack or Warehouse',
+                                text: `No stock found for this barcode with type ${productType} in selected warehouse and rack ${rackNo}.`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+                        proceedToAddOrUpdate();
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to validate stock availability.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            } else {
+                // For no racks available, rely on local warehouse quantity check
+                if (totalWarehouseQty > 0) {
+                    proceedToAddOrUpdate();
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Stock Available',
+                        text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+        }
+
+        // Reset form fields
+        function resetForm() {
+            $skuInput.val('');
+            $productInput.val('');
+            $productId.val('');
+            $availableQuantity.val('');
+            $productQuantity.val('1');
+            $skuInput.focus();
+        }
+
+        // Remove row handler
+        $('#stockOutTable').on('click', '.removeRow', function () {
+            $(this).closest('tr').remove();
+            updateSerialNumbers();
+        });
+
+        // Update serial numbers
+        function updateSerialNumbers() {
+            const rows = $('#stockOutTable tbody tr');
+            serialNumber = 1;
+            rows.each(function () {
+                $(this).find('td:first').text(serialNumber++);
+            });
+        }
+
+        // Highlight autocomplete item
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script>
+
+
+
+@* Start This Code this code is correct but that time Selected Warehouse Data Not Available So that time getting error massage and select avaialble data Warehouse & RackNo in table 22/08/2025*@
+@*  <script>
+    let serialNumber = 1;
+    let productType = 1;
+    let perBoxQty = 1;
+
+    $(document).ready(function () {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var $skuInput = $('#barcodeNo');
+        var $warehouseDropdown = $('#warehouse');
+        var $rackNoDropdown = $('#rackNo');
+        var $availableQuantity = $('#availableQuantity');
+        var $productQuantity = $('#productQuantity');
+        var selectedIndex = -1;
+        var warehouseQuantities = [];
+
+        // Load rack numbers and update AvailableQuantity
+        function loadRackNos(sku, warehouseId, quantities) {
+            warehouseQuantities = quantities || [];
+            const currentRack = $rackNoDropdown.val();
+            $rackNoDropdown.empty();
+
+            if (!warehouseId || !sku || !warehouseQuantities) {
+                $rackNoDropdown.append('<option value="">Select Warehouse First</option>');
+                $availableQuantity.val('0');
+                return;
+            }
+
+            // Filter racks excluding null, undefined, or empty rackNo
+            const racksForWarehouse = [...new Set(warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.totalQuantity > 0 && q.type == productType && q.rackNo && q.rackNo.trim() !== '')
+                .map(q => q.rackNo))];
+
+            if (racksForWarehouse.length === 0) {
+                $rackNoDropdown.append('<option value="">No Racks Available</option>');
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                $rackNoDropdown.append('<option value="">Select Rack</option>');
+                $.each(racksForWarehouse, function (index, rack) {
+                    $rackNoDropdown.append(`<option value="${rack}">${rack}</option>`);
+                });
+
+                if (currentRack && racksForWarehouse.includes(currentRack)) {
+                    $rackNoDropdown.val(currentRack);
+                    updateAvailableQuantity(warehouseId, currentRack);
+                } else {
+                    $rackNoDropdown.val('');
+                    $availableQuantity.val('0');
+                }
+            }
+        }
+
+        // Update AvailableQuantity based on selected warehouse, rack, and type
+        function updateAvailableQuantity(warehouseId, rackNo) {
+            if (warehouseId && rackNo && warehouseQuantities) {
+                const rackData = warehouseQuantities.find(
+                    q => q.warehouseId == parseInt(warehouseId) && q.rackNo == rackNo && q.type == productType
+                );
+                $availableQuantity.val(rackData ? rackData.totalQuantity : '0');
+            } else if (warehouseId && !rackNo && warehouseQuantities) {
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                $availableQuantity.val('0');
+            }
+        }
+
+        // Barcode input handling (Enter key or scan)
+        $skuInput.on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const barcode = $(this).val().trim();
+                if (barcode === '') return;
+
+                $.ajax({
+                    url: '/Inventory/GetProductByBarcodeInStockOut',
+                    type: 'GET',
+                    data: { sku: barcode },
+                    success: function (data) {
+                        if (data && data.productId && data.warehouseQuantities && data.warehouseQuantities.length > 0) {
+                            $productInput.val(data.productName);
+                            $productId.val(data.productId);
+                            $skuInput.val(data.skuName);
+                            $('#getStockInQuantity').val(data.stockInQuantity);
+
+                            productType = data.type;
+                            perBoxQty = data.perBoxQty;
+
+                            const currentSelectedWarehouse = $warehouseDropdown.val();
+                            const currentSelectedRack = $rackNoDropdown.val();
+
+                            // Filter warehouseQuantities by type and stock
+                            const validWarehouses = [...new Set(data.warehouseQuantities
+                                .filter(q => q.totalQuantity > 0 && q.type == productType)
+                                .map(q => q.warehouseId))];
+
+                            // Get warehouse names for display
+                            const warehouseNames = {};
+                            $warehouseDropdown.find('option').each(function() {
+                                const id = $(this).val();
+                                if (id) {
+                                    warehouseNames[id] = $(this).text();
+                                }
+                            });
+
+                            if (!currentSelectedWarehouse || currentSelectedWarehouse === '' || !validWarehouses.includes(parseInt(currentSelectedWarehouse))) {
+                                if (validWarehouses.length > 0) {
+                                    // Create a list of available warehouse names
+                                    const availableWarehouseList = validWarehouses
+                                        .map(id => warehouseNames[id] || `Warehouse ${id}`)
+                                        .join(', ');
+
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'No Stock in Selected Warehouse',
+                                        html: `No available quantity for this barcode with type ${productType} in the selected warehouse.<br><br><strong>Available Warehouses:</strong> ${availableWarehouseList}`,
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                    resetForm();
+                                    return;
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'No Stock Available',
+                                        text: `No available quantity for this barcode with type ${productType} in any warehouse.`,
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                    resetForm();
+                                    return;
+                                }
+                            }
+
+                            // Load racks for the selected warehouse
+                            loadRackNos(data.skuName, currentSelectedWarehouse, data.warehouseQuantities);
+
+                            // Handle warehouse change
+                            $warehouseDropdown.off('change.rack').on('change.rack', function () {
+                                const newWarehouseId = $(this).val();
+                                loadRackNos(data.skuName, newWarehouseId, warehouseQuantities);
+                            });
+
+                            // Handle rack selection change
+                            $rackNoDropdown.off('change.quantity').on('change.quantity', function () {
+                                const selectedRack = $(this).val();
+                                updateAvailableQuantity(currentSelectedWarehouse, selectedRack);
+                            });
+
+                            // Validate stock and add to table
+                            setTimeout(() => {
+                                const selectedRack = currentSelectedRack && warehouseQuantities.some(
+                                    q => q.warehouseId == parseInt(currentSelectedWarehouse) && q.rackNo == currentSelectedRack && q.totalQuantity > 0 && q.type == productType
+                                ) ? currentSelectedRack : $rackNoDropdown.val();
+
+                                if ($productId.val() && currentSelectedWarehouse) {
+                                    const totalWarehouseQty = warehouseQuantities
+                                        .filter(q => q.warehouseId == parseInt(currentSelectedWarehouse) && q.type == productType)
+                                        .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+                                    if (totalWarehouseQty <= 0) {
+                                        const availableWarehouseList = validWarehouses
+                                            .map(id => warehouseNames[id] || `Warehouse ${id}`)
+                                            .join(', ');
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'No Stock Available',
+                                            html: `No available quantity for this barcode with type ${productType} in the selected warehouse.<br><br><strong>Available Warehouses:</strong> ${availableWarehouseList}`,
+                                            confirmButtonColor: '#3085d6',
+                                            confirmButtonText: 'OK'
+                                        });
+                                        return;
+                                    }
+
+                                    if (selectedRack && $rackNoDropdown.find('option:first').text() === 'Select Rack') {
+                                        const rackHasStock = warehouseQuantities.some(
+                                            q => q.warehouseId == parseInt(currentSelectedWarehouse) && q.rackNo == selectedRack && q.totalQuantity > 0 && q.type == productType
+                                        );
+                                        if (!rackHasStock) {
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'No Stock Available',
+                                                text: `No available quantity for rack ${selectedRack} with type ${productType} in the selected warehouse.`,
+                                                confirmButtonColor: '#3085d6',
+                                                confirmButtonText: 'OK'
+                                            });
+                                            $availableQuantity.val('0');
+                                            return;
+                                        }
+                                    }
+
+                                    $rackNoDropdown.val(selectedRack);
+                                    updateAvailableQuantity(currentSelectedWarehouse, selectedRack);
+                                    autoAddToTable();
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Incomplete Data',
+                                        text: 'Please ensure a warehouse is selected.',
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            }, 500);
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Barcode or No Stock',
+                                text: 'No product or stock found for this barcode.',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            resetForm();
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong while fetching product details.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        resetForm();
+                    }
+                });
+            }
+        });
+
+        // ProductName Input Autocomplete (unchanged)
+        $productInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProductsForStockOut',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $productList.empty();
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $productList.append(
+                            $('<li>').text(item.productName)
+                                .attr('data-id', item.id)
+                                .attr('data-barcodeNo', item.skuName)
+                                .on('click', function () {
+                                    $productInput.val(item.productName);
+                                    $skuInput.val(item.skuName);
+                                    $productId.val(item.id);
+                                    $productList.hide().empty();
+                                    $warehouseDropdown.trigger('change');
+                                })
+                        );
+                    });
+
+                    $productList.show();
+                },
+                error: function () {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+        // Product input keyboard navigation (unchanged)
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.attr('data-id'));
+                        $skuInput.val(selected.attr('data-barcodeNo'));
+                        $productList.hide().empty();
+                        $warehouseDropdown.trigger('change');
+                    }
+                }
+            }
+        });
+
+        // Hide product list when clicking outside (unchanged)
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#product, #productList').length) {
+                $productList.hide().empty();
+            }
+        });
+
+        // Clear product ID and barcode if product input cleared (unchanged)
+        $productInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+                $skuInput.val('');
+                $availableQuantity.val('');
+            }
+        });
+
+        // Add button logic
+        $('#addButton').on('click', function (e) {
+            e.preventDefault();
+            autoAddToTable();
+        });
+
+        // Add row to table with rack validation
+        function autoAddToTable() {
+            const barcodeNo = $skuInput.val();
+            const productId = $productId.val();
+            const productText = $productInput.val();
+            let rawQty = parseInt($productQuantity.val()) || 0;
+            let productQuantityVal = productType == 1 ? rawQty * perBoxQty : rawQty;
+            const reason = $('#reason option:selected').text();
+            const warehouseId = $warehouseDropdown.val();
+            const warehouseText = $warehouseDropdown.find('option:selected').text();
+            const rackNo = $rackNoDropdown.val();
+            const stockInQuantity = parseInt($availableQuantity.val()) || 0;
+            const perBoxQtyDisplay = productType == 1 ? perBoxQty : '-';
+            const firstOptionText = $rackNoDropdown.find('option:first').text();
+            const racksAvailable = firstOptionText === 'Select Rack';
+
+            // Validate required fields (excluding rackNo if no racks are available)
+            if (!barcodeNo || !productId || !productQuantityVal || !reason || !warehouseId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Fields',
+                    text: 'Please fill all required fields.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Validate available quantity
+            if (stockInQuantity <= 0) {
+                const warehouseNames = {};
+                $warehouseDropdown.find('option').each(function() {
+                    const id = $(this).val();
+                    if (id) {
+                        warehouseNames[id] = $(this).text();
+                    }
+                });
+                const availableWarehouseList = warehouseQuantities
+                    .filter(q => q.totalQuantity > 0 && q.type == productType)
+                    .map(q => warehouseNames[q.warehouseId] || `Warehouse ${q.warehouseId}`)
+                    .filter((value, index, self) => self.indexOf(value) === index)
+                    .join(', ');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    html: `No available quantity for this barcode with type ${productType} in the selected warehouse.<br><br><strong>Available Warehouses:</strong> ${availableWarehouseList || 'None'}`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Calculate total warehouse quantity for validation
+            const totalWarehouseQty = warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+            if (totalWarehouseQty <= 0) {
+                const warehouseNames = {};
+                $warehouseDropdown.find('option').each(function() {
+                    const id = $(this).val();
+                    if (id) {
+                        warehouseNames[id] = $(this).text();
+                    }
+                });
+                const availableWarehouseList = warehouseQuantities
+                    .filter(q => q.totalQuantity > 0 && q.type == productType)
+                    .map(q => warehouseNames[q.warehouseId] || `Warehouse ${q.warehouseId}`)
+                    .filter((value, index, self) => self.indexOf(value) === index)
+                    .join(', ');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    html: `No available quantity for this barcode with type ${productType} in the selected warehouse.<br><br><strong>Available Warehouses:</strong> ${availableWarehouseList || 'None'}`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            function proceedToAddOrUpdate() {
+                // Proceed to add or update row
+                const table = $('#stockOutTable tbody');
+                let totalQtyForProductWarehouseRackType = 0;
+                table.find('tr').each(function () {
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    const rowRackNo = $(this).data('rack-no') || '';
+                    const rowType = $(this).data('type');
+                    if (rowProductId == productId && rowWarehouseId == warehouseId && rowRackNo == (rackNo || '') && rowType == productType) {
+                        const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
+                        totalQtyForProductWarehouseRackType += qtyVal;
+                    }
+                });
+
+                let existingRow = null;
+                table.find('tr').each(function () {
+                    const rowBarcode = $(this).find('td:eq(1)').text();
+                    const rowProductId = $(this).data('product-id');
+                    const rowWarehouseId = $(this).data('warehouse-id');
+                    const rowReason = $(this).data('reason');
+                    const rowRackNo = $(this).data('rack-no') || '';
+                    const rowType = $(this).data('type');
+                    if (rowBarcode === barcodeNo && rowProductId == productId && rowWarehouseId == warehouseId && rowReason === reason && rowRackNo == (rackNo || '') && rowType == productType) {
+                        existingRow = $(this);
+                        return false;
+                    }
+                });
+
+                if (existingRow) {
+                    const qtyCell = existingRow.find('td:eq(3)');
+                    const scanCountCell = existingRow.find('td:eq(4)');
+
+                    const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
+                    const currentScanCount = parseInt(scanCountCell.text()) || 0;
+
+                    let newScanCount = productType == 1 ? currentScanCount + 1 : currentScanCount;
+                    let newQty = productType == 1
+                        ? newScanCount * perBoxQty
+                        : currentQty + productQuantityVal;
+
+                    const newTotalQty = totalQtyForProductWarehouseRackType - currentQty + newQty;
+
+                    if (newTotalQty > stockInQuantity) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock Limit Exceeded',
+                            text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    // Update quantity input and scan count cell
+                    qtyCell.find('input.quantity-input').val(newQty);
+                    if (productType == 1) {
+                        scanCountCell.text(newScanCount);
+                    }
+                } else {
+                    let qtyToShow = productType == 1 ? 1 : productQuantityVal;
+
+                    if ((totalQtyForProductWarehouseRackType + qtyToShow) > stockInQuantity) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock Limit Exceeded',
+                            text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    const quantityInputHtml = `
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control quantity-input" value="${productQuantityVal}" data-original-qty="${rawQty}" min="1" style="width: 60px;"
+                                    ${productType == 1 ? 'readonly' : ''}
+                                    oninput="restrictAndValidateInput(this, ${stockInQuantity}, ${productId}, ${warehouseId}, ${productType})"
+                                    onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                            </div>
+                        </td>
+                    `;
+
+                    const newRow = `
+                        <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}" data-rack-no="${rackNo || ''}" data-type="${productType}">
+                            <td>${serialNumber++}</td>
+                            <td>${barcodeNo}</td>
+                            <td>${productText}</td>
+                            ${quantityInputHtml}
+                            <td>${productType == 1 ? qtyToShow : '-'}</td>
+                            <td>${perBoxQtyDisplay}</td>
+                            <td>${reason}</td>
+                            <td>${warehouseText}</td>
+                            <td>${rackNo || '-'}</td>
+                            <td><button type="button" class="btn btn-danger btn-sm removeRow">Remove</button></td>
+                        </tr>
+                    `;
+                    table.append(newRow);
+                }
+
+                // Reset form
+                resetForm();
+            }
+
+            if (racksAvailable) {
+                // Validate warehouse + rack + barcode + type combo exists
+                $.ajax({
+                    url: '/Inventory/CheckStockAvailability',
+                    type: 'GET',
+                    data: {
+                        sku: barcodeNo,
+                        warehouseId: warehouseId,
+                        rackNo: rackNo
+                    },
+                    success: function (exists) {
+                        if (!exists) {
+                            const warehouseNames = {};
+                            $warehouseDropdown.find('option').each(function() {
+                                const id = $(this).val();
+                                if (id) {
+                                    warehouseNames[id] = $(this).text();
+                                }
+                            });
+                            const availableWarehouseList = warehouseQuantities
+                                .filter(q => q.totalQuantity > 0 && q.type == productType)
+                                .map(q => warehouseNames[q.warehouseId] || `Warehouse ${q.warehouseId}`)
+                                .filter((value, index, self) => self.indexOf(value) === index)
+                                .join(', ');
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Rack or Warehouse',
+                                html: `No stock found for this barcode with type ${productType} in selected warehouse and rack ${rackNo}.<br><br><strong>Available Warehouses:</strong> ${availableWarehouseList || 'None'}`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+                        proceedToAddOrUpdate();
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to validate stock availability.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            } else {
+                // For no racks available, rely on local warehouse quantity check
+                if (totalWarehouseQty > 0) {
+                    proceedToAddOrUpdate();
+                } else {
+                    const warehouseNames = {};
+                    $warehouseDropdown.find('option').each(function() {
+                        const id = $(this).val();
+                        if (id) {
+                            warehouseNames[id] = $(this).text();
+                        }
+                    });
+                    const availableWarehouseList = warehouseQuantities
+                        .filter(q => q.totalQuantity > 0 && q.type == productType)
+                        .map(q => warehouseNames[q.warehouseId] || `Warehouse ${q.warehouseId}`)
+                        .filter((value, index, self) => self.indexOf(value) === index)
+                        .join(', ');
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Stock Available',
+                        html: `No available quantity for this barcode with type ${productType} in the selected warehouse.<br><br><strong>Available Warehouses:</strong> ${availableWarehouseList || 'None'}`,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+        }
+
+        // Reset form fields
+        function resetForm() {
+            $skuInput.val('');
+            $productInput.val('');
+            $productId.val('');
+            $availableQuantity.val('');
+            $productQuantity.val('1');
+            $skuInput.focus();
+        }
+
+        // Remove row handler
+        $('#stockOutTable').on('click', '.removeRow', function () {
+            $(this).closest('tr').remove();
+            updateSerialNumbers();
+        });
+
+        // Update serial numbers
+        function updateSerialNumbers() {
+            const rows = $('#stockOutTable tbody tr');
+            serialNumber = 1;
+            rows.each(function () {
+                $(this).find('td:first').text(serialNumber++);
+            });
+        }
+
+        // Highlight autocomplete item
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+ </script> *@
+@* End This Code this code is correct but that time Selected Warehouse Data Not Available So that time getting error massage and select avaialble data Warehouse & RackNo in table 22/08/2025*@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* <script>
+    let serialNumber = 1;
+    let productType = 1;
+    let perBoxQty = 1;
+
+    $(document).ready(function () {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var $skuInput = $('#barcodeNo');
+        var $warehouseDropdown = $('#warehouse');
+        var $rackNoDropdown = $('#rackNo');
+        var $availableQuantity = $('#availableQuantity');
+        var $productQuantity = $('#productQuantity');
+        var selectedIndex = -1;
+        var warehouseQuantities = [];
+
+        // Load rack numbers and update AvailableQuantity
+        function loadRackNos(sku, warehouseId, quantities) {
+            warehouseQuantities = quantities || [];
+            const currentRack = $rackNoDropdown.val();
+            $rackNoDropdown.empty();
+
+            if (!warehouseId || !sku || !warehouseQuantities) {
+                $rackNoDropdown.append('<option value="">Select Warehouse First</option>');
+                $availableQuantity.val('0');
+                return;
+            }
+
+            const racksForWarehouse = [...new Set(warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.totalQuantity > 0 && q.type == productType)
+                .map(q => q.rackNo))];
+
+            if (racksForWarehouse.length === 0) {
+                $rackNoDropdown.append('<option value="">No Racks Available</option>');
+                // Calculate total quantity for the warehouse
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                $rackNoDropdown.append('<option value="">Select Rack</option>');
+                $.each(racksForWarehouse, function (index, rack) {
+                    $rackNoDropdown.append(`<option value="${rack}">${rack}</option>`);
+                });
+
+                if (currentRack && racksForWarehouse.includes(currentRack)) {
+                    $rackNoDropdown.val(currentRack);
+                    updateAvailableQuantity(warehouseId, currentRack);
+                } else {
+                    $rackNoDropdown.val('');
+                    $availableQuantity.val('0');
+                }
+            }
+        }
+
+        // Update AvailableQuantity based on selected warehouse, rack, and type
+        function updateAvailableQuantity(warehouseId, rackNo) {
+            if (warehouseId && rackNo && warehouseQuantities) {
+                const rackData = warehouseQuantities.find(
+                    q => q.warehouseId == parseInt(warehouseId) && q.rackNo == rackNo && q.type == productType
+                );
+                $availableQuantity.val(rackData ? rackData.totalQuantity : '0');
+            } else if (warehouseId && !rackNo && warehouseQuantities) {
+                // Sum quantities for the warehouse
+                const totalWarehouseQty = warehouseQuantities
+                    .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                    .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+                $availableQuantity.val(totalWarehouseQty > 0 ? totalWarehouseQty : '0');
+            } else {
+                $availableQuantity.val('0');
+            }
+        }
+
+        // Barcode input handling (Enter key or scan)
+        $skuInput.on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const barcode = $(this).val().trim();
+                if (barcode === '') return;
+
+                $.ajax({
+                    url: '/Inventory/GetProductByBarcodeInStockOut',
+                    type: 'GET',
+                    data: { sku: barcode },
+                    success: function (data) {
+                        if (data && data.productId && data.warehouseQuantities && data.warehouseQuantities.length > 0) {
+                            $productInput.val(data.productName);
+                            $productId.val(data.productId);
+                            $skuInput.val(data.skuName);
+                            $('#getStockInQuantity').val(data.stockInQuantity);
+
+                            productType = data.type;
+                            perBoxQty = data.perBoxQty;
+
+                            const currentSelectedWarehouse = $warehouseDropdown.val();
+                            let selectedWarehouseId = currentSelectedWarehouse;
+                            const currentSelectedRack = $rackNoDropdown.val();
+
+                            // Filter warehouseQuantities by type and stock
+                            const validWarehouses = [...new Set(data.warehouseQuantities
+                                .filter(q => q.totalQuantity > 0 && q.type == productType)
+                                .map(q => q.warehouseId))];
+
+                            if (!currentSelectedWarehouse || currentSelectedWarehouse === '' || !validWarehouses.includes(parseInt(currentSelectedWarehouse))) {
+                                if (validWarehouses.length > 0) {
+                                    selectedWarehouseId = validWarehouses[0];
+                                    $warehouseDropdown.val(selectedWarehouseId).trigger('change');
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'No Stock Available',
+                                        text: `No available quantity for this barcode with type ${productType} in any warehouse.`,
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                    resetForm();
+                                    return;
+                                }
+                            }
+
+                            // Load racks for the selected warehouse
+                            loadRackNos(data.skuName, selectedWarehouseId, data.warehouseQuantities);
+
+                            // Handle warehouse change
+                            $warehouseDropdown.off('change.rack').on('change.rack', function () {
+                                const newWarehouseId = $(this).val();
+                                loadRackNos(data.skuName, newWarehouseId, warehouseQuantities);
+                            });
+
+                            // Handle rack selection change
+                            $rackNoDropdown.off('change.quantity').on('change.quantity', function () {
+                                const selectedRack = $(this).val();
+                                updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                            });
+
+                            // Validate stock and add to table
+                            setTimeout(() => {
+                                const selectedRack = currentSelectedRack && warehouseQuantities.some(
+                                    q => q.warehouseId == parseInt(selectedWarehouseId) && q.rackNo == currentSelectedRack && q.totalQuantity > 0 && q.type == productType
+                                ) ? currentSelectedRack : $rackNoDropdown.val();
+
+                                if ($productId.val() && selectedWarehouseId) {
+                                    const totalWarehouseQty = warehouseQuantities
+                                        .filter(q => q.warehouseId == parseInt(selectedWarehouseId) && q.type == productType)
+                                        .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+                                    if (totalWarehouseQty <= 0) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'No Stock Available',
+                                            text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                                            confirmButtonColor: '#3085d6',
+                                            confirmButtonText: 'OK'
+                                        });
+                                        return;
+                                    }
+
+                                    if (selectedRack && $rackNoDropdown.find('option').length > 1 && $rackNoDropdown.find('option').val() !== 'No Racks Available') {
+                                        const rackHasStock = warehouseQuantities.some(
+                                            q => q.warehouseId == parseInt(selectedWarehouseId) && q.rackNo == selectedRack && q.totalQuantity > 0 && q.type == productType
+                                        );
+                                        if (!rackHasStock) {
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'No Stock Available',
+                                                text: `No available quantity for rack ${selectedRack} with type ${productType} in the selected warehouse.`,
+                                                confirmButtonColor: '#3085d6',
+                                                confirmButtonText: 'OK'
+                                            });
+                                            $availableQuantity.val('0');
+                                            return;
+                                        }
+                                    }
+
+                                    $rackNoDropdown.val(selectedRack);
+                                    updateAvailableQuantity(selectedWarehouseId, selectedRack);
+                                    autoAddToTable();
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Incomplete Data',
+                                        text: 'Please ensure a warehouse is selected.',
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            }, 500);
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Invalid Barcode or No Stock',
+                                text: 'No product or stock found for this barcode.',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            resetForm();
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong while fetching product details.',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        resetForm();
+                    }
+                });
+            }
+        });
+
+        // ProductName Input Autocomplete (unchanged)
+        $productInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $productList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetProductsForStockOut',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function (data) {
+                    $productList.empty();
+                    if (data.length === 0) {
+                        $productList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $productList.append(
+                            $('<li>').text(item.productName)
+                                .attr('data-id', item.id)
+                                .attr('data-barcodeNo', item.skuName)
+                                .on('click', function () {
+                                    $productInput.val(item.productName);
+                                    $skuInput.val(item.skuName);
+                                    $productId.val(item.id);
+                                    $productList.hide().empty();
+                                    $warehouseDropdown.trigger('change');
+                                })
+                        );
+                    });
+
+                    $productList.show();
+                },
+                error: function () {
+                    $productList.hide().empty();
+                }
+            });
+        });
+
+        // Product input keyboard navigation (unchanged)
+        $productInput.on('keydown', function (e) {
+            var items = $productList.find('li');
+            if ($productList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $productInput.val(selected.text());
+                        $productId.val(selected.attr('data-id'));
+                        $skuInput.val(selected.attr('data-barcodeNo'));
+                        $productList.hide().empty();
+                        $warehouseDropdown.trigger('change');
+                    }
+                }
+            }
+        });
+
+        // Hide product list when clicking outside (unchanged)
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#product, #productList').length) {
+                $productList.hide().empty();
+            }
+        });
+
+        // Clear product ID and barcode if product input cleared (unchanged)
+        $productInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $productId.val('');
+                $skuInput.val('');
+                $availableQuantity.val('');
+            }
+        });
+
+        // Add button logic
+        $('#addButton').on('click', function (e) {
+            e.preventDefault();
+            autoAddToTable();
+        });
+
+        // Add row to table with rack validation
+        function autoAddToTable() {
+            const barcodeNo = $skuInput.val();
+            const productId = $productId.val();
+            const productText = $productInput.val();
+            let rawQty = parseInt($productQuantity.val()) || 0;
+            let productQuantityVal = productType == 1 ? rawQty * perBoxQty : rawQty;
+            const reason = $('#reason option:selected').text();
+            const warehouseId = $warehouseDropdown.val();
+            const warehouseText = $warehouseDropdown.find('option:selected').text();
+            const rackNo = $rackNoDropdown.val();
+            const stockInQuantity = parseInt($availableQuantity.val()) || 0;
+            const perBoxQtyDisplay = productType == 1 ? perBoxQty : '-';
+            const racksAvailable = $rackNoDropdown.find('option').length > 1 && $rackNoDropdown.find('option').val() !== 'No Racks Available';
+
+            // Validate required fields (excluding rackNo if no racks are available)
+            if (!barcodeNo || !productId || !productQuantityVal || !reason || !warehouseId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Fields',
+                    text: 'Please fill all required fields.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Validate available quantity
+            if (stockInQuantity <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Calculate total warehouse quantity for validation
+            const totalWarehouseQty = warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.type == productType)
+                .reduce((sum, q) => sum + (q.totalQuantity || 0), 0);
+
+            if (totalWarehouseQty <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stock Available',
+                    text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Validate stock availability
+            $.ajax({
+                url: '/Inventory/CheckStockAvailability',
+                type: 'GET',
+                data: {
+                    sku: barcodeNo,
+                    warehouseId: warehouseId,
+                    rackNo: racksAvailable ? rackNo : ''
+                },
+                success: function (exists) {
+                    if (!exists && racksAvailable) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Invalid Rack or Warehouse',
+                            text: `No stock found for this barcode with type ${productType} in selected warehouse and rack ${rackNo}.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    // If no racks are available, rely on warehouse-level stock
+                    if (!racksAvailable && totalWarehouseQty <= 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'No Stock Available',
+                            text: `No available quantity for this barcode with type ${productType} in the selected warehouse.`,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    // Proceed to add or update row
+                    const table = $('#stockOutTable tbody');
+                    let totalQtyForProductWarehouseRackType = 0;
+                    table.find('tr').each(function () {
+                        const rowProductId = $(this).data('product-id');
+                        const rowWarehouseId = $(this).data('warehouse-id');
+                        const rowRackNo = $(this).data('rack-no') || '';
+                        const rowType = $(this).data('type');
+                        if (rowProductId == productId && rowWarehouseId == warehouseId && rowRackNo == (rackNo || '') && rowType == productType) {
+                            const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
+                            totalQtyForProductWarehouseRackType += qtyVal;
+                        }
+                    });
+
+                    let existingRow = null;
+                    table.find('tr').each(function () {
+                        const rowBarcode = $(this).find('td:eq(1)').text();
+                        const rowProductId = $(this).data('product-id');
+                        const rowWarehouseId = $(this).data('warehouse-id');
+                        const rowReason = $(this).data('reason');
+                        const rowRackNo = $(this).data('rack-no') || '';
+                        const rowType = $(this).data('type');
+                        if (rowBarcode === barcodeNo && rowProductId == productId && rowWarehouseId == warehouseId && rowReason === reason && rowRackNo == (rackNo || '') && rowType == productType) {
+                            existingRow = $(this);
+                            return false;
+                        }
+                    });
+
+                    if (existingRow) {
+                        const qtyCell = existingRow.find('td:eq(3)');
+                        const scanCountCell = existingRow.find('td:eq(4)');
+
+                        const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
+                        const currentScanCount = parseInt(scanCountCell.text()) || 0;
+
+                        let newScanCount = productType == 1 ? currentScanCount + 1 : currentScanCount;
+                        let newQty = productType == 1
+                            ? newScanCount * perBoxQty
+                            : currentQty + productQuantityVal;
+
+                        const newTotalQty = totalQtyForProductWarehouseRackType - currentQty + newQty;
+
+                        if (newTotalQty > stockInQuantity) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Stock Limit Exceeded',
+                                text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+
+                        // Update quantity input and scan count cell
+                        qtyCell.find('input.quantity-input').val(newQty);
+                        if (productType == 1) {
+                            scanCountCell.text(newScanCount);
+                        }
+                    } else {
+                        let qtyToShow = productType == 1 ? 1 : productQuantityVal;
+
+                        if ((totalQtyForProductWarehouseRackType + qtyToShow) > stockInQuantity) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Stock Limit Exceeded',
+                                text: `Total quantity cannot exceed available stock of ${stockInQuantity} for ${rackNo ? 'rack ' + rackNo : 'warehouse'} with type ${productType}.`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+
+                        const quantityInputHtml = `
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control quantity-input" value="${productQuantityVal}" data-original-qty="${rawQty}" min="1" style="width: 60px;"
+                                        ${productType == 1 ? 'readonly' : ''}
+                                        oninput="restrictAndValidateInput(this, ${stockInQuantity}, ${productId}, ${warehouseId}, ${productType})"
+                                        onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                </div>
+                            </td>
+                        `;
+
+                        const newRow = `
+                            <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}" data-rack-no="${rackNo || ''}" data-type="${productType}">
+                                <td>${serialNumber++}</td>
+                                <td>${barcodeNo}</td>
+                                <td>${productText}</td>
+                                ${quantityInputHtml}
+                                <td>${productType == 1 ? qtyToShow : '-'}</td>
+                                <td>${perBoxQtyDisplay}</td>
+                                <td>${reason}</td>
+                                <td>${warehouseText}</td>
+                                <td>${rackNo || '-'}</td>
+                                <td><button type="button" class="btn btn-danger btn-sm removeRow">Remove</button></td>
+                            </tr>
+                        `;
+                        table.append(newRow);
+                    }
+
+                    // Reset form
+                    resetForm();
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to validate stock availability.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+
+        // Reset form fields
+        function resetForm() {
+            $skuInput.val('');
+            $productInput.val('');
+            $productId.val('');
+            $availableQuantity.val('');
+            $productQuantity.val('1');
+            $skuInput.focus();
+        }
+
+        // Remove row handler
+        $('#stockOutTable').on('click', '.removeRow', function () {
+            $(this).closest('tr').remove();
+            updateSerialNumbers();
+        });
+
+        // Update serial numbers
+        function updateSerialNumbers() {
+            const rows = $('#stockOutTable tbody tr');
+            serialNumber = 1;
+            rows.each(function () {
+                $(this).find('td:first').text(serialNumber++);
+            });
+        }
+
+        // Highlight autocomplete item
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script>
+ *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* Start Code 24/07/2025 comment *@
+@* <script>
+    let serialNumber = 1;
+
+    let productType = 1;
+    let perBoxQty = 1;
+
+    $(document).ready(function () {
+        var $productInput = $('#product');
+        var $productList = $('#productList');
+        var $productId = $('#FkProductId');
+        var $skuInput = $('#barcodeNo');
+        var $warehouseDropdown = $('#warehouse');
+        var $rackNoDropdown = $('#rackNo');
+        var $availableQuantity = $('#availableQuantity');
+        var $productQuantity = $('#productQuantity');
+        var selectedIndex = -1;
+        var warehouseQuantities = [];
+
+        function loadRackNos(sku, warehouseId, quantities) {
+            warehouseQuantities = quantities || [];
+            const currentRack = $rackNoDropdown.val(); 
+            $rackNoDropdown.empty();
+
+            if (!warehouseId || !sku || !warehouseQuantities) {
+                $rackNoDropdown.append('<option value="">Select Warehouse First</option>');
+                $availableQuantity.val('0');
+                return;
+            }
+
+            const racksForWarehouse = warehouseQuantities
+                .filter(q => q.warehouseId == parseInt(warehouseId) && q.totalQuantity > 0)
+                .map(q => q.rackNo);
+
+            if (racksForWarehouse.length === 0) {
+                $rackNoDropdown.append('<option value="">No Racks Found</option>');
+                $availableQuantity.val('0');
+            } else {
+                $rackNoDropdown.append('<option value="">Select Rack</option>');
+                $.each(racksForWarehouse, function (index, rack) {
+                    $rackNoDropdown.append(`<option value="${rack}">${rack}</option>`);
+                });
+
+                // Restore current selection if valid
+                if (currentRack && racksForWarehouse.includes(currentRack)) {
+                    $rackNoDropdown.val(currentRack);
+                    updateAvailableQuantity(warehouseId, currentRack);
+                } else {
+                    $rackNoDropdown.val('');
+                    $availableQuantity.val('0');
+                }
+            }
+        }
+
+        // Update AvailableQuantity based on selected warehouse and rack
+        function updateAvailableQuantity(warehouseId, rackNo) {
+            if (warehouseId && rackNo && warehouseQuantities) {
+                const rackData = warehouseQuantities.find(
+                    q => q.warehouseId == parseInt(warehouseId) && q.rackNo == rackNo
+                );
+                $availableQuantity.val(rackData ? rackData.totalQuantity : '0');
+            } else {
+                $availableQuantity.val('0');
+            }
+        }
+
+        // Barcode input handling (Enter key or scan)
+        $skuInput.on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const barcode = $(this).val().trim();
+                if (barcode === '') return;
+
+                $.ajax({
+                    url: '/Inventory/GetProductByBarcodeInStockOut',
+                    type: 'GET',
+                    data: { sku: barcode },
+                    success: function (data) {
+                        if (data && data.productId && data.warehouseQuantities && data.warehouseQuantities.length > 0) {
+                            $productInput.val(data.productName);
+                            $productId.val(data.productId);
+                            $skuInput.val(data.skuName);
+                            $('#getStockInQuantity').val(data.stockInQuantity);
+
+                            productType = data.type;        
+                            perBoxQty = data.perBoxQty;
+
                             const currentSelectedWarehouse = $warehouseDropdown.val();
                             let selectedWarehouseId = currentSelectedWarehouse;
                             let selectedQty = 0;
 
-                            // Filter warehouseQuantities to only include those with stock
+
                             const validWarehouses = data.warehouseQuantities.filter(q => q.totalQuantity > 0);
 
                             if (!currentSelectedWarehouse || currentSelectedWarehouse === '' || !validWarehouses.some(q => q.warehouseId == currentSelectedWarehouse)) {
                                 if (validWarehouses.length > 0) {
-                                    // Select the first warehouse with stock if none is selected or current is invalid
+
                                     selectedWarehouseId = validWarehouses[0].warehouseId;
-                                    $warehouseDropdown.val(selectedWarehouseId).trigger('change'); // Trigger Razor view script
+                                    $warehouseDropdown.val(selectedWarehouseId).trigger('change'); 
                                     selectedQty = validWarehouses[0].totalQuantity;
                                 } else {
                                     Swal.fire({
@@ -673,8 +3598,8 @@
                     if (selectedIndex >= 0 && selectedIndex < items.length) {
                         var selected = $(items[selectedIndex]);
                         $productInput.val(selected.text());
-                        $productId.val(selected.data('id'));
-                        $skuInput.val(selected.data('barcodeNo'));
+                        $productId.val(selected.attr('data-id'));
+                        $skuInput.val(selected.attr('data-barcodeNo'));
                         $productList.hide().empty();
                         $warehouseDropdown.trigger('change');
                     }
@@ -710,12 +3635,15 @@
             const barcodeNo = $skuInput.val();
             const productId = $productId.val();
             const productText = $productInput.val();
-            const productQuantityVal = parseInt($productQuantity.val()) || 0;
+            //const productQuantityVal = parseInt($productQuantity.val()) || 0;
+            let rawQty = parseInt($productQuantity.val()) || 0;
+            let productQuantityVal = productType == 1 ? rawQty * perBoxQty : rawQty;
             const reason = $('#reason option:selected').text();
             const warehouseId = $warehouseDropdown.val();
             const warehouseText = $warehouseDropdown.find('option:selected').text();
             const rackNo = $rackNoDropdown.val();
             const stockInQuantity = parseInt($availableQuantity.val()) || 0;
+            const perBoxQtyDisplay = productType == 1 ? perBoxQty : '-';
 
             // Validate required fields
             if (!barcodeNo || !productId || !productQuantityVal || !reason || !warehouseId || !rackNo) {
@@ -788,9 +3716,18 @@
                     });
 
                     if (existingRow) {
+
                         const qtyCell = existingRow.find('td:eq(3)');
+                        const scanCountCell = existingRow.find('td:eq(4)');
+
                         const currentQty = parseInt(qtyCell.find('input.quantity-input').val()) || 0;
-                        const newQty = currentQty + productQuantityVal;
+                        const currentScanCount = parseInt(scanCountCell.text()) || 0;
+
+                        let newScanCount = productType == 1 ? currentScanCount + 1 : currentScanCount;
+                        let newQty = productType == 1
+                            ? newScanCount * perBoxQty
+                            : currentQty + productQuantityVal;
+
                         const newTotalQty = totalQtyForProductWarehouse - currentQty + newQty;
 
                         if (newTotalQty > stockInQuantity) {
@@ -805,31 +3742,46 @@
                         }
 
                         qtyCell.find('input.quantity-input').val(newQty);
-                    } else {
-                        const newTotalQty = totalQtyForProductWarehouse + productQuantityVal;
-                        if (newTotalQty > stockInQuantity) {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Stock Limit Exceeded',
-                                text: `Total quantity cannot exceed available stock of ${stockInQuantity}.`,
-                                confirmButtonColor: '#3085d6',
-                                confirmButtonText: 'OK'
-                            });
-                            return;
+                        if (productType == 1) {
+                            scanCountCell.text(newScanCount);
                         }
+
+
+                    } else {
+
+                           let qtyToShow = productType == 1 ? 1 : productQuantityVal;
+
+                            if ((totalQtyForProductWarehouse + qtyToShow) > stockInQuantity) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Stock Limit Exceeded',
+                                    text: `Total quantity cannot exceed available stock of ${stockInQuantity}.`,
+                                    confirmButtonColor: '#3085d6',
+                                    confirmButtonText: 'OK'
+                                });
+                                return;
+                            }
+
+                            const quantityInputHtml = `
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="-form-control quantity-input" value="${productQuantityVal}" data-original-qty="${rawQty}" min="1" style="width: 60px;"
+                                            ${productType == 1 ? 'readonly' : ''}
+                                            oninput="restrictAndValidateInput(this, ${stockInQuantity}, ${productId}, ${warehouseId})"
+                                            onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                    </div>
+                                </td>
+                            `;
+
 
                         const newRow = `
                             <tr data-product-id="${productId}" data-reason="${reason}" data-warehouse-id="${warehouseId}" data-rack-no="${rackNo}">
                                 <td>${serialNumber++}</td>
                                 <td>${barcodeNo}</td>
                                 <td>${productText}</td>
-                                <td>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" class="-form-control quantity-input" value="${productQuantityVal}" min="1" style="width: 60px;"
-                                            oninput="restrictAndValidateInput(this, ${stockInQuantity}, ${productId}, ${warehouseId})"
-                                            onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
-                                    </div>
-                                </td>
+                                ${quantityInputHtml}
+                                <td>${productType == 1 ? qtyToShow : '-'}</td>
+                                <td>${perBoxQtyDisplay}</td>
                                 <td>${reason}</td>
                                 <td>${warehouseText}</td>
                                 <td>${rackNo}</td>
@@ -839,7 +3791,7 @@
                         table.append(newRow);
                     }
 
-                    // Reset form
+
                     resetForm();
                 },
                 error: function () {
@@ -854,7 +3806,6 @@
             });
         }
 
-        // Reset form fields
         function resetForm() {
             $skuInput.val('');
             $productInput.val('');
@@ -865,13 +3816,12 @@
             $skuInput.focus();
         }
 
-        // Remove row handler
         $('#stockOutTable').on('click', '.removeRow', function () {
             $(this).closest('tr').remove();
             updateSerialNumbers();
         });
 
-        // Update serial numbers
+
         function updateSerialNumbers() {
             const rows = $('#stockOutTable tbody tr');
             serialNumber = 1;
@@ -880,14 +3830,14 @@
             });
         }
 
-        // Highlight autocomplete item
+
         function highlightItem(items, index) {
             items.removeClass('highlighted');
             $(items[index]).addClass('highlighted');
         }
     });
 </script>
-
+ *@@* Start Code 24/07/2025 comment *@
 
 
 
@@ -896,25 +3846,39 @@
 
 @* Start this code for table Quntity TextBox Validation code *@
 <script>
-        function restrictAndValidateInput(input, stockInQuantity, productId, warehouseId) {
+        function restrictAndValidateInput(input, stockInQuantity, productId, warehouseId, type) {
         input.value = input.value.replace(/[^0-9]/g, ''); 
         if (input.value === '' || parseInt(input.value) < 1) {
-            //input.value = 1; 
+            input.value = input.getAttribute('data-old-value') || 1;
+            Swal.fire({
+                icon: 'warning',
+                title: 'Invalid Quantity',
+                text: 'Quantity must be greater than 0.',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+            return;
         }
 
         const table = $('#stockOutTable tbody');
-        let totalQtyForProductWarehouse = 0;
+        let totalQtyForProductWarehouseRackType = 0;
 
         table.find('tr').each(function () {
             const rowProductId = $(this).data('product-id');
             const rowWarehouseId = $(this).data('warehouse-id');
-            if (rowProductId == productId && rowWarehouseId == warehouseId) {
+            const rowRackNo = $(this).data('rack-no');
+            const rowType = $(this).data('type');
+            if (rowProductId == productId && rowWarehouseId == warehouseId && rowRackNo == $(input).closest('tr').data('rack-no') && rowType == type) {
                 const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
-                totalQtyForProductWarehouse += qtyVal;
+                if ($(this).is($(input).closest('tr'))) {
+                    return; // Skip the current row being edited
+                }
+                totalQtyForProductWarehouseRackType += qtyVal;
             }
         });
 
-        if (totalQtyForProductWarehouse > stockInQuantity) {
+        const newQty = parseInt(input.value) || 0;
+        if ((totalQtyForProductWarehouseRackType + newQty) > stockInQuantity) {
             const oldValue = input.getAttribute('data-old-value') || 1;
             //alert(`Total quantity for this product and warehouse cannot exceed available stock of ${stockInQuantity}.`);
 
@@ -937,7 +3901,53 @@
 
 
 
+ @* <script>
+         function restrictAndValidateInput(input, stockInQuantity, productId, warehouseId, type) {
+        const table = $('#stockOutTable tbody');
+        let totalQtyForProductWarehouseRackType = 0;
 
+        table.find('tr').each(function () {
+            const rowProductId = $(this).data('product-id');
+            const rowWarehouseId = $(this).data('warehouse-id');
+            const rowRackNo = $(this).data('rack-no');
+            const rowType = $(this).data('type');
+            // Compare as strings to avoid type coercion issues
+            if (rowProductId == productId && rowWarehouseId == warehouseId && rowRackNo == $(input).closest('tr').data('rack-no') && rowType == type) {
+                const qtyVal = parseInt($(this).find('input.quantity-input').val()) || 0;
+                if ($(this).is($(input).closest('tr'))) {
+                    return; // Skip the current row being edited
+                }
+                totalQtyForProductWarehouseRackType += qtyVal;
+            }
+        });
+
+        const newQty = parseInt(input.value) || 0;
+        if (newQty <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Invalid Quantity',
+                text: 'Quantity must be greater than 0.',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+            input.value = input.dataset.originalQty || 1;
+            return;
+        }
+
+        if ((totalQtyForProductWarehouseRackType + newQty) > stockInQuantity) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock Limit Exceeded',
+                text: `Total quantity cannot exceed available stock of ${stockInQuantity} for rack ${$(input).closest('tr').data('rack-no')} with type ${type}.`,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+            input.value = input.dataset.originalQty || 1;
+        } else {
+            input.dataset.originalQty = newQty;
+        }
+    }
+ </script> *@
 
 
 
@@ -955,7 +3965,7 @@
 
 @* Start This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
 
-<script>
+@* <script>
     $(document).ready(function () {
         var $productInput = $('#product');
         var $productList = $('#productList');
@@ -1082,7 +4092,7 @@
             $(items[index]).addClass('highlighted');
         }
     });
-</script>
+</script> *@
 
 @* Start This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
 
@@ -1124,3 +4134,36 @@
     </script>
 }
 @* End This code for select Warehouse So show the rackno List*@
+
+
+@* <script>
+    $(document).ready(function () {
+        $('#warehouse, #rackNo').on('change', function () {
+            var warehouseId = $('#warehouse').val();
+            var rackNo = $('#rackNo').val();
+
+            if (warehouseId && rackNo) {
+                $.ajax({
+                    url: '/Inventory/GetAvailableQuantity',
+                    type: 'GET',
+                    data: {
+                        warehouseId: warehouseId,
+                        rackNo: rackNo
+                    },
+                    success: function (response) {
+                        if (response && response.success) {
+                            $('#availableQty').val(response.availableQty);
+                        } else {
+                            $('#availableQty').val('0');
+                        }
+                    },
+                    error: function () {
+                        alert('Failed to load available quantity');
+                    }
+                });
+            } else {
+                $('#availableQty').val('');
+            }
+        });
+    });
+</script> *@

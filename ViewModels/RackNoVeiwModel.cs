@@ -8,7 +8,8 @@ namespace InventoryManagement.ViewModels
         public int FKWarehouseId { get; set; }
         public string WarehouseName { get; set; }
         public string RackNo { get; set; }
-        public SelectList WarehouseList { get; internal set; }
+        //public SelectList WarehouseList { get; internal set; }
+        public List<SelectListItem> WarehouseList { get; set; }
     }
     public class RackNoListViewModel
     {

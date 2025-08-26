@@ -56,9 +56,19 @@
         public int FkProjectId { get; set; }
         public string ProductQty { get; set; }
 
+        public decimal TotalStock { get; set; }
+        public int TotalBoxItem { get; set; }
+        public int TotalBoxAvailableQty { get; set; }
+        public int TotalAvailableQtyForSingle { get; set; }
+
 
 
         public List<string> AliasNameList { get; set; }
+
+        public string StockTypeFilter { get; set; }
+        public string ItemTypeFilter { get; set; }
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
 
     }
 

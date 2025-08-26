@@ -21909,7 +21909,7 @@ dl li {
 /*# sourceMappingURL=maps/style.css.map */
 
 /*Start CSS Code for Barcode*/
-@media print {
+/*@media print {
     body * {
         visibility: hidden;
     }
@@ -21933,5 +21933,61 @@ dl li {
     .barcode-item {
         page-break-inside: avoid;
     }
-}
+}*/
 /*End CSS Code for Barcode*/
+
+
+/*@media print {
+    @page {
+        size: auto; 
+        margin: 0;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printArea, #printArea * {
+        visibility: visible;
+    }
+
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .label-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        page-break-after: always;
+    }
+}*/
+
+/*@media print {
+    @page {
+        size: auto;
+        margin: 0;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printArea, #printArea * {
+        visibility: visible;
+    }
+
+    .label-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        page-break-after: always;
+    }
+}*/
+

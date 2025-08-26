@@ -9,6 +9,7 @@ namespace InventoryManagement.ViewModels
         public string Barcode { get; set; }
         public string SKUName { get; set; }
         public string RackNo { get; set; }
+        public string Type { get; set; }
 
         public int FkProductId { get; set; }
         public int FkWarehouseId { get; set; }
@@ -16,6 +17,8 @@ namespace InventoryManagement.ViewModels
         public string Quantity { get; set; }
 
         public string Reason { get; set; }
+        public decimal TotalBox { get; set; }
+        public decimal PerBoxQty { get; set; }
 
         public SelectList ProductList { get; set; } = new SelectList(Enumerable.Empty<SelectListItem>());
         public SelectList WarehouseList { get; set; } = new SelectList(Enumerable.Empty<SelectListItem>());

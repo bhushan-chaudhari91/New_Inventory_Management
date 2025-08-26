@@ -11,12 +11,18 @@ public partial class TblStockOut
 
     public int? FkProductId { get; set; }
     public int? FkStockInId { get; set; }
+    public int? FkWarehouseId { get; set; }
 
+    public string? RackNo { get; set; }
     public string? Quantity { get; set; }
 
     public string? AvailableQuantity { get; set; }
+    public decimal? TotalBox { get; set; }
+
+    public decimal? PerBoxQty { get; set; }
 
     public string? Reason { get; set; }
+    public string? Type { get; set; }
 
     public bool? IsDeleted { get; set; }
 

@@ -150,12 +150,21 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-3">
+                                           @*  <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="rackNo">Rack No</label>
                                                     <select asp-for="RackNo" class="form-control" id="rackNo">
 
                                                     </select>
+                                                </div>
+                                            </div> *@
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="rackNo">Rack No</label>
+                                                    <input type="text" class="form-control" id="rackNo" placeholder="RackNo" />
+                                                    <input type="hidden" id="rackid" name="rackid" />
+                                                    <ul id="RackNoList" class="autocomplete-list" style="display: none;"></ul>
                                                 </div>
                                             </div>
 
@@ -185,7 +194,7 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="sku">Barcode</label>
-                                    <input asp-for="SKUName" type="text" class="form-control" id="sku" placeholder="barcode" />
+                                    <input asp-for="SKUName" type="text" class="form-control" id="sku" placeholder="barcode" autofocus />
                                     <ul id="skuList" class="autocomplete-list" style="display: none;"></ul>
                                 </div>
                             </div>
@@ -243,7 +252,7 @@
                             <div class="col-md-2" id="perBoxQtyContainer">
                                 <div class="form-group">
                                     <label for="perBoxQty">Per Box Qty</label>
-                                    <input asp-for="PerBoxQty" type="text" class="form-control" id="perBoxQty" placeholder="Enter">
+                                    <input asp-for="PerBoxQty" type="text" class="form-control" value="5" id="perBoxQty" placeholder="Enter">
                                 </div>
                             </div>
               
@@ -334,16 +343,24 @@
             <div class="modal-body">
                 <form asp-action="AddProduct" method="post" class="forms-sample">
                     <div class="row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-12">
                             <label for="ProductName">Product Name</label>
                             <input type="text" class="form-control" name="ProductName" id="ProductName" placeholder="Product Name">
                         </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="SkuForSignleItem">SKU For Sigle Item</label>
+                            <input type="text" class="form-control" name="SkuForSignleItem" id="SkuForSignleItem" placeholder="Enter">
+                        </div>
 
                         <div class="form-group col-md-6">
-                            <label for="SkuIdName">SKU Name</label>
-                            <input type="text" class="form-control" name="SkuIdName" id="SkuIdName" placeholder="Enter">
+                            <label for="SkuForBox">SKU For Box</label>
+                            <input type="text" class="form-control" name="SkuForBox" id="SkuForBox" placeholder="Enter">
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="form-group col-md-6">
                             <label for="LowStockQuantity">Low Stock Quantity</label>
@@ -429,18 +446,75 @@
     </div>
 </form>
 
+@* <script>
+    // Detect Enter key on SKU input
+    document.getElementById('sku').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission
+            const skuValue = this.value.trim();
+
+            // Check if first character is 'A' or 'a'
+            if (skuValue.charAt(0).toUpperCase() === 'A') {
+                // Trigger Add button click
+                document.getElementById('addButton').click();
+            }
+        }
+    });
+</script>
+ *@
 
 <script>
-
-        // Prevent Enter key from triggering form submission or button click
-    // document.getElementById('stockForm').addEventListener('keydown', function (e) {
-    //     if (e.key === "Enter") {
-    //         e.preventDefault();
-    //     }
-    // });
-
-
      let serialNumber = 1;
+
+    //Start This Code for Scan Or Enter Barcode So Auto add data in table For Single Item
+    document.getElementById('sku').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            const skuValue = this.value.trim();
+
+            //Start Code For If BoxItem So Auto Checked Type TextBox And show Hide textBox
+            if (skuValue.length > 0 && skuValue[0].toUpperCase() === 'B') {
+                document.getElementById('type').checked = true;
+
+                document.getElementById('totalBoxContainer').style.display = 'block';
+                document.getElementById('perBoxQtyContainer').style.display = 'block';
+
+                document.getElementById('totalBox').value = '1';
+                document.getElementById('perBoxQty').value = '5';
+                document.getElementById('productQuantity').value = '5';
+
+                // 👉 Move cursor focus to totalBox
+                document.getElementById('totalBox').focus();
+            }
+            //End Code For If BoxItem So Auto Checked Type TextBox And show Hide textBox
+
+            if (skuValue.length > 0 && skuValue[0].toUpperCase() === 'A') {
+                event.preventDefault();
+
+                 document.getElementById('totalBox').value = '0'; 
+                 document.getElementById('perBoxQty').value = '0'; 
+                
+                fetch(`/Inventory/GetProductBySku?sku=${skuValue}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || !data.productName || !data.productId) {
+                            alert("Product not found for given SKU.");
+                            return;
+                        }
+
+                        document.getElementById('product').value = data.productName;
+                        document.getElementById('FkProductId').value = data.productId;
+
+                        document.getElementById('addButton').click();
+                    })
+                    .catch(err => {
+                        console.error("Error fetching product:", err);
+                        alert("Error fetching product from SKU.");
+                    });
+
+            }
+        }
+    });
+    //End This Code for Scan Or Enter Barcode So Auto add data in table For Single Item
 
     document.getElementById('addButton').addEventListener('click', function(e) {
         e.preventDefault();
@@ -464,10 +538,11 @@
         const perBoxQty = document.getElementById('perBoxQty').value;
 
         // Validate required fields
-        if (!date || !batchNo || !supplierId || !warehouseId || !productId || !productQuantity) {
+        if (!date || !batchNo || !supplierId || !warehouseId || !productText || !productQuantity || !barcode) {
             alert("Please fill all required fields.");
             return;
         }
+
 
 
         fetch(`/Inventory/GetNextBarcode?productId=${productId}`)
@@ -521,12 +596,25 @@
                 newRow.dataset.productId = productId;
                 newRow.dataset.type = document.getElementById('type').checked;
 
-                // using this line click on add button so that time clear the checkbox
+                
 
                 //document.getElementById('stockForm').reset();
 
+                // using this line click on add button so that time clear the checkbox
                 document.getElementById('date').value = '@DateTime.Today.ToString("yyyy-MM-dd")';
                 document.getElementById('productQuantity').value = '1';
+                document.getElementById('sku').value = '';
+                document.getElementById('product').value = '';
+                document.getElementById('price').value = '0';
+                //document.getElementById('totalBox').value = '0';
+                //document.getElementById('perBoxQty').value = '0';
+
+                document.getElementById('sku').focus();
+
+                //This Code for Hide the totalBox , perBoxQty and unchecked CheckBox
+                document.getElementById('type').checked = false;
+                document.getElementById('totalBoxContainer').style.display = 'none';
+                document.getElementById('perBoxQtyContainer').style.display = 'none';
             })
             .catch(error => {
                 console.error('Error fetching barcode:', error);
@@ -609,6 +697,28 @@
 </script>
 
 
+
+@* Start Code For Click On Enter Button in PerBoxQty TextBox so Click AddButton and data add in table*@ 
+<script>
+    document.getElementById('totalBox').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('addButton').click();
+        }
+    });
+</script>
+@* End Code For Click On Enter Button in PerBoxQty TextBox so Click AddButton and data add in table*@
+
+@* Start Code For Click On Enter Button in PerBoxQty TextBox so Click AddButton and data add in table*@
+<script>
+    document.getElementById('perBoxQty').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); 
+            document.getElementById('addButton').click(); 
+        }
+    });
+</script>
+@* End Code For Click On Enter Button in PerBoxQty TextBox so Click AddButton and data add in table*@
 
 
 
@@ -966,7 +1076,7 @@
     });
 </script>
 
-@* Start This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
+@* End This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
 
 
 
@@ -1404,42 +1514,6 @@
 
 
 
-@* Start This code for select Warehouse So show the rackno List*@
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#warehouse').change(function () {
-                var warehouseId = $(this).val();
-                if (warehouseId) {
-                    $.ajax({
-                        url: '/Inventory/GetRackNosByWarehouse', 
-                        type: 'GET',
-                        data: { warehouseId: warehouseId },
-                        success: function (data) {
-                            var $rackNo = $('#rackNo');
-                            $rackNo.empty();
-                            // $rackNo.append('<option value="">Select Rack No</option>');
-                            $.each(data, function (i, item) {
-                                $rackNo.append('<option value="' + item.rackNo + '">' + item.rackNo + '</option>');
-                            });
-                        },
-                        error: function () {
-                            alert('Failed to load rack numbers');
-                        }
-                    });
-                } else {
-                    $('#rackNo').empty().append('<option value="">Select Rack No</option>');
-                }
-            });
-
-            if ($('#warehouse').val()) {
-                $('#warehouse').trigger('change');
-            }
-        });
-    </script>
-}
-@* End This code for select Warehouse So show the rackno List*@
 
 
 
@@ -1489,3 +1563,283 @@
 
 </script>
 @* End this code for Click On Enter Button Not Add Data in Table Only click on AddButton & Then Add Data In Table *@
+
+
+
+@* Start This code for select Warehouse So show the rackno List*@
+@* @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#warehouse').change(function () {
+                var warehouseId = $(this).val();
+                if (warehouseId) {
+                    $.ajax({
+                        url: '/Inventory/GetRackNosByWarehouse',
+                        type: 'GET',
+                        data: { warehouseId: warehouseId },
+                        success: function (data) {
+                            var $rackNo = $('#rackNo');
+                            $rackNo.empty();
+                            // $rackNo.append('<option value="">Select Rack No</option>');
+                            $.each(data, function (i, item) {
+                                $rackNo.append('<option value="' + item.rackNo + '">' + item.rackNo + '</option>');
+                            });
+                        },
+                        error: function () {
+                            alert('Failed to load rack numbers');
+                        }
+                    });
+                } else {
+                    $('#rackNo').empty().append('<option value="">Select Rack No</option>');
+                }
+            });
+
+            if ($('#warehouse').val()) {
+                $('#warehouse').trigger('change');
+            }
+        });
+    </script>
+} *@
+@* End This code for select Warehouse So show the rackno List*@
+
+
+
+@* Start this code for Auto Search Dropdwon for RackNo *@
+@* <script>
+    $(document).ready(function() {
+        var $rackNoInput = $('#rackNo');
+        var $rackNoList = $('#RackNoList');
+        var $rackNoId = $('#rackid');
+        var selectedIndex = -1;
+
+        $rackNoInput.on('input', function() {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+
+            if (term.length < 1) {
+                $rackNoList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetRackNo',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term },
+                success: function(data) {
+                    $rackNoList.empty();
+
+                    if (data.length === 0) {
+                        $rackNoList.hide();
+                        return;
+                    }
+
+                    $.each(data, function(index, item) {
+                        $rackNoList.append(
+                            $('<li>').text(item.rackName)
+                            .attr('data-id', item.id)
+                            .on('click', function() {
+                                $rackNoInput.val(item.rackName);
+                                $rackNoId.val(item.id);
+                                $rackNoList.hide().empty();
+                            })
+                        );
+                    });
+
+                    $rackNoList.show();
+                },
+                error: function() {
+                    $rackNoList.hide().empty();
+                }
+            });
+        });
+
+
+        $rackNoInput.on('keydown', function (e) {
+            var items = $rackNoList.find('li');
+
+            if ($rackNoList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $rackNoInput.val(selected.text());
+                        $rackNoId.val(selected.data('id'));
+                        $rackNoList.hide().empty();
+                    }
+                }
+            }
+        });
+
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#rackNo, #RackNoList').length) {
+                $rackNoList.hide().empty();
+            }
+        });
+
+        $rackNoInput.on('change', function() {
+            if ($(this).val().trim() === '') {
+                $rackNoId.val('');
+            }
+        });
+
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+    });
+</script> *@
+@* End this code for Auto Search Dropdwon for RackNo *@
+
+
+
+@* Start this code for Auto Search Dropdwon for RackNo show selected warehouse Against RackNo Change by Bhushan on 07/08/2025*@
+<script>
+    $(document).ready(function () {
+        var $rackNoInput = $('#rackNo');
+        var $rackNoList = $('#RackNoList');
+        var $rackNoId = $('#rackid');
+        var $warehouse = $('#warehouse');
+        var selectedIndex = -1;
+
+       
+        function loadRackNosForWarehouse(warehouseId) {
+            $.ajax({
+                url: '/Inventory/GetRackNosByWarehouse',
+                type: 'GET',
+                data: { warehouseId: warehouseId },
+                success: function (data) {
+                    if (data.length > 0) {
+                        $rackNoInput.val(data[0].rackNo);
+                        $rackNoId.val(data[0].id || '');
+                    } else {
+                        $rackNoInput.val('');
+                        $rackNoId.val('');
+                    }
+                    $rackNoList.hide().empty();
+                },
+                error: function () {
+                    alert('Failed to load rack numbers');
+                }
+            });
+        }
+
+        $warehouse.change(function () {
+            var warehouseId = $(this).val();
+            if (warehouseId) {
+                loadRackNosForWarehouse(warehouseId);
+            } else {
+                $rackNoInput.val('');
+                $rackNoId.val('');
+                $rackNoList.hide().empty();
+            }
+        });
+
+        $rackNoInput.on('input', function () {
+            var term = $(this).val().trim();
+            selectedIndex = -1;
+            var warehouseId = $warehouse.val();
+
+            if (term.length < 1 || !warehouseId) {
+                $rackNoList.hide().empty();
+                return;
+            }
+
+            $.ajax({
+                url: '/Inventory/GetRackNo',
+                type: 'GET',
+                dataType: 'json',
+                data: { term: term, warehouseId: warehouseId },
+                success: function (data) {
+                    $rackNoList.empty();
+
+                    if (data.length === 0) {
+                        $rackNoList.hide();
+                        return;
+                    }
+
+                    $.each(data, function (index, item) {
+                        $rackNoList.append(
+                            $('<li>').text(item.rackName)
+                                .attr('data-id', item.id)
+                                .on('click', function () {
+                                    $rackNoInput.val(item.rackName);
+                                    $rackNoId.val(item.id);
+                                    $rackNoList.hide().empty();
+                                })
+                        );
+                    });
+
+                    $rackNoList.show();
+                },
+                error: function () {
+                    $rackNoList.hide().empty();
+                }
+            });
+        });
+
+        $rackNoInput.on('keydown', function (e) {
+            var items = $rackNoList.find('li');
+
+            if ($rackNoList.is(':visible')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex < items.length - 1) {
+                        selectedIndex++;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        highlightItem(items, selectedIndex);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        var selected = $(items[selectedIndex]);
+                        $rackNoInput.val(selected.text());
+                        $rackNoId.val(selected.data('id'));
+                        $rackNoList.hide().empty();
+                    }
+                }
+            }
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#rackNo, #RackNoList').length) {
+                $rackNoList.hide().empty();
+            }
+        });
+
+        $rackNoInput.on('change', function () {
+            if ($(this).val().trim() === '') {
+                $rackNoId.val('');
+            }
+        });
+
+        function highlightItem(items, index) {
+            items.removeClass('highlighted');
+            $(items[index]).addClass('highlighted');
+        }
+
+        if ($warehouse.val()) {
+            $warehouse.trigger('change');
+        }
+    });
+</script>
+@* Start this code for Auto Search Dropdwon for RackNo show selected warehouse Against RackNo Change by Bhushan on 07/08/2025*@

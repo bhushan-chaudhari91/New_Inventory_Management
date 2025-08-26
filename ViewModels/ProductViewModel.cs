@@ -19,6 +19,7 @@
         public string GetProductName { get; set; }
         public string AliasName { get; set; }
         public List<string> AliasNames { get; set; }
+        public List<string> SKUNames { get; set; }
         public List<ProductDto> ProductNames { get; set; }
 
     }

@@ -574,6 +574,22 @@ namespace InventoryManagement.Controllers
             return View(viewModel);
         }
 
+        public IActionResult SkuBarcode()
+        {
+            var productList = _context.TblProducts.Where(x => x.IsDeleted == false).Select(x => new ProductDto
+            {
+                ProductId = x.ProductId,
+                ProductName = x.ProductName,
+            }).ToList();
+
+            var viewModel = new ProductViewModel
+            {
+                ProductNames = productList
+            };
+
+            return View(viewModel);
+        }
+
         [HttpGet]
         public JsonResult GetSkuIdName(int productId)
         {
@@ -589,6 +605,7 @@ namespace InventoryManagement.Controllers
 
 
 
+        //Start This Code Use for Search Records Only ProductName
 
         public IActionResult Product(string searchTerm = "", int pageNumber = 1, int pageSize = 10)
         {
@@ -605,8 +622,11 @@ namespace InventoryManagement.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                productList = productList.Where(x => x.ProductName.Contains(searchTerm) ||
-                                                     x.SkuIdName.Contains(searchTerm));
+                productList = productList.Where(x => 
+                    x.ProductName.Contains(searchTerm) ||
+                    _context.TblSkuBarcodes.Any(s => s.IsDeleted == 0 && s.FkProductId == x.ProductId && s.Skuname.Contains(searchTerm)) ||
+                    _context.TblProductAliases.Any(a => a.IsDeleted == false && a.FkProductId == x.ProductId && a.AliasName.Contains(searchTerm))
+                );
             }
 
             int totalRecords = productList.Count();
@@ -625,11 +645,16 @@ namespace InventoryManagement.Controllers
                     .Select(x => x.AliasName)
                     .ToList();
 
+                var skuName = _context.TblSkuBarcodes
+                    .Where(s => s.IsDeleted == 0 && s.FkProductId == product.ProductId)
+                    .Select(s => s.Skuname)
+                    .ToList();
+
                 getProductList.Add(new ProductViewModel
                 {
                     ProductId = product.ProductId,
                     ProductName = product.ProductName,
-                    SkuIdName = product.SkuIdName,
+                    SKUNames = skuName,
                     AliasNames = aliasNames
                 });
             }
@@ -648,6 +673,76 @@ namespace InventoryManagement.Controllers
 
             return View(viewModel);
         }
+
+        //Start This Code Use for Search Records Only ProductName
+
+
+        //Start This Code Use for Search Records by SKUName & AliasName
+        //public IActionResult Product(string searchTerm = "", int pageNumber = 1, int pageSize = 10)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    // Get products with aliases and skus for search
+        //    var productQuery = _context.TblProducts
+        //        .Where(p => p.IsDeleted == false && p.ProductId != 0)
+        //        .Select(p => new
+        //        {
+        //            Product = p,
+        //            AliasNames = _context.TblProductAliases
+        //                .Where(a => a.IsDeleted == false && a.FkProductId == p.ProductId)
+        //                .Select(a => a.AliasName)
+        //                .ToList(),
+        //            SKUNames = _context.TblSkuBarcodes
+        //                .Where(s => s.IsDeleted == 0 && s.FkProductId == p.ProductId)
+        //                .Select(s => s.Skuname)
+        //                .ToList()
+        //        });
+
+        //    // Apply search filter
+        //    if (!string.IsNullOrEmpty(searchTerm))
+        //    {
+        //        productQuery = productQuery.Where(x =>
+        //            x.Product.ProductName.Contains(searchTerm) ||
+        //            x.SKUNames.Any(sku => sku.Contains(searchTerm)) ||
+        //            x.AliasNames.Any(alias => alias.Contains(searchTerm))
+        //        );
+        //    }
+
+        //    int totalRecords = productQuery.Count();
+
+        //    var paginatedProducts = productQuery
+        //        .Skip((pageNumber - 1) * pageSize)
+        //        .Take(pageSize)
+        //        .ToList();
+
+        //    var getProductList = paginatedProducts.Select(x => new ProductViewModel
+        //    {
+        //        ProductId = x.Product.ProductId,
+        //        ProductName = x.Product.ProductName,
+        //        SKUNames = x.SKUNames,
+        //        AliasNames = x.AliasNames
+        //    }).ToList();
+
+        //    var viewModel = new ProductListViewModel
+        //    {
+        //        Products = getProductList,
+        //        Pagination = new PaginationMetadataViewModel
+        //        {
+        //            TotalRecords = totalRecords,
+        //            CurrentPage = pageNumber,
+        //            PageSize = pageSize,
+        //            SearchTerm = searchTerm
+        //        }
+        //    };
+
+        //    return View(viewModel);
+        //}
+        //End This Code Use for Search Records by SKUName & AliasName
 
 
         //Start Code For Export Excel File
@@ -999,6 +1094,58 @@ namespace InventoryManagement.Controllers
             return RedirectToAction("Product");
         }
 
+
+        //Code FOr Delete Product
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            if (userId == null || userId == 0)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var product = await _context.TblProducts.FirstOrDefaultAsync(x => x.ProductId == id);
+
+            if (product == null)
+            {
+                throw new Exception("Supplier not found");
+            }
+
+            product.IsDeleted = true;
+            product.UpdatedAt = DateTime.Now;
+            product.UpdatedBy = userId;
+            _context.TblProducts.Update(product);
+
+            var skuBarcodes = await _context.TblSkuBarcodes.Where(x => x.FkProductId == id).ToListAsync();
+            foreach (var sku in skuBarcodes)
+            {
+                sku.IsDeleted = 1;
+                sku.UpdatedAt = DateTime.Now;
+                sku.UpdatedBy = userId;
+
+                _context.TblSkuBarcodes.Update(sku);
+            }
+
+            var aliases = await _context.TblProductAliases.Where(x => x.FkProductId == id).ToListAsync();
+            foreach (var alias in aliases)
+            {
+                alias.IsDeleted = true;
+                alias.UpdatedAt = DateTime.Now;
+                alias.UpdatedBy = userId;
+
+                _context.TblProductAliases.Update(alias);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Product", "Master");
+        }
+
+
+
         public IActionResult RackNo(string searchTerm = "", int pageNumber = 1, int pageSize = 10)
         {
             var userId = HttpContext.Session.GetInt32("userId");
@@ -1015,7 +1162,9 @@ namespace InventoryManagement.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                rackNoList = rackNoList.Where(x => x.RackNo.Contains(searchTerm));
+                rackNoList = rackNoList.Where(x => x.RackNo.Contains(searchTerm) ||
+                 _context.TblWarehouses.Any(w => w.WarehouseId == x.FkWarehouseId && w.IsDeleted == false && w.Name.Contains(searchTerm))
+                );
             }
 
             int totalRecords = rackNoList.Count();
@@ -1083,60 +1232,57 @@ namespace InventoryManagement.Controllers
             return RedirectToAction("RackNo");
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> EditRackNo(int id)
-        //{
-        //    var userId = HttpContext.Session.GetInt32("userId");
-
-        //    if (userId == null || userId == 0)
-        //    {
-        //        return RedirectToAction("Login", "Auth");
-        //    }
-
-        //    var rack = await _context.TblRacks.FindAsync(id);
-        //    if (rack == null)
-        //    {
-        //        return NotFound();
-        //    }
 
 
-        //    var viewModel = new RackNoVeiwModel
-        //    {
-        //        RackId = rack.RackId,
-        //        FKWarehouseId = rack.FkWarehouseId ?? 0,
-        //        RackNo = rack.RackNo
-        //    };
+        [HttpGet]
+        public IActionResult GetRackById(int id)
+        {
+            var rack = _context.TblRacks.FirstOrDefault(x => x.RackId == id && x.IsDeleted == 0);
+            if (rack == null)
+                return Json(null);
 
-        //    return PartialView("_EditWarehouseModal", viewModel);
-        //}
+            var warehouseList = _context.TblWarehouses
+                .Where(w => w.IsDeleted == false)
+                .Select(w => new { w.WarehouseId, w.Name })
+                .ToList();
 
-
+            return Json(new
+            {
+                rack.RackId,
+                rack.RackNo,
+                FKWarehouseId = rack.FkWarehouseId,
+                Warehouses = warehouseList
+            });
+        }
 
 
         [HttpPost]
         public async Task<IActionResult> EditRackNo(RackNoVeiwModel model)
         {
             var userId = HttpContext.Session.GetInt32("userId");
-
             if (userId == null || userId == 0)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var rackdata = await _context.TblRacks.FindAsync(model.RackId);
-            if (rackdata == null)
+            var rack = await _context.TblRacks.FindAsync(model.RackId);
+            if (rack == null)
+            {
                 return NotFound();
+            }
 
-            rackdata.RackNo = model.RackNo;
-            rackdata.FkWarehouseId = model.FKWarehouseId;
-            rackdata.UpdatedAt = DateTime.Now;
-            rackdata.UpdatedBy = userId;
+            rack.RackNo = model.RackNo;
+            rack.FkWarehouseId = model.FKWarehouseId;
+            rack.UpdatedAt = DateTime.Now;
+            rack.UpdatedBy = userId;
 
-            _context.TblRacks.Update(rackdata);
             await _context.SaveChangesAsync();
-
             return RedirectToAction("RackNo");
         }
+
+
+
+
 
 
         [HttpPost]

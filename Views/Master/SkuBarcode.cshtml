@@ -1,0 +1,421 @@
+﻿@model InventoryManagement.ViewModels.ProductViewModel
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<html>
+    <head>
+        <style>
+            .barcode-card {
+                border: 1.5px solid #2f80ed;
+                border-radius: 15px;
+                padding: 30px;
+                background: white;
+            }
+
+            .section-title {
+                color: #2f80ed;
+                font-weight: 600;
+                margin-bottom: 25px;
+                font-size: 20px;
+            }
+
+            .form-label {
+                font-weight: 500;
+                font-size: 14px;
+            }
+
+            .form-control {
+                border-radius: 6px;
+            }
+
+            .toggle-buttons .btn {
+                width: 100px;
+            }
+
+            .btn-generate {
+                background-color: #2f80ed;
+                color: #fff;
+                font-weight: 500;
+            }
+
+            .btn-preview {
+                background-color: #2f80ed;
+                color: #fff;
+                font-weight: 500;
+            }
+
+            .btn-print {
+                background-color: #27ae60;
+                color: #fff;
+                font-weight: 500;
+            }
+
+            .preview-box {
+                border: 1px solid #ccc;
+                padding: 20px;
+                border-radius: 8px;
+                text-align: center;
+                min-height: 180px;
+            }
+
+            .preview-code {
+                font-size: 16px;
+                font-weight: bold;
+                margin-top: 10px;
+            }
+
+            /* Optional: Autocomplete List */
+            .autocomplete-list {
+                position: absolute;
+                z-index: 1000;
+                width: 100%;
+                max-height: 200px;
+                overflow-y: auto;
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .autocomplete-list li {
+                padding: 8px 12px;
+                cursor: pointer;
+            }
+
+            .autocomplete-list li:hover {
+                background: #f0f0f0;
+            }
+
+            .autocomplete-list li.highlighted {
+                background-color: #007bff;
+                color: white;
+            }
+
+        </style>
+
+    </head>
+
+    <body>
+
+    <div class="container mt-4">
+        <h4 class="section-title">Generate & Print Barcode</h4>
+
+        <div class="barcode-card">
+            <div class="row">
+                <!-- Left Side -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="product">Product Name</label>
+                        <input type="text" class="form-control" id="product" placeholder="ProductName" />
+                        <input type="hidden" id="FkProductId" name="FkProductId" />
+                        <ul id="productList" class="autocomplete-list" style="display: none;"></ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sku">Barcode</label>
+                        <input type="text" class="form-control" id="sku" placeholder="Barcode" />
+                        <ul id="skuList" class="autocomplete-list" style="display: none;"></ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Header</label>
+                        <input type="text" id="header" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Quantity</label>
+                        <input type="number" id="Quantity" class="form-control" value="1" min="1" />
+                    </div>
+
+                </div>
+
+                <!-- Right Side -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                    </div>
+
+                    <div class="mb-3">
+                    </div>
+
+                    <div class="preview-box w-100 mb-3">
+                        <div id="barcodePreview" class="mt-4 p-3 border rounded shadow-sm" style="background: #f9f9f9;">
+                            <h5 id="previewHeader" class="mb-2"></h5>
+                            <svg id="previewBarcode"></svg>
+                        </div>
+
+                    </div>
+
+                    <div id="printArea" style="display: none;"></div>
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <button id="printLabelsBtn" class="btn btn-primary mt-3">Print Barcode</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    @* Start This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
+    <script>
+        $(document).ready(function () {
+            var $productInput = $('#product');
+            var $productList = $('#productList');
+            var $productId = $('#FkProductId');
+            var $skuInput = $('#sku');
+            var $headerInput = $('#header');
+            var selectedIndex = -1;
+
+            function updatePreview(headerText, skuText) {
+                if (headerText && skuText) {
+                    $('#previewHeader').text(headerText);
+
+                    JsBarcode("#previewBarcode", skuText, {
+                        format: "CODE128",
+                        lineColor: "#000",
+                        width: 2,
+                        height: 60,
+                        displayValue: true
+                    });
+
+                    $('#barcodePreview').show();
+                } else {
+                    $('#barcodePreview').hide();
+                }
+            }
+
+            $productInput.on('input', function () {
+                var term = $(this).val().trim();
+                selectedIndex = -1;
+
+                if (term.length < 1) {
+                    $productList.hide().empty();
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Inventory/GetProducts',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { term: term },
+                    success: function (data) {
+                        $productList.empty();
+                        if (data.length === 0) {
+                            $productList.hide();
+                            return;
+                        }
+
+                        $.each(data, function (index, item) {
+                            $productList.append(
+                                $('<li>').text(item.productName)
+                                    .attr('data-id', item.id)
+                                    .attr('data-sku', item.skuName)
+                                    .on('click', function () {
+                                        $productInput.val(item.productName);
+                                        $skuInput.val(item.skuName);
+                                        $productId.val(item.id);
+                                        $headerInput.val(item.productName);
+                                        updatePreview(item.productName, item.skuName);
+                                        $productList.hide().empty();
+                                    })
+                            );
+                        });
+
+                        $productList.show();
+                    },
+                    error: function () {
+                        $productList.hide().empty();
+                    }
+                });
+            });
+
+            $productInput.on('keydown', function (e) {
+                var items = $productList.find('li');
+                if ($productList.is(':visible')) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (selectedIndex < items.length - 1) {
+                            selectedIndex++;
+                            highlightItem(items, selectedIndex);
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (selectedIndex > 0) {
+                            selectedIndex--;
+                            highlightItem(items, selectedIndex);
+                        }
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (selectedIndex >= 0 && selectedIndex < items.length) {
+                            var selected = $(items[selectedIndex]);
+                            $productInput.val(selected.text());
+                            $productId.val(selected.data('id'));
+                            $skuInput.val(selected.data('sku'));
+                            $headerInput.val(selected.text());
+                            updatePreview(selected.text(), selected.data('sku'));
+                            $productList.hide().empty();
+                        }
+                    }
+                }
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#product, #productList').length) {
+                    $productList.hide().empty();
+                }
+            });
+
+
+            $skuInput.on('change', function () {
+                var sku = $(this).val().trim();
+                if (sku.length < 1) {
+                    $productInput.val('');
+                    $productId.val('');
+                    $headerInput.val('');
+                    updatePreview('', '');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Inventory/GetProductBySku',
+                    type: 'GET',
+                    data: { sku: sku },
+                    success: function (data) {
+                        if (data) {
+                            $productInput.val(data.productName);
+                            $productId.val(data.productId);
+                            $headerInput.val(data.productName);
+                            updatePreview(data.productName, sku);
+                        } else {
+                            $productInput.val('');
+                            $productId.val('');
+                            $headerInput.val('');
+                            updatePreview('', '');
+                        }
+                    },
+                    error: function () {
+                        $productInput.val('');
+                        $productId.val('');
+                        $headerInput.val('');
+                        updatePreview('', '');
+                    }
+                });
+            });
+
+            $productInput.on('change', function () {
+                if ($(this).val().trim() === '') {
+                    $productId.val('');
+                    $skuInput.val('');
+                    $headerInput.val('');
+                    updatePreview('', '');
+                }
+            });
+
+            $headerInput.on('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var headerText = $(this).val().trim();
+                    var skuText = $skuInput.val().trim();
+                    updatePreview(headerText, skuText);
+                }
+            });
+
+            function highlightItem(items, index) {
+                items.removeClass('highlighted');
+                $(items[index]).addClass('highlighted');
+            }
+        });
+    </script>
+    @* End This Code For Scan or Enter SKUName & Show The  ProductName or SelectProduct & Show SKUName *@
+
+
+
+    <script>
+        $('#printLabelsBtn').on('click', function () {
+            const quantity = parseInt($('#Quantity').val()) || 1;
+            const header = $('#previewHeader').text();
+            const svgOriginal = document.getElementById("previewBarcode");
+
+            if (!header || !svgOriginal || svgOriginal.innerHTML.trim() === "") {
+                alert("Header or barcode is missing!");
+                return;
+            }
+
+            // Convert SVG to image URL (base64)
+            const svgData = new XMLSerializer().serializeToString(svgOriginal);
+            const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+            const imageUrl = URL.createObjectURL(svgBlob);
+
+            // Open print window
+            const printWindow = window.open('', '', 'width=600,height=400');
+
+            printWindow.document.write('<html><head><title>Print</title><style>');
+            printWindow.document.write(`
+                * { box-sizing: border-box; }
+                body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: Arial, sans-serif;
+                }
+                .label {
+                    width: 50mm;
+                    height: 35mm;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    page-break-after: always;
+                }
+                .label h3 {
+                    font-size: 10pt;
+                    margin: 2mm 0;
+                }
+                .label img {
+                    width: 90%;
+                    height: auto;
+                }
+            `);
+            printWindow.document.write('</style></head><body>');
+
+            for (let i = 0; i < quantity; i++) {
+                printWindow.document.write(`
+                    <div class="label">
+                        <h3>${header}</h3>
+                        <img src="${imageUrl}" />
+                    </div>
+                `);
+            }
+
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+
+            printWindow.onload = function () {
+                printWindow.focus();
+                printWindow.print();
+                // Optional: auto-close
+                setTimeout(() => {
+                    printWindow.close();
+                }, 1000);
+            };
+        });
+    </script>
+
+    </body>
+
+
+
+
+</html>
+
+
+
+
+

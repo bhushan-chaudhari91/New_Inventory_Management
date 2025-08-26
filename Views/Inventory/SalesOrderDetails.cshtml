@@ -7,6 +7,8 @@
     int pageSize = pagination.PageSize;
     int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
     string serchquery = pagination.SearchTerm;
+
+    string orderNumber = Model.OrderNumber ?? "";
 }
 
 <style>
@@ -38,6 +40,25 @@
     .text-danger {
         color: red;
         font-weight: bold;
+    }
+
+</style>
+
+@* Code for Type show in color *@
+<style>
+    .type-box {
+        color: #070807;
+        font-weight: bold;
+    }
+
+    .type-single {
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .type-unknown {
+        color: #dc3545;
+        font-style: italic;
     }
 
 </style>
@@ -136,6 +157,7 @@
                         <th>No.</th>
                         <th>Product Name</th>
                         <th>SKU Name</th>
+                        <th>Unit</th>
                         <th>Order Date</th>
                         <th>Ordered Products</th>
                         <th>Available Products</th>
@@ -147,6 +169,9 @@
 
                     @foreach (var item in Model.SaleOrder)
                     {
+                        string typeLabel = item.Type == "1" ? "Box Unit" : item.Type == "2" ? "Single Unit" : "Unknown";
+                        string typeClass = item.Type == "1" ? "type-box" : item.Type == "2" ? "type-single" : "type-unknown";
+
                         SrNo++;
                         var colorClass = item.Status == "Available" ? "text-success" : "text-danger";
                         <tr>
@@ -154,6 +179,8 @@
                             <td>@SrNo</td>
                             <td>@item.ProductName</td>
                             <td>@item.SKUName</td>
+                            @* <td>@item.Type</td> *@
+                            <td><span class="@typeClass">@typeLabel</span></td>
                             <td>@item.OrderDate.ToString("dd/MM/yyyy")</td>
                             <td>@item.OrderQuantity</td>
                             <td>@item.AvailableQuantity</td>
@@ -199,7 +226,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("SalesOrder", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                            <a href="@Url.Action("SalesOrderDetails", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize, orderNumber = orderNumber })" class="page-link">Previous</a>
                         }
                     </li>
 
@@ -209,7 +236,7 @@
                         if (currentPage > 3)
                         {
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("SalesOrder", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                                <a href="@Url.Action("SalesOrderDetails", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize, orderNumber = orderNumber })" class="page-link">1</a>
                             </li>
                             if (currentPage > 4)
                             {
@@ -229,7 +256,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("SalesOrder", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("SalesOrderDetails", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize, orderNumber = orderNumber })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -242,7 +269,7 @@
                                 <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
                             }
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("SalesOrder", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                                <a href="@Url.Action("SalesOrderDetails", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize, orderNumber = orderNumber })" class="page-link">@totalPages</a>
                             </li>
                         }
                     }
@@ -260,7 +287,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("SalesOrder", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("SalesOrderDetails", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize, orderNumber = orderNumber })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -274,7 +301,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("SalesOrder", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                            <a href="@Url.Action("SalesOrderDetails", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize, orderNumber = orderNumber })" class="page-link">Next</a>
                         }
                     </li>
 
@@ -291,12 +318,16 @@
     function searchfilterquery() {
         var searchQuery = document.getElementById('searchQuery').value;
         var pageSize = document.getElementById('rowQuantity').value;
-        window.location.href = `/Inventory/SalesOrder?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+        var orderNumber = '@orderNumber';
+
+        window.location.href = `/Inventory/SalesOrderDetails?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}&orderNumber=${orderNumber}`;
     }
 
     function updateRowQuantity() {
         var pageSize = document.getElementById('rowQuantity').value;
         var searchQuery = document.getElementById('searchQuery').value;
-        window.location.href = `/Inventory/SalesOrder?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+         var orderNumber = '@orderNumber';
+
+        window.location.href = `/Inventory/SalesOrderDetails?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}&orderNumber=${orderNumber}`;
     }
 </script>

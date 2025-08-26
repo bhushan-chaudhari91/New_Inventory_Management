@@ -15,10 +15,15 @@
         public string RoomName { get; set; } 
         public string RackName { get; set; }
         public string Type { get; set; }
+        public decimal TotalBox { get; set; }
+        public decimal PerBoxQty { get; set; }
         public string Reason { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public List<string?> AliasNames { get; internal set; }
+       
+
+
     }
 
     public class BatchDetailsViewModel
