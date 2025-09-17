@@ -36,6 +36,8 @@ namespace InventoryManagement.ViewModels
         public string ProductStatus { get; set; }
         public decimal TotalBox { get; set; }
         public decimal PerBoxQty { get; set; }
+        public int QtyBoxItem { get; set; }
+        public int QtySingleItem { get; set; }
 
       
 
@@ -53,6 +55,7 @@ namespace InventoryManagement.ViewModels
         public string Alias2 { get; set; }
         public string Alias3 { get; set; }
         public List<string?> AliasNames { get; internal set; }
+        public List<string?> SkuNames { get; internal set; }
     }
 
     public class StockInListViewModel

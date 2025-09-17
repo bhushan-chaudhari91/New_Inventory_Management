@@ -1,7 +1,7 @@
 ﻿@model InventoryManagement.ViewModels.ProductViewModel
 
 <style>
-    .form-control, .dataTables_wrapper select {
+    .form-control, .dataTables_wrapper select, select.form-control {
         border: 1px solid #545151;
         font-weight: 400;
         font-size: 0.875rem;
@@ -15,13 +15,15 @@
         </div>
 
         <div class="card-body">
-            <form asp-action="EditProduct" method="post">
+            <form id="editProductForm" asp-action="EditProduct" method="post">
                 <input type="hidden" asp-for="ProductId" />
+
+                <input type="hidden" name="ProductId" value="@Model.ProductId" />
 
                 <div class="row mb-3">
                     <div class="form-group col-md-4">
                         <label asp-for="ProductName" class="form-label fw-semibold">Product Name</label>
-                        <input asp-for="ProductName" class="form-control" />
+                        <input asp-for="ProductName" class="form-control" style="color: black;" />
                         <span asp-validation-for="ProductName" class="text-danger small"></span>
                     </div>
 
@@ -33,19 +35,32 @@
 
                     <div class="form-group col-md-4">
                         <label asp-for="SkuForSignleItem" class="form-label fw-semibold">SKU For Signle Item</label>
-                        <input asp-for="SkuForSignleItem" class="form-control" />
+                        <input asp-for="SkuForSignleItem" class="form-control" style="color: black;" />
                         <span asp-validation-for="SkuForSignleItem" class="text-danger small"></span>
                     </div>
 
                     <div class="form-group col-md-4">
                         <label asp-for="SkuForBox" class="form-label fw-semibold">SKU For Box</label>
-                        <input asp-for="SkuForBox" class="form-control" />
+                        <input asp-for="SkuForBox" class="form-control" style="color: black;" />
                         <span asp-validation-for="SkuForBox" class="text-danger small"></span>
                     </div>
 
                     <div class="form-group col-md-4">
+                        <label for="WarehouseId" class="form-label fw-semibold">Room / Warehouse</label>
+                        <select name="WarehouseId" id="stockTypeFilter" class="form-control" style="color: black;"></select>
+                        <input type="hidden" id="selectedWarehouseId" value="@Model.WarehouseId" />
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label for="RackId" class="form-label fw-semibold">Rack No</label>
+                        <select name="RackId" id="rackFilter" class="form-control" style="color: black;"></select>
+                        <input type="hidden" id="selectedRackId" value="@Model.RackId" />
+
+                    </div>
+
+                    <div class="form-group col-md-4">
                         <label asp-for="LowStockQuantity" class="form-label fw-semibold">Low Stock Quantity</label>
-                        <input asp-for="LowStockQuantity" class="form-control" />
+                        <input asp-for="LowStockQuantity" class="form-control" style="color: black;" />
                         <span asp-validation-for="LowStockQuantity" class="text-danger small"></span>
                     </div>
                 </div>
@@ -57,23 +72,23 @@
                             @for (int i = 0; i < (Model.AliasNames?.Count ?? 0); i++)
                             {
                                 <div class="col-md-6 mb-2">
-                                    <input type="text" name="AliasNames[@i]" value="@Model.AliasNames[i]" class="form-control" />
+                                    <input type="text" name="AliasNames[@i]" value="@Model.AliasNames[i]" class="form-control" style="color: black;" />
                                 </div>
                             }
                             @if (Model.AliasNames == null || Model.AliasNames.Count == 0)
                             {
                                 <div class="col-md-6 mb-2">
-                                    <input type="text" name="AliasNames[0]" class="form-control" />
+                                    <input type="text" name="AliasNames[0]" class="form-control" style="color: black;" />
                                 </div>
                             }
                         </div>
-                        <a href="#" class="btn btn-outline-secondary btn-sm mt-1" id="addAliasBtn">+ Add Alias</a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm mt-1" id="addAliasBtn" style="background: green; color: white;">+ Add Alias</a>
                     </div>
                 </div>
 
 
                 <div class="d-flex justify-content-end gap-2">
-                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">💾 Save Changes</button>
                     <a asp-action="Product" class="btn btn-light" style="margin-left: 15px;">↩ Cancel</a>
                 </div>
             </form>
@@ -146,3 +161,116 @@
     <button type="submit" class="btn btn-primary">Save Changes</button>
     <a asp-action="Product" class="btn btn-secondary">Cancel</a>
 </form> *@
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        var selectedWarehouseId = $('#selectedWarehouseId').val();
+        var selectedRackId = $('#selectedRackId').val();
+
+        // Load Warehouses
+        $.ajax({
+            url: '@Url.Action("GetWarehouses", "Master")',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#stockTypeFilter');
+                select.empty();
+
+                $.each(data, function (index, item) {
+                    select.append('<option value="' + item.id + '">' + item.name + '</option>');
+                });
+
+                if (selectedWarehouseId) {
+                    // select saved warehouse
+                    select.val(selectedWarehouseId).trigger('change');
+                } else if (data.length > 0) {
+                    // default first
+                    select.val(data[0].id).trigger('change');
+                }
+            }
+        });
+
+
+        $('#stockTypeFilter').change(function () {
+            var warehouseId = $(this).val();
+            var rackSelect = $('#rackFilter');
+            rackSelect.empty().append('<option>Loading...</option>'); 
+
+            if (warehouseId) {
+                $.ajax({
+                    url: '@Url.Action("GetRacks", "Master")',
+                    type: 'GET',
+                    data: { warehouseId: warehouseId },
+                    dataType: 'json',
+                    success: function (data) {
+                        rackSelect.empty();
+                        if (data.length > 0) {
+                            $.each(data, function (index, item) {
+                                rackSelect.append('<option value="' + item.id + '">' + item.name + '</option>');
+                            });
+                            rackSelect.val(data[0].id); 
+                        } else {
+                            rackSelect.append('<option value="">No racks available</option>');
+                        }
+                    },
+                    error: function () {
+                        rackSelect.empty().append('<option value="">Error loading racks</option>');
+                    }
+                });
+            } else {
+                rackSelect.empty().append('<option value="">Select Rack</option>');
+            }
+        });
+
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $('#editProductForm').submit(function(e){
+        e.preventDefault();
+
+        var $submitBtn = $('#submitBtn');
+        $submitBtn.prop('disabled', false);
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+            url: '/Master/EditProduct',
+            type: 'POST',
+            data: formData,
+            success: function(response){
+                if(response.success){
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated!',
+                        text: 'Product updated successfully!'
+                     }).then(() => {
+                        // ✅ Redirect after success
+                        window.location.href = response.redirectUrl;
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: response.message
+                    });
+                    $submitBtn.prop('disabled', false);
+                }
+            },
+            error: function(){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong!'
+                });
+                $submitBtn.prop('disabled', false);
+            }
+        });
+    });
+</script>
+
+

@@ -1,9 +1,12 @@
 ﻿using ClosedXML.Excel;
+using Dapper;
 using InventoryManagement.EntityModels;
 using InventoryManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
+using System.Data;
 using System.Drawing;
 
 namespace InventoryManagement.Controllers
@@ -603,6 +606,32 @@ namespace InventoryManagement.Controllers
 
 
 
+        public JsonResult GetWarehouses()
+        {
+            var warehouses = _context.TblWarehouses.Where(w => w.IsDeleted == false)
+                                     .Select(w => new
+                                     {
+                                         Id = w.WarehouseId,
+                                         Name = w.Name
+                                     })
+                                     .ToList();
+
+            return Json(warehouses);
+        }
+
+
+        public JsonResult GetRacks(int warehouseId)
+        {
+            var racks = _context.TblRacks
+                .Where(r => r.FkWarehouseId == warehouseId)
+                .Select(r => new
+                {
+                    id = r.RackId,
+                    name = r.RackNo
+                }).ToList();
+
+            return Json(racks);
+        }
 
 
         //Start This Code Use for Search Records Only ProductName
@@ -773,6 +802,11 @@ namespace InventoryManagement.Controllers
                     AliasNames = _context.TblProductAliases
                                          .Where(a => a.IsDeleted == false && a.FkProductId == p.ProductId)
                                          .Select(a => a.AliasName)
+                                         .ToList(),
+
+                    SkuNames = _context.TblSkuBarcodes
+                                         .Where(a => a.IsDeleted == 0 && a.FkProductId == p.ProductId)
+                                         .Select(a => a.Skuname)
                                          .ToList()
                 })
                 .ToList();
@@ -782,7 +816,7 @@ namespace InventoryManagement.Controllers
                 var worksheet = workbook.Worksheets.Add("Products");
                 worksheet.Cell(1, 1).Value = "No.";
                 worksheet.Cell(1, 2).Value = "Product Name";
-                worksheet.Cell(1, 3).Value = "SKU Name";
+                worksheet.Cell(1, 3).Value = "SKU Names";
                 worksheet.Cell(1, 4).Value = "Alias Names";
 
                 // Apply header formatting
@@ -803,7 +837,8 @@ namespace InventoryManagement.Controllers
                 {
                     worksheet.Cell(row, 1).Value = srNo++;
                     worksheet.Cell(row, 2).Value = item.ProductName;
-                    worksheet.Cell(row, 3).Value = item.SkuIdName;
+                    //worksheet.Cell(row, 3).Value = item.SkuIdName;
+                    worksheet.Cell(row, 3).Value = string.Join(", ", item.SkuNames ?? new List<string>());
                     worksheet.Cell(row, 4).Value = string.Join(", ", item.AliasNames ?? new List<string>());
                     row++;
                 }
@@ -820,23 +855,194 @@ namespace InventoryManagement.Controllers
         }
         //End Code For Export Excel File
 
+        //[HttpPost]
+        //public async Task<ActionResult> AddProduct(ProductViewModel addProduct)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+
+        //    // ✅ DUPLICATE VALIDATION
+        //    // Check ProductName
+        //    bool productExists = await _context.TblProducts
+        //        .AnyAsync(p => p.ProductName.ToLower() == addProduct.ProductName.ToLower() && p.IsDeleted == false);
+
+        //    if (productExists)
+        //    {
+        //        TempData["ErrorMessage"] = "Product Name already exists!";
+        //        return RedirectToAction("Product");
+        //    }
+
+        //    // Check SKU for Single Item
+        //    if (!string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
+        //    {
+        //        bool singleSkuExists = await _context.TblSkuBarcodes
+        //            .AnyAsync(s => s.Skuname.ToLower() == addProduct.SkuForSignleItem.ToLower() && s.IsDeleted == 0);
+
+        //        if (singleSkuExists)
+        //        {
+        //            TempData["ErrorMessage"] = "SKU for Single Item already exists!";
+        //            return RedirectToAction("Product");
+        //        }
+        //    }
+
+        //    // Check SKU for Box
+        //    if (!string.IsNullOrWhiteSpace(addProduct.SkuForBox))
+        //    {
+        //        bool boxSkuExists = await _context.TblSkuBarcodes
+        //            .AnyAsync(s => s.Skuname.ToLower() == addProduct.SkuForBox.ToLower() && s.IsDeleted == 0);
+
+        //        if (boxSkuExists)
+        //        {
+        //            TempData["ErrorMessage"] = "SKU for Box already exists!";
+        //            return RedirectToAction("Product");
+        //        }
+        //    }
+
+        //    var product = new TblProduct
+        //    {
+        //        ProductName = addProduct.ProductName,
+        //        //SkuIdName = addProduct.SkuIdName,
+        //        LowStockQuantity = addProduct.LowStockQuantity,
+        //        FkWarehouseId = addProduct.WarehouseId,
+        //        FkRackId = addProduct.RackId,
+        //        IsDeleted = false,
+        //        CreatedAt = DateTime.Now,
+        //    };
+
+        //    _context.TblProducts.Add(product);
+        //    await _context.SaveChangesAsync();
+
+        //    var getProductId = product.ProductId;
+
+        //    var skuEntries = new List<TblSkuBarcode>();
+
+        //    if (!string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
+        //    {
+        //        skuEntries.Add(new TblSkuBarcode
+        //        {
+        //            FkProductId = getProductId,
+        //            Skuname = addProduct.SkuForSignleItem,
+        //            IsDeleted = 0,
+        //            CreatedAt = DateTime.Now,
+        //            CreatedBy = userId
+        //        });
+        //    }
+
+        //    if (!string.IsNullOrWhiteSpace(addProduct.SkuForBox))
+        //    {
+        //        skuEntries.Add(new TblSkuBarcode
+        //        {
+        //            FkProductId = getProductId,
+        //            Skuname = addProduct.SkuForBox,
+        //            IsDeleted = 0,
+        //            CreatedAt = DateTime.Now,
+        //            CreatedBy = userId
+        //        });
+        //    }
+
+        //    if (skuEntries.Any())
+        //    {
+        //        _context.TblSkuBarcodes.AddRange(skuEntries);
+        //    }
+
+        //    var getId = product.ProductId;
+
+        //    if (addProduct.AliasNames != null && addProduct.AliasNames.Any())
+        //    {
+        //        foreach (var alias in addProduct.AliasNames)
+        //        {
+        //            if (!string.IsNullOrWhiteSpace(alias))
+        //            {
+
+        //                var aliasData = new TblProductAlias
+        //                {
+        //                    FkProductId = getId,
+        //                    AliasName = alias,
+        //                    IsDeleted = false,
+        //                    CreatedAt = DateTime.Now
+        //                };
+
+        //                _context.TblProductAliases.Add(aliasData);
+        //            }
+        //        }
+
+        //        await _context.SaveChangesAsync();
+        //    }
+
+
+
+        //    return RedirectToAction("Product");
+        //}
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetNewBatchNo()
+        {
+            string batchNumber;
+            using (var connection = new MySqlConnection(_context.Database.GetConnectionString()))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@newBatchNo", dbType: DbType.String, direction: ParameterDirection.Output, size: 255);
+
+                await connection.ExecuteAsync("GenerateBatchNumber", parameters, commandType: CommandType.StoredProcedure);
+
+                batchNumber = parameters.Get<string>("@newBatchNo");
+            }
+
+            return Json(new { batchNo = batchNumber });
+        }
+
+
+
         [HttpPost]
-        public async Task<ActionResult> AddProduct(ProductViewModel addProduct)
+        public async Task<IActionResult> AddProduct(ProductViewModel addProduct)
         {
             var userId = HttpContext.Session.GetInt32("userId");
 
             if (userId == null || userId == 0)
+                return Json(new { success = false, message = "Please login first." });
+
+            // ✅ DUPLICATE VALIDATION
+            bool productExists = await _context.TblProducts
+                .AnyAsync(p => p.ProductName.ToLower() == addProduct.ProductName.ToLower() && p.IsDeleted == false);
+
+            if (productExists)
+                return Json(new { success = false, message = "Product Name already exists! Please use a different name." });
+
+            if (!string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
             {
-                return RedirectToAction("Login", "Auth");
+                bool singleSkuExists = await _context.TblSkuBarcodes
+                    .AnyAsync(s => s.Skuname.ToLower() == addProduct.SkuForSignleItem.ToLower() && s.IsDeleted == 0);
+
+                if (singleSkuExists)
+                    return Json(new { success = false, message = "SKU for Single Item already exists!" });
             }
 
+            if (!string.IsNullOrWhiteSpace(addProduct.SkuForBox))
+            {
+                bool boxSkuExists = await _context.TblSkuBarcodes
+                    .AnyAsync(s => s.Skuname.ToLower() == addProduct.SkuForBox.ToLower() && s.IsDeleted == 0);
+
+                if (boxSkuExists)
+                    return Json(new { success = false, message = "SKU for Box already exists!" });
+            }
+
+            // ✅ Save Product
             var product = new TblProduct
             {
                 ProductName = addProduct.ProductName,
-                //SkuIdName = addProduct.SkuIdName,
                 LowStockQuantity = addProduct.LowStockQuantity,
+                FkWarehouseId = addProduct.WarehouseId,
+                FkRackId = addProduct.RackId,
                 IsDeleted = false,
                 CreatedAt = DateTime.Now,
+                AvailableProductQty = "0"
             };
 
             _context.TblProducts.Add(product);
@@ -858,6 +1064,8 @@ namespace InventoryManagement.Controllers
                 });
             }
 
+
+
             if (!string.IsNullOrWhiteSpace(addProduct.SkuForBox))
             {
                 skuEntries.Add(new TblSkuBarcode
@@ -869,39 +1077,58 @@ namespace InventoryManagement.Controllers
                     CreatedBy = userId
                 });
             }
+                
 
             if (skuEntries.Any())
-            {
                 _context.TblSkuBarcodes.AddRange(skuEntries);
-            }
 
-            var getId = product.ProductId;
-
-            if(addProduct.AliasNames != null && addProduct.AliasNames.Any())
+            if (addProduct.AliasNames != null && addProduct.AliasNames.Any())
             {
-                foreach( var alias in addProduct.AliasNames)
+                foreach (var alias in addProduct.AliasNames)
                 {
-                    if(!string.IsNullOrWhiteSpace(alias)){
-
-                        var aliasData = new TblProductAlias
+                    if (!string.IsNullOrWhiteSpace(alias))
+                    {
+                        _context.TblProductAliases.Add(new TblProductAlias
                         {
-                            FkProductId = getId,
+                            FkProductId = getProductId,
                             AliasName = alias,
                             IsDeleted = false,
                             CreatedAt = DateTime.Now
-                        };
-
-                        _context.TblProductAliases.Add(aliasData);
+                        });
                     }
                 }
-                
-                await _context.SaveChangesAsync();
             }
 
-           
+            if (!string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
+            {
+                var getRackNo = _context.TblRacks.FirstOrDefault(x => x.IsDeleted == 0 && x.RackId == product.FkRackId).RackNo;
+                var stockIn = new TblStockIn
+                {
+                    
+                    BatchNo = addProduct.BatchNo,
+                    Date = DateTime.Now,
+                    FkSupplierId = 1,
+                    FkWarehouseId = addProduct.WarehouseId,
+                    FkProductId = getProductId,
+                    Type = "2",
+                    ProductQuantity = "0",
+                    Price = 0,
+                    AvailableQuantity = "0",
+                    RackNo = getRackNo,
+                    Barcode = addProduct.SkuForSignleItem,
+                    IsDeleted = false,
+                    CreatedAt = DateTime.Now
 
-            return RedirectToAction("Product");
+                };
+                _context.TblStockIns.Add(stockIn);
+            }
+
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Product added successfully!" });
         }
+
 
 
 
@@ -944,7 +1171,6 @@ namespace InventoryManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            // Load product main info
             var productEntity = _context.TblProducts
                 .FirstOrDefault(p => p.ProductId == id && p.IsDeleted == false);
 
@@ -953,21 +1179,33 @@ namespace InventoryManagement.Controllers
                 return NotFound();
             }
 
-            // Load SKU Barcodes for this product
             var skuBarcodes = _context.TblSkuBarcodes
                 .Where(s => s.FkProductId == id && s.IsDeleted == 0)
                 .Select(s => s.Skuname)
                 .ToList();
 
-            // Distinguish by prefix
             var skuForSingleItem = skuBarcodes.FirstOrDefault(s => s.StartsWith("A"));
             var skuForBox = skuBarcodes.FirstOrDefault(s => s.StartsWith("B"));
 
-            // Load Aliases
             var aliasNames = _context.TblProductAliases
                 .Where(a => a.FkProductId == id && a.IsDeleted == false)
                 .Select(a => a.AliasName)
                 .ToList();
+
+            //var getWarehouse = _context.TblWarehouses.FirstOrDefault(x => x.WarehouseId == productEntity.FkWarehouseId).WarehouseId;
+            //var getRackNo = _context.TblRacks.FirstOrDefault(x => x.RackId == productEntity.FkRackId).RackId;
+
+            var warehouseEntity = _context.TblWarehouses
+            .FirstOrDefault(x => x.WarehouseId == productEntity.FkWarehouseId);
+
+            var getWarehouse = warehouseEntity != null ? warehouseEntity.WarehouseId : 0;
+
+            var rackEntity = _context.TblRacks
+            .FirstOrDefault(x => x.RackId == productEntity.FkRackId);
+
+            var getRackNo = rackEntity != null ? rackEntity.RackId : 0; // or null if your ViewModel allows nullable int
+
+
 
             var viewModel = new ProductViewModel
             {
@@ -976,7 +1214,11 @@ namespace InventoryManagement.Controllers
                 LowStockQuantity = productEntity.LowStockQuantity,
                 SkuForSignleItem = skuForSingleItem,
                 SkuForBox = skuForBox,
-                AliasNames = aliasNames
+                AliasNames = aliasNames,
+                //WarehouseId = getWarehouse,
+                //RackId = getRackNo,
+                WarehouseId = warehouseEntity != null ? warehouseEntity.WarehouseId : 0,
+                RackId = rackEntity != null ? rackEntity.RackId : 0,
             };
 
             return View(viewModel);
@@ -987,91 +1229,89 @@ namespace InventoryManagement.Controllers
         public async Task<IActionResult> EditProduct(ProductViewModel updatedProduct)
         {
             var userId = HttpContext.Session.GetInt32("userId");
-
             if (userId == null || userId == 0)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+                return Json(new { success = false, message = "Please login first." });
 
             var product = await _context.TblProducts
                 .FirstOrDefaultAsync(p => p.ProductId == updatedProduct.ProductId && p.IsDeleted == false);
 
             if (product == null)
-            {
-                return NotFound();
-            }
+                return Json(new { success = false, message = "Product not found." });
 
-            // Update product details
-            product.ProductName = updatedProduct.ProductName;
-            //product.SkuIdName = updatedProduct.SkuIdName;
-            product.LowStockQuantity = updatedProduct.LowStockQuantity;
-            product.UpdatedAt = DateTime.Now;
+            // ✅ Check duplicate ProductName (excluding current product)
+            bool productExists = await _context.TblProducts
+                .AnyAsync(p => p.ProductName.ToLower() == updatedProduct.ProductName.ToLower()
+                            && p.ProductId != updatedProduct.ProductId
+                            && p.IsDeleted == false);
 
+            if (productExists)
+                return Json(new { success = false, message = "Product Name already exists! Please use a different name." });
 
-
-            // Start Code For SKU Name Update on 15/07/2025 by Bhushan
-            var existingSkus = _context.TblSkuBarcodes
-                .Where(s => s.FkProductId == product.ProductId && s.IsDeleted == 0);
-
-            _context.TblSkuBarcodes.RemoveRange(existingSkus);
-
-            // Validate and add new SKUs
-            var newSkuEntries = new List<TblSkuBarcode>();
-
+            // ✅ Check duplicate SKU for Single Item
             if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForSignleItem))
             {
-                if (!updatedProduct.SkuForSignleItem.StartsWith("A"))
-                {
-                    ModelState.AddModelError("SkuForSignleItem", "SKU for Single Item must start with 'A'.");
-                }
-                else
-                {
-                    newSkuEntries.Add(new TblSkuBarcode
-                    {
-                        FkProductId = product.ProductId,
-                        Skuname = updatedProduct.SkuForSignleItem,
-                        IsDeleted = 0,
-                        UpdatedAt = DateTime.Now,
-                        UpdatedBy = userId
-                    });
-                }
+                bool singleSkuExists = await _context.TblSkuBarcodes
+                    .AnyAsync(s => s.Skuname.ToLower() == updatedProduct.SkuForSignleItem.ToLower()
+                                && s.FkProductId != updatedProduct.ProductId
+                                && s.IsDeleted == 0);
+
+                if (singleSkuExists)
+                    return Json(new { success = false, message = "SKU for Single Item already exists!" });
             }
 
+            // ✅ Check duplicate SKU for Box
             if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForBox))
             {
-                if (!updatedProduct.SkuForBox.StartsWith("B"))
-                {
-                    ModelState.AddModelError("SkuForBox", "SKU for Box must start with 'B'.");
-                }
-                else
-                {
-                    newSkuEntries.Add(new TblSkuBarcode
-                    {
-                        FkProductId = product.ProductId,
-                        Skuname = updatedProduct.SkuForBox,
-                        IsDeleted = 0,
-                        UpdatedAt = DateTime.Now,
-                        UpdatedBy = userId
-                    });
-                }
+                bool boxSkuExists = await _context.TblSkuBarcodes
+                    .AnyAsync(s => s.Skuname.ToLower() == updatedProduct.SkuForBox.ToLower()
+                                && s.FkProductId != updatedProduct.ProductId
+                                && s.IsDeleted == 0);
+
+                if (boxSkuExists)
+                    return Json(new { success = false, message = "SKU for Box already exists!" });
             }
 
-            // Save new SKUs
-            if (newSkuEntries.Any())
+            // ✅ Update product details
+            product.ProductName = updatedProduct.ProductName;
+            product.LowStockQuantity = updatedProduct.LowStockQuantity;
+            product.FkWarehouseId = updatedProduct.WarehouseId;
+            product.FkRackId = updatedProduct.RackId;
+            product.UpdatedAt = DateTime.Now;
+
+            // Remove old SKUs and add new
+            var existingSkus = _context.TblSkuBarcodes.Where(s => s.FkProductId == product.ProductId && s.IsDeleted == 0);
+            _context.TblSkuBarcodes.RemoveRange(existingSkus);
+
+            var newSkuEntries = new List<TblSkuBarcode>();
+            if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForSignleItem))
             {
-                _context.TblSkuBarcodes.AddRange(newSkuEntries);
+                newSkuEntries.Add(new TblSkuBarcode
+                {
+                    FkProductId = product.ProductId,
+                    Skuname = updatedProduct.SkuForSignleItem,
+                    IsDeleted = 0,
+                    UpdatedAt = DateTime.Now,
+                    UpdatedBy = userId
+                });
             }
-            // End Code For SKU Name Update on 15/07/2025 by Bhushan
+            if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForBox))
+            {
+                newSkuEntries.Add(new TblSkuBarcode
+                {
+                    FkProductId = product.ProductId,
+                    Skuname = updatedProduct.SkuForBox,
+                    IsDeleted = 0,
+                    UpdatedAt = DateTime.Now,
+                    UpdatedBy = userId
+                });
+            }
+            if (newSkuEntries.Any())
+                _context.TblSkuBarcodes.AddRange(newSkuEntries);
 
-
-
-            // Remove existing aliases
-            var existingAliases = _context.TblProductAliases
-                .Where(a => a.FkProductId == product.ProductId && a.IsDeleted == false);
-
+            // Remove old aliases and add new
+            var existingAliases = _context.TblProductAliases.Where(a => a.FkProductId == product.ProductId && a.IsDeleted == false);
             _context.TblProductAliases.RemoveRange(existingAliases);
 
-            // Add new aliases
             if (updatedProduct.AliasNames != null && updatedProduct.AliasNames.Any())
             {
                 foreach (var alias in updatedProduct.AliasNames)
@@ -1091,8 +1331,127 @@ namespace InventoryManagement.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Product");
+            //return Json(new { success = true, message = "Product updated successfully!" });
+            return Json(new { success = true, redirectUrl = Url.Action("Product", "Master") });
         }
+
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> EditProduct(ProductViewModel updatedProduct)
+        //{
+        //    var userId = HttpContext.Session.GetInt32("userId");
+
+        //    if (userId == null || userId == 0)
+        //    {
+        //        return RedirectToAction("Login", "Auth");
+        //    }
+
+        //    var product = await _context.TblProducts
+        //        .FirstOrDefaultAsync(p => p.ProductId == updatedProduct.ProductId && p.IsDeleted == false);
+
+        //    if (product == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+
+
+
+        //    // Update product details
+        //    product.ProductName = updatedProduct.ProductName;
+        //    //product.SkuIdName = updatedProduct.SkuIdName;
+        //    product.LowStockQuantity = updatedProduct.LowStockQuantity;
+        //    product.FkWarehouseId = updatedProduct.WarehouseId;
+        //    product.FkRackId = updatedProduct.RackId;
+        //    product.UpdatedAt = DateTime.Now;
+
+
+
+        //    // Start Code For SKU Name Update on 15/07/2025 by Bhushan
+        //    var existingSkus = _context.TblSkuBarcodes
+        //        .Where(s => s.FkProductId == product.ProductId && s.IsDeleted == 0);
+
+        //    _context.TblSkuBarcodes.RemoveRange(existingSkus);
+
+        //    // Validate and add new SKUs
+        //    var newSkuEntries = new List<TblSkuBarcode>();
+
+        //    if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForSignleItem))
+        //    {
+        //        if (!updatedProduct.SkuForSignleItem.StartsWith("A"))
+        //        {
+        //            ModelState.AddModelError("SkuForSignleItem", "SKU for Single Item must start with 'A'.");
+        //        }
+        //        else
+        //        {
+        //            newSkuEntries.Add(new TblSkuBarcode
+        //            {
+        //                FkProductId = product.ProductId,
+        //                Skuname = updatedProduct.SkuForSignleItem,
+        //                IsDeleted = 0,
+        //                UpdatedAt = DateTime.Now,
+        //                UpdatedBy = userId
+        //            });
+        //        }
+        //    }
+
+        //    if (!string.IsNullOrWhiteSpace(updatedProduct.SkuForBox))
+        //    {
+        //        if (!updatedProduct.SkuForBox.StartsWith("B"))
+        //        {
+        //            ModelState.AddModelError("SkuForBox", "SKU for Box must start with 'B'.");
+        //        }
+        //        else
+        //        {
+        //            newSkuEntries.Add(new TblSkuBarcode
+        //            {
+        //                FkProductId = product.ProductId,
+        //                Skuname = updatedProduct.SkuForBox,
+        //                IsDeleted = 0,
+        //                UpdatedAt = DateTime.Now,
+        //                UpdatedBy = userId
+        //            });
+        //        }
+        //    }
+
+        //    // Save new SKUs
+        //    if (newSkuEntries.Any())
+        //    {
+        //        _context.TblSkuBarcodes.AddRange(newSkuEntries);
+        //    }
+        //    // End Code For SKU Name Update on 15/07/2025 by Bhushan
+
+
+
+        //    // Remove existing aliases
+        //    var existingAliases = _context.TblProductAliases
+        //        .Where(a => a.FkProductId == product.ProductId && a.IsDeleted == false);
+
+        //    _context.TblProductAliases.RemoveRange(existingAliases);
+
+        //    // Add new aliases
+        //    if (updatedProduct.AliasNames != null && updatedProduct.AliasNames.Any())
+        //    {
+        //        foreach (var alias in updatedProduct.AliasNames)
+        //        {
+        //            if (!string.IsNullOrWhiteSpace(alias))
+        //            {
+        //                _context.TblProductAliases.Add(new TblProductAlias
+        //                {
+        //                    FkProductId = product.ProductId,
+        //                    AliasName = alias,
+        //                    IsDeleted = false,
+        //                    CreatedAt = DateTime.Now
+        //                });
+        //            }
+        //        }
+        //    }
+
+        //    await _context.SaveChangesAsync();
+
+        //    return RedirectToAction("Product");
+        //}
 
 
         //Code FOr Delete Product

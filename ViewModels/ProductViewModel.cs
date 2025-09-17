@@ -1,14 +1,19 @@
-﻿namespace InventoryManagement.ViewModels
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace InventoryManagement.ViewModels
 {
     public class ProductViewModel
     {
         public int ProductId { get; set; }
         public string ProductName { get; set; }
+        public string BatchNo { get; set; }
         public string SkuIdName { get; set; }
         public string SkuForSignleItem { get; set; }
         public string SkuForBox { get; set; }
         public string LowStockQuantity { get; set; }
         public string unit { get; set; }
+        public int WarehouseId { get; set; }
+        public int RackId { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; }
         public int CreatedBy { get; set; }
@@ -30,6 +35,9 @@
         public PaginationMetadataViewModel Pagination { get; set; }
 
         public ProductViewModel EditProduct { get; set; }
+        public List<SelectListItem> WarehouseList { get; set; }
+
+        public int FkWarehouseId { get; set; }
 
     }
 

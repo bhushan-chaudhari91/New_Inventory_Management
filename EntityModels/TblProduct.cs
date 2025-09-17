@@ -7,6 +7,8 @@ public partial class TblProduct
 {
     public int ProductId { get; set; }
     public int FK_Unit { get; set; }
+    public int FkWarehouseId { get; set; }
+    public int FkRackId { get; set; }
     public string? ProductName { get; set; }
     public string? SkuIdName { get; set; }
     public string? AvailableProductQty { get; set; }

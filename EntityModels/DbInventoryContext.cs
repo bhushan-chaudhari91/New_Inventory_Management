@@ -75,6 +75,8 @@ public partial class DbInventoryContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime");
             entity.Property(e => e.FK_Unit).HasColumnName("FK_Unit");
+            entity.Property(e => e.FkWarehouseId).HasColumnName("Fk_WarehouseId");
+            entity.Property(e => e.FkRackId).HasColumnName("Fk_RackId");
             entity.Property(e => e.IsDeleted).HasDefaultValueSql("'0'");
             entity.Property(e => e.ProductName).HasMaxLength(50);
             entity.Property(e => e.SkuIdName)

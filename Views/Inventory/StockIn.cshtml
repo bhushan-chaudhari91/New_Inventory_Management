@@ -283,11 +283,12 @@
                                         <th>Batch No</th>
                                         <th style="display: none;">Supplier</th>
                                         <th>Room</th>
+                                        <th>Rack No</th>
                                         <th>Total Box</th>
                                         <th>PerBoxQty</th>
                                         <th style="display: none;">Type</th>
                                         <th style="display: none;">Room</th>
-                                        <th style="display: none;">Rack No</th>
+                                        
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -341,8 +342,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
             </div>
             <div class="modal-body">
-                <form asp-action="AddProduct" method="post" class="forms-sample">
+                <form id="addProductForm" asp-action="AddProduct" method="post" class="forms-sample">
                     <div class="row">
+                        <input type="hidden" class="form-control" name="BatchNo" id="batchNo" placeholder="BatchNo" readonly>
                         <div class="form-group col-md-12">
                             <label for="ProductName">Product Name</label>
                             <input type="text" class="form-control" name="ProductName" id="ProductName" placeholder="Product Name">
@@ -359,6 +361,21 @@
                             <label for="SkuForBox">SKU For Box</label>
                             <input type="text" class="form-control" name="SkuForBox" id="SkuForBox" placeholder="Enter">
                         </div>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="form-group col-md-6">
+                            <label for="WarehouseId" class="form-label">Room / Warehouse</label>
+                            <select name="WarehouseId" id="stockTypeFilter" class="form-control">
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="RackId" class="form-label">Rack No</label>
+                            <select name="RackId" id="rackFilter" class="form-control"></select>
+                        </div>
+
                     </div>
 
                     <div class="row">
@@ -386,7 +403,7 @@
                     </div>
 
 
-                    <button type="submit" class="btn btn-primary mr-2">Submit</button>
+                    <button id="submitBtn" type="submit" class="btn btn-primary mr-2">Submit</button>
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
                 </form>
             </div>
@@ -504,6 +521,10 @@
                         document.getElementById('product').value = data.productName;
                         document.getElementById('FkProductId').value = data.productId;
 
+                        document.getElementById('warehouse').value = data.warehouseId;
+                        document.getElementById('rackNo').value = data.rackNo;
+                        document.getElementById('rackid').value = data.rackId;
+
                         document.getElementById('addButton').click();
                     })
                     .catch(err => {
@@ -577,7 +598,7 @@
                 newRow.cells[7].style.display = 'none';
                 newRow.cells[9].style.display = 'none';
                 newRow.cells[10].style.display = 'none';
-                newRow.cells[11].style.display = 'none';
+                //newRow.cells[11].style.display = 'none';
 
                 // Add remove button
                 const removeCell = newRow.insertCell(14);
@@ -982,10 +1003,22 @@
                             $('<li>').text(item.productName)
                                 .attr('data-id', item.id)
                                 .attr('data-sku', item.skuName)
+                                .attr('data-warehouseid', item.warehouseId)
+                                .attr('data-warehousename', item.warehouseName)
+                                .attr('data-rackid', item.rackId)
+                                .attr('data-rackno', item.rackNo)
                                 .on('click', function () {
                                     $productInput.val(item.productName);
                                     $skuInput.val(item.skuName); // show SKU
                                     $productId.val(item.id);
+
+                                    // Set Warehouse
+                                    $('#warehouse').val(item.warehouseId);
+
+                                    // Set Rack
+                                    $('#rackNo').val(item.rackNo);
+                                    $('#rackid').val(item.rackId);
+
                                     $productList.hide().empty();
                                 })
                         );
@@ -1021,6 +1054,12 @@
                         $productInput.val(selected.text());
                         $productId.val(selected.data('id'));
                         $skuInput.val(selected.data('sku'));
+
+                        // 🔹 Add these lines
+                        $('#warehouse').val(selected.data('warehouseid'));
+                        $('#rackNo').val(selected.data('rackno'));
+                        $('#rackid').val(selected.data('rackid'));
+
                         $productList.hide().empty();
                     }
                 }
@@ -1039,6 +1078,9 @@
             if (sku.length < 1) {
                 $productInput.val('');
                 $productId.val('');
+                $('#warehouse').val('');
+                $('#rackNo').val('');
+                $('#rackid').val('');
                 return;
             }
 
@@ -1050,6 +1092,14 @@
                     if (data) {
                         $productInput.val(data.productName);
                         $productId.val(data.productId);
+
+                        // Set Warehouse
+                        $('#warehouse').val(data.warehouseId);
+
+                        // Set Rack
+                        $('#rackNo').val(data.rackNo);
+                        $('#rackid').val(data.rackId);
+
                     } else {
                         $productInput.val('');
                         $productId.val('');
@@ -1058,6 +1108,10 @@
                 error: function () {
                     $productInput.val('');
                     $productId.val('');
+
+                    $('#warehouse').val('');
+                    $('#rackNo').val('');
+                    $('#rackid').val('');
                 }
             });
         });
@@ -1843,3 +1897,154 @@
     });
 </script>
 @* Start this code for Auto Search Dropdwon for RackNo show selected warehouse Against RackNo Change by Bhushan on 07/08/2025*@
+
+
+
+
+
+@* Start this code AddNewProduct Model for Auto Search Dropdwon for RackNo show selected warehouse Against RackNo Change by Bhushan on 12/09/2025*@
+<script>
+    $(document).ready(function () {
+        $('.clickable-row').on('click', function () {
+            var url = $(this).data('url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+
+        $('.view-link').on('click', function (e) {
+            e.stopPropagation();
+        });
+
+        $.ajax({
+            url: '@Url.Action("GetWarehouses", "Master")',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#stockTypeFilter');
+                select.empty();
+
+                $.each(data, function (index, item) {
+                    select.append('<option value="' + item.id + '">' + item.name + '</option>');
+                });
+
+                if (data.length > 0) {
+                    var firstWarehouseId = data[0].id;
+                    select.val(firstWarehouseId).trigger('change');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
+        });
+
+
+        $('#stockTypeFilter').change(function () {
+            var warehouseId = $(this).val();
+            if (warehouseId) {
+                $.ajax({
+                    url: '@Url.Action("GetRacks", "Master")',
+                    type: 'GET',
+                    data: { warehouseId: warehouseId },
+                    dataType: 'json',
+                    success: function (data) {
+                        var rackSelect = $('#rackFilter');
+                        rackSelect.empty();
+
+                        $.each(data, function (index, item) {
+                            rackSelect.append('<option value="' + item.id + '">' + item.name + '</option>');
+                        });
+
+                        if (data.length > 0) {
+                            rackSelect.val(data[0].id);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            } else {
+                $('#rackFilter').empty().append('<option value="">Select Rack</option>');
+            }
+        });
+    });
+</script>
+@* End this code AddNewProduct Model for Auto Search Dropdwon for RackNo show selected warehouse Against RackNo Change by Bhushan on 12/09/2025*@
+
+
+
+<script>
+    $('#addProductForm').submit(function(e) {
+        e.preventDefault();
+
+        var $submitBtn = $('#submitBtn');
+        $submitBtn.prop('disabled', false);
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+            url: '/Inventory/AddProduct',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if(response.success){
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: response.message
+                    });
+
+                    $submitBtn.prop('disabled', false);
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong!'
+                });
+                $submitBtn.prop('disabled', false);
+            }
+        });
+    });
+</script>
+
+<script>
+    $(function () {
+      $(document).on('shown.bs.modal', '#productFormModal', function () {
+        var $modal = $(this);
+
+        $.ajax({
+          url: '/Inventory/GetNewBatchNo',
+          type: 'GET',
+          dataType: 'json',
+          cache: false,
+          success: function (data) {
+            console.log('GetNewBatchNo response:', data);
+            if (data && data.batchNo !== undefined && data.batchNo !== null) {
+              $modal.find('#batchNo').val(data.batchNo);
+            } else {
+              console.warn('GetNewBatchNo returned no batchNo:', data);
+              $modal.find('#batchNo').val('');
+            }
+          },
+          error: function (xhr, status, err) {
+            console.error('Error fetching batch no:', status, err, xhr.responseText);
+            $modal.find('#batchNo').val('');
+          }
+        });
+      });
+
+      $(document).on('hidden.bs.modal', '#productFormModal', function () {
+        $(this).find('#batchNo').val('');
+      });
+    });
+</script>

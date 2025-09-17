@@ -12,6 +12,7 @@
         public string AvailableQuantity { get; set; }
         public string Status { get; set; }
         public string Type { get; set; }
+        public  List<string> AliasName { get; set; }
     }
 
     public class SaleOrderMasterListViewModel

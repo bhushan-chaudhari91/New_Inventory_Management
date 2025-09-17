@@ -12,17 +12,17 @@
 
 <style>
     .clickable-row {
-    cursor: pointer;
+        cursor: pointer;
     }
 
-    .clickable-row:hover {
-    background-color: #f1f1f1;
-    }
+        .clickable-row:hover {
+            background-color: #f1f1f1;
+        }
 </style>
 
 <style>
     .low-stock-row {
-    background-color: #f8d7da; /* Light red */
+        background-color: #f8d7da; /* Light red */
     }
 
     .mbrb-3 {
@@ -34,71 +34,71 @@
 @* Start For Pagination Table CSS Code *@
 <style>
     .custom-pagination .page-item .page-link {
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    margin-left: 2px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        margin-left: 2px;
     }
 
     .custom-pagination .page-item.active .page-link {
-    background-color: #007bff;
-    color: white;
+        background-color: #007bff;
+        color: white;
     }
 
     .custom-pagination .page-link {
-    color: #007bff;
-    text-decoration: none;
+        color: #007bff;
+        text-decoration: none;
     }
 
-    .custom-pagination .page-link:hover {
-    background-color: #f1f1f1;
-    }
+        .custom-pagination .page-link:hover {
+            background-color: #f1f1f1;
+        }
 </style>
 @* End For Pagination Table CSS Code *@
 
 <style>
     .btn-pill {
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    min-width: 120px;
-    background-color: #f0f4fb;
-    border: 2px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-    font-weight: 600;
-    color: #0d6efd;
-    font-size: 30px;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        min-width: 120px;
+        background-color: #f0f4fb;
+        border: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        font-weight: 600;
+        color: #0d6efd;
+        font-size: 30px;
     }
 
-    .btn-pill .count {
-    color: #f6a623; 
-    margin-right: 0.4rem;
-    font-weight: bold;
-    }
+        .btn-pill .count {
+            color: #f6a623;
+            margin-right: 0.4rem;
+            font-weight: bold;
+        }
 
-    .btn-pill.active {
-    border: 2px solid #e74a5f;
-    background-color: #4d83ff;
-    color: white;
-    }
+        .btn-pill.active {
+            border: 2px solid #e74a5f;
+            background-color: #4d83ff;
+            color: white;
+        }
 </style>
 
 @* Code for Type show in color *@
 <style>
     .type-box {
-    color: #070807;
-    font-weight: bold;
+        color: #070807;
+        font-weight: bold;
     }
 
     .type-single {
-    color: #28a745; 
-    font-weight: bold;
+        color: #28a745;
+        font-weight: bold;
     }
 
     .type-unknown {
-    color: #dc3545; 
-    font-style: italic;
+        color: #dc3545;
+        font-style: italic;
     }
 
 </style>
@@ -130,55 +130,51 @@
                         </div> *@
 
                         <!-- Low Stock Card -->
-                        <div class="card p-3 mr-3" style="width: 150px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                            <small class="text-muted" style="color: black !important;font-weight: 600; font-size: 15px;">Low Stock</small>
-                            <h3 class="mb-0" style="color: #ef4444; font-weight: 700; font-size: 33px;">
-                                @ViewBag.TotalLowStock
-                            </h3>
-                            <small style="color: #ef4444; font-weight: 700; font-size: 20px;">Products</small>
-                        </div>
+                        <a href="@Url.Action("InventoryList", "Inventory", new { filterType = "LowStock" })" style="text-decoration:none;">
+                            <div class="card p-3 mr-3" style="width: 180px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); cursor:pointer; margin-left: 12px;">
+                                <small class="text-muted" style="color: black !important;font-weight: 600; font-size: 15px;">Low Stock</small>
+                                <h3 class="mb-0" style="color: #ef4444; font-weight: 700; font-size: 33px;">
+                                    @ViewBag.TotalLowStock
+                                </h3>
+                                <small style="color: #ef4444; font-weight: 700; font-size: 20px;">Products</small>
+                            </div>
+                        </a>
 
                         <!-- Out of Stock Card -->
-                        <div class="card p-3 mr-3" style="width: 150px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                            <small class="text-muted" style="color: black !important;font-weight: 600; font-size: 15px;">Out of Stock</small>
-                            <h3 class="mb-0" style="color: #f59e0b; font-weight: 700; font-size: 33px;">
-                                @ViewBag.TotalOutOfStock
-                            </h3>
-                            <small style="color: #f59e0b; font-weight: 700; font-size: 20px;">Products</small>
-                        </div>
+                        <a href="@Url.Action("InventoryList", "Inventory", new { filterType = "OutOfStock" })" style="text-decoration:none;">
+                            <div class="card p-3 mr-3" style="width: 180px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); cursor:pointer; margin-left: 12px;">
+                                <small class="text-muted" style="color: black !important;font-weight: 600; font-size: 15px;">Out of Stock</small>
+                                <h3 class="mb-0" style="color: #f59e0b; font-weight: 700; font-size: 33px;">
+                                    @ViewBag.TotalOutOfStock
+                                </h3>
+                                <small style="color: #f59e0b; font-weight: 700; font-size: 20px;">Products</small>
+                            </div>
+                        </a>
 
-                        <div class="card p-3 mr-3" style="width: 150px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                            @* <small style="color: #747373; font-weight: 700; font-size: 20px;">Total Products</small>
-                            <h3 class="mb-0" style="font-weight: 700; font-size: 33px;">
-                                @ViewBag.ProductCount
-                            </h3> *@
-                            <small class="text-muted" style="color: black !important;font-weight: 600; font-size: 15px;">Total</small>
-                            <h3 class="mb-0" style="color: #4CAF50; font-weight: 700; font-size: 33px;">
-                                @ViewBag.ProductCount
-                            </h3>
-                            <small style="color: #4CAF50; font-weight: 700; font-size: 20px;">Products</small>
-                        </div>
+                        <!-- Total Products -->
+                        <a href="@Url.Action("InventoryList", "Inventory", new { filterType = "All" })" style="text-decoration:none;">
+                            <div class="card p-3 mr-3" style="width: 180px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); cursor:pointer; margin-left: 12px;">
+                                <small class="text-muted" style="color: black !important;font-weight: 600; font-size: 15px;">Total</small>
+                                <h3 class="mb-0" style="color: #4CAF50; font-weight: 700; font-size: 33px;">
+                                    @ViewBag.ProductCount
+                                </h3>
+                                <small style="color: #4CAF50; font-weight: 700; font-size: 20px;">Products</small>
+                            </div>
+                        </a>
 
-                        <div class="card p-3 mr-3 mbrb-3" style="width: 150px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                           @*  <small style="color: #747373; font-weight: 700; font-size: 20px;">Total Batches</small>
-                            <h3 class="mb-0" style="font-weight: 700; font-size: 33px;">
-                                @ViewBag.BatchCount
-                            </h3> *@
+
+                       
+
+                        @* <div class="card p-3 mr-3 mbrb-3" style="width: 150px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
                             <small class="text-muted" style="color: black !important;font-weight: 600; font-size: 15px;">Total</small>
                             <h3 class="mb-0" style="color: #979797; font-weight: 700; font-size: 33px;">
                                 @ViewBag.BatchCount
                             </h3>
                             <small style="color: #979797; font-weight: 700; font-size: 20px;">Batches</small>
-                        </div>
+                        </div> *@
 
-                       
-                        
+
                     </div>
-                    @* <div class="card p-3 mr-3" style="width: 240px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                        <small class="text-muted" style="text-align: center;">Import Excel File Data</small><br />
-                        <button class="btn btn-success mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#excelUploadModal">Import Individual Items</button><br />
-                        <button class="btn btn-success mt-2 mt-xl-0" data-bs-toggle="modal" data-bs-target="#importBoxItemsExcel">Import Box Items</button>
-                    </div> *@
                 </div>
 
 
@@ -243,15 +239,15 @@
     <div class="row">
         <div class="col-md-12 grid-margin">
             <div class="d-flex justify-content-start flex-wrap">
-                <button type="button" id="productBtn" 
-                class="btn-pill active"
-                onclick="setActive(this); window.location.href='/Inventory/InventoryList';">
+                <button type="button" id="productBtn"
+                        class="btn-pill active"
+                        onclick="setActive(this); window.location.href='/Inventory/InventoryList';">
                     @*  <span class="count">@ViewBag.ProductCount</span> *@ Products
                 </button>
 
-                <button type="button" id="batchBtn" 
-                class="btn-pill"
-                onclick="setActive(this); window.location.href='/Inventory/BatchesList';">
+                <button type="button" id="batchBtn"
+                        class="btn-pill"
+                        onclick="setActive(this); window.location.href='/Inventory/BatchesList';">
                     @* <span class="count">@ViewBag.BatchCount</span> *@ Batches
                 </button>
             </div>
@@ -270,6 +266,51 @@
         clickedButton.classList.add("active");
         }
     </script>
+
+
+    @* BY SS *@
+    <div class="col-12">
+        <form method="get" asp-action="StocksDetails" asp-controller="Inventory" class="p-3 border rounded shadow-sm bg-light">
+            <input type="hidden" name="productId" value="" />
+
+            <div class="row g-3">
+                <!-- Stock Type Filter -->
+                <div class="col-md-3">
+                    <label for="stockTypeFilter" class="form-label">Room / Warehouse</label>
+                    <select name="stockTypeFilter" id="stockTypeFilter" class="form-control">
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="rackFilter" class="form-label">Rack No</label>
+                    <select name="rackFilter" id="rackFilter" class="form-control">
+                    </select>
+                </div>
+
+                <!-- Item Type Filter -->
+                <div class="col-md-3" style="display: none;">
+                    <label for="itemTypeF" class="form-label">Item Type</label>
+                    <select name="itemTypeFilter" id="itemTypeFilter" class="form-control">
+                        <option value="0" selected="">All Items</option>
+                        <option value="2">Single Item</option>
+                        <option value="1">Box Item</option>
+                    </select>
+                </div>
+
+
+
+
+
+                <div class="col-md-3" style="margin-top: 30px;">
+                    <button type="button" class="btn btn-primary" onclick="applyFilters()">Filter</button>
+                    <button type="button" class="btn btn-info " onclick="resetFilters()">Reset</button>
+                </div>
+
+                <!-- Submit Button -->
+
+            </div>
+        </form>
+    </div>
 
     <div class="row" style="margin-top:30px">
         <div class="col-sm-12 col-md-6" style="padding: 0px 32px;">
@@ -368,8 +409,10 @@
                         @* <th>Barcode No</th> *@
                         <th>Product Name</th>
                         @* <th>SKU</th> *@
-                        <th>Quantity</th>
-                        @if(Model.UserFkRoleId == 1)
+                        <th>Total Qty</th>
+                        <th>Single Item Qty</th>
+                        <th>Box Item Qty</th>
+                        @if (Model.UserFkRoleId == 1)
                         {
                             <th>Price</th>
                         }
@@ -378,7 +421,7 @@
 
                         }
 
-                       @*  <th>Type</th> *@
+                        @*  <th>Type</th> *@
                         <th>Aliases</th>
                         <th>Action</th>
                     </tr>
@@ -399,13 +442,15 @@
                             <td>@item.ProductName</td>
                             @* <td>@item.SKUName</td> *@
                             <td>@item.ProductQuantity</td>
+                            <td>@item.QtySingleItem</td>
+                            <td>@item.QtyBoxItem</td>
                             @if (Model.UserFkRoleId == 1)
                             {
                                 <td>@item.Price</td>
                             }
                             else
                             {
-                                
+
                             }
                             @* <td><span class="@typeClass">@typeLabel</span></td> *@
                             <td>
@@ -447,7 +492,7 @@
                                 }
                             </td>
 
-                            
+
                             <td><a asp-controller="Inventory" asp-action="StocksDetails" asp-route-id="@item.StockInId" asp-route-productId="@item.FkProductId" class="view-link">View</a></td>
                         </tr>
                     }
@@ -487,7 +532,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("InventoryList", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Previous</a>
+                            <a href="@Url.Action("InventoryList", new { pageNumber = currentPage - 1, searchTerm = serchquery, pageSize = pageSize, filterType = ViewBag.FilterType, warehouseId = ViewBag.WarehouseId, rackId = ViewBag.RackId, itemType = ViewBag.ItemType })" class="page-link">Previous</a>
                         }
                     </li>
 
@@ -497,7 +542,7 @@
                         if (currentPage > 3)
                         {
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("InventoryList", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">1</a>
+                                <a href="@Url.Action("InventoryList", new { pageNumber = 1, searchTerm = serchquery ,pageSize= pageSize, filterType = ViewBag.FilterType, warehouseId = ViewBag.WarehouseId, rackId = ViewBag.RackId, itemType = ViewBag.ItemType })" class="page-link">1</a>
                             </li>
                             if (currentPage > 4)
                             {
@@ -517,7 +562,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("InventoryList", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("InventoryList", new { pageNumber = i, searchTerm = serchquery ,pageSize= pageSize, filterType = ViewBag.FilterType, warehouseId = ViewBag.WarehouseId, rackId = ViewBag.RackId, itemType = ViewBag.ItemType })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -530,7 +575,7 @@
                                 <li class="paginate_button page-item disabled"><span class="page-link">...</span></li>
                             }
                             <li class="paginate_button page-item">
-                                <a href="@Url.Action("InventoryList", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize })" class="page-link">@totalPages</a>
+                                <a href="@Url.Action("InventoryList", new { pageNumber = totalPages, searchTerm = serchquery ,pageSize= pageSize, filterType = ViewBag.FilterType, warehouseId = ViewBag.WarehouseId, rackId = ViewBag.RackId, itemType = ViewBag.ItemType })" class="page-link">@totalPages</a>
                             </li>
                         }
                     }
@@ -548,7 +593,7 @@
                             else
                             {
                                 <li class="paginate_button page-item">
-                                    <a href="@Url.Action("InventoryList", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize })" class="page-link">@i</a>
+                                    <a href="@Url.Action("InventoryList", new { pageNumber = i, searchTerm = serchquery,pageSize= pageSize, filterType = ViewBag.FilterType, warehouseId = ViewBag.WarehouseId, rackId = ViewBag.RackId, itemType = ViewBag.ItemType })" class="page-link">@i</a>
                                 </li>
                             }
                         }
@@ -562,7 +607,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("InventoryList", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize })" class="page-link">Next</a>
+                            <a href="@Url.Action("InventoryList", new { pageNumber = currentPage + 1, searchTerm = serchquery, pageSize = pageSize, filterType = ViewBag.FilterType, warehouseId = ViewBag.WarehouseId, rackId = ViewBag.RackId, itemType = ViewBag.ItemType })" class="page-link">Next</a>
                         }
                     </li>
 
@@ -576,16 +621,52 @@
 
 
 <script>
+    function applyFilters() {
+        var searchQuery = document.getElementById('searchQuery').value;
+        var pageSize = document.getElementById('rowQuantity').value;
+        var warehouseId = document.getElementById('stockTypeFilter').value;
+        var rackId = document.getElementById('rackFilter').value;
+        var itemType = document.getElementById('itemTypeFilter').value;
+
+        // Build URL with all filters
+        var url = `/Inventory/InventoryList?searchTerm=${encodeURIComponent(searchQuery)}&pageNumber=1&pageSize=${pageSize}&warehouseId=${warehouseId}&rackId=${rackId}&itemType=${itemType}`;
+
+        // Redirect to filtered URL
+        window.location.href = url;
+    }
+
+
+        function resetFilters() {
+     applyFilters();
+
+    }
+</script>
+
+<script>
     function searchfilterquery() {
         var searchQuery = document.getElementById('searchQuery').value;
         var pageSize = document.getElementById('rowQuantity').value;
-        window.location.href = `/Inventory/InventoryList?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+         var warehouseId = document.getElementById('stockTypeFilter')?.value || 0;
+        var rackId = document.getElementById('rackFilter')?.value || '';
+        var itemType = document.getElementById('itemTypeFilter')?.value || 0;
+        var filterType = '@ViewBag.FilterType';
+
+        // window.location.href = `/Inventory/InventoryList?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+        window.location.href = `/Inventory/InventoryList?searchTerm=${encodeURIComponent(searchQuery)}&pageNumber=1&pageSize=${pageSize}&warehouseId=${warehouseId}&rackId=${rackId}&itemType=${itemType}&filterType=${filterType}`;
     }
 
     function updateRowQuantity() {
         var pageSize = document.getElementById('rowQuantity').value;
         var searchQuery = document.getElementById('searchQuery').value;
-        window.location.href = `/Inventory/InventoryList?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
+
+        var warehouseId = document.getElementById('stockTypeFilter')?.value || 0;
+        var rackId = document.getElementById('rackFilter')?.value || '';
+        var itemType = document.getElementById('itemTypeFilter')?.value || 0;
+        var filterType = '@ViewBag.FilterType';
+
+        window.location.href = `/Inventory/InventoryList?searchTerm=${encodeURIComponent(searchQuery)}&pageNumber=1&pageSize=${pageSize}&warehouseId=${warehouseId}&rackId=${rackId}&itemType=${itemType}&filterType=${filterType}`;
+
+        //window.location.href = `/Inventory/InventoryList?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}`;
     }
 </script>
 
@@ -604,6 +685,57 @@
         $('.view-link').on('click', function (e) {
             e.stopPropagation();
         });
+
+
+
+        /// BY SS
+        $.ajax({
+        url: '@Url.Action("GetWarehouses", "Inventory")', // Controller & Action
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            console.log(data)
+            var select = $('#stockTypeFilter');
+            select.empty(); // Clear existing options
+            select.append('<option value="">Select Room / Warehouse</option>'); // Optional placeholder
+            $.each(data, function(index, item) {
+                select.append('<option value="' + item.id + '">' + item.name + '</option>');
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+        }
+    });
+
+
+
+    $('#stockTypeFilter').change(function() {
+        var warehouseId = $(this).val();
+        if (warehouseId) {
+            $.ajax({
+                url: '@Url.Action("GetRacks", "Inventory")',
+                type: 'GET',
+                data: { warehouseId: warehouseId },
+                dataType: 'json',
+                success: function(data) {
+                    var rackSelect = $('#rackFilter');
+                    rackSelect.empty();
+                    rackSelect.append('<option value="">Select Rack</option>');
+                    $.each(data, function(index, item) {
+                        rackSelect.append('<option value="' + item.name + '">' + item.name + '</option>');
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        } else {
+            $('#itemTypeFilter').empty().append('<option value="">Select Rack</option>');
+        }
+    });
+
+
+
     });
 </script>
 
@@ -618,7 +750,7 @@
     @if (TempData["SuccessMessage"] != null)
     {
         <text>
-             messages += "<p style='color:green;'>@TempData["SuccessMessage"]</p>";
+                 messages += "<p style='color:green;'>@TempData["SuccessMessage"]</p>";
         </text>
     }
 
@@ -626,7 +758,7 @@
     @if (TempData["ErrorMessage"] != null)
     {
         <text>
-                    messages += "<p style='color:red;'>@TempData["ErrorMessage"]</p>";
+                        messages += "<p style='color:red;'>@TempData["ErrorMessage"]</p>";
         </text>
     }
 
