@@ -1008,6 +1008,12 @@ namespace InventoryManagement.Controllers
             if (userId == null || userId == 0)
                 return Json(new { success = false, message = "Please login first." });
 
+            // ✅ Check mandatory Single Item SKU
+            if (string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
+            {
+                return Json(new { success = false, message = "Please enter the SKU name for Single Item before saving." });
+            }
+
             // ✅ DUPLICATE VALIDATION
             bool productExists = await _context.TblProducts
                 .AnyAsync(p => p.ProductName.ToLower() == addProduct.ProductName.ToLower() && p.IsDeleted == false);

@@ -518,13 +518,21 @@ namespace InventoryManagement.Controllers
                 .Where(x => x.IsDeleted == false && x.StockInId != 0)
                 .AsQueryable();
 
+            // ✅ Match search logic from InventoryList
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                stockInList = stockInList.Where(x => x.Barcode.Contains(searchTerm) ||
-                                                     x.ProductQuantity.Contains(searchTerm) ||
-                                                     x.ProductStatus.Contains(searchTerm));
+                stockInList =
+                    from s in stockInList
+                    join p in _context.TblProducts on s.FkProductId equals p.ProductId
+                    join a in _context.TblProductAliases on s.FkProductId equals a.FkProductId into aliasGroup
+                    from alias in aliasGroup.DefaultIfEmpty()
+                    where s.Barcode.Contains(searchTerm)
+                       || s.ProductQuantity.Contains(searchTerm)
+                       || s.ProductStatus.Contains(searchTerm)
+                       || p.ProductName.Contains(searchTerm)
+                       || (alias != null && alias.AliasName.Contains(searchTerm))
+                    select s;
             }
-
             //var filteredList = stockInList.ToList();
 
             var filteredList = stockInList
@@ -3080,7 +3088,18 @@ namespace InventoryManagement.Controllers
                 var aliasName = _context.TblProductAliases.Where(x => x.IsDeleted == false && x.FkProductId == item.FkProductId).Select(x => x.AliasName).ToList();
 
                 int orderQty = int.TryParse(item.OrderProductQty, out var oq) ? oq : 0;
-                int availableQty = int.TryParse(product?.AvailableProductQty, out var aq) ? aq : 0;
+                //int availableQty = int.TryParse(product?.AvailableProductQty, out var aq) ? aq : 0;
+
+                var getType = _context.TblStockIns.Where(x => x.IsDeleted == false && x.Barcode == item.ProductName)
+                    .Select(x => x.Type).FirstOrDefault();
+
+                var getAvailableQty = _context.TblStockIns
+                    .Where(x => x.IsDeleted == false
+                             && x.Barcode == item.ProductName
+                             && x.Type == getType)
+                    .Sum(x => Convert.ToInt32(x.AvailableQuantity));
+
+                int availableQty = getAvailableQty;
 
                 string status = availableQty >= orderQty ? "Available" : "Not Available";
 
@@ -3091,7 +3110,8 @@ namespace InventoryManagement.Controllers
                     //SKUName = product?.SkuIdName,
                     SKUName = skuName?.Skuname,
                     OrderQuantity = item.OrderProductQty,
-                    AvailableQuantity = product?.AvailableProductQty ?? "0",
+                    //AvailableQuantity = product?.AvailableProductQty ?? "0",
+                    AvailableQuantity = Convert.ToString(getAvailableQty),
                     OrderDate = (DateTime)item.OrderDate,
                     Status = status,
                     AliasName = aliasName
@@ -3743,6 +3763,12 @@ namespace InventoryManagement.Controllers
 
             if (userId == null || userId == 0)
                 return Json(new { success = false, message = "Please login first." });
+
+            // ✅ Check mandatory Single Item SKU
+            if (string.IsNullOrWhiteSpace(addProduct.SkuForSignleItem))
+            {
+                return Json(new { success = false, message = "Please enter the SKU name for Single Item before saving." });
+            }
 
             // ✅ DUPLICATE VALIDATION
             bool productExists = await _context.TblProducts
@@ -5330,7 +5356,7 @@ namespace InventoryManagement.Controllers
                 {
                     ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
                     SKUName = g.Key.Barcode,
-                    Date = g.Min(x => x.Date ?? DateTime.MinValue),
+                    Date = g.Max(x => x.Date ?? DateTime.MinValue),
                     Type = "StockIn",
                     Quantity = g.Sum(x => Convert.ToInt32(x.ProductQuantity))
                 });
@@ -5343,23 +5369,35 @@ namespace InventoryManagement.Controllers
                 {
                     ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
                     SKUName = g.Key.Barcode,
-                    Date = g.Min(x => x.StockOutDate ?? DateTime.MinValue),
+                    Date = g.Max(x => x.StockOutDate ?? DateTime.MinValue),
                     Type = "StockOut",
                     Quantity = g.Sum(x => Convert.ToInt32(x.Quantity))
                 });
 
             var combinedList = stockInQuery.Concat(stockOutQuery).ToList();
 
+            //if (!string.IsNullOrEmpty(searchTerm))
+            //{
+            //    searchTerm = searchTerm.Trim().ToLower();
+            //    combinedList = combinedList
+            //        .Where(x => x.ProductName.ToLower().Contains(searchTerm) 
+            //        || x.Type.ToLower().Contains(searchTerm)
+            //        || x.SKUName.ToLower().Contains(searchTerm))
+            //        .ToList();
+            //}
+
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                searchTerm = searchTerm.Trim().ToLower();
+                var searchTermLower = searchTerm.Trim().ToLower();
                 combinedList = combinedList
-                    .Where(x => x.ProductName.ToLower().Contains(searchTerm) 
-                    || x.Type.ToLower().Contains(searchTerm)
-                    || x.Type.ToLower().Contains(searchTerm) 
-                    || x.SKUName.ToLower().Contains(searchTerm))
+                    .Where(x =>
+                        (!string.IsNullOrEmpty(x.ProductName) && x.ProductName.ToLower().Contains(searchTermLower)) ||
+                        (!string.IsNullOrEmpty(x.Type) && x.Type.ToLower().Contains(searchTermLower)) ||
+                        (!string.IsNullOrEmpty(x.SKUName) && x.SKUName.ToLower().Contains(searchTermLower))
+                    )
                     .ToList();
             }
+
 
             var sortedList = combinedList
                 .OrderByDescending(x => x.Date)
@@ -5408,7 +5446,7 @@ namespace InventoryManagement.Controllers
                 {
                     ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
                     SKUName = g.Key.Barcode,
-                    Date = g.Min(x => x.Date ?? DateTime.MinValue),
+                    Date = g.Max(x => x.Date ?? DateTime.MinValue),
                     Type = "StockIn",
                     Quantity = g.Sum(x => Convert.ToInt32(x.ProductQuantity))
                 });
@@ -5421,7 +5459,7 @@ namespace InventoryManagement.Controllers
                 {
                     ProductName = products.FirstOrDefault(p => p.ProductId == g.Key.FkProductId)?.ProductName ?? "N/A",
                     SKUName = g.Key.Barcode,
-                    Date = g.Min(x => x.StockOutDate ?? DateTime.MinValue),
+                    Date = g.Max(x => x.StockOutDate ?? DateTime.MinValue),
                     Type = "StockOut",
                     Quantity = g.Sum(x => Convert.ToInt32(x.Quantity))
                 });

@@ -356,7 +356,7 @@
 
 </div>
 
-<script>
+@* <script>
     function searchfilterquery() {
         var searchQuery = document.getElementById('searchQuery').value;
         var pageSize = document.getElementById('rowQuantity').value;
@@ -373,5 +373,27 @@
         var toDate = '@toDate';
 
         window.location.href = `/Inventory/DailyStockReport?searchTerm=${searchQuery}&pageNumber=1&pageSize=${pageSize}&fromDate=${fromDate}&toDate=${toDate}`;
+    }
+</script> *@
+
+<script>
+    function searchfilterquery() {
+        var searchQuery = document.getElementById('searchQuery').value;
+        var pageSize = document.getElementById('rowQuantity').value;
+        var fromDate = '@fromDate';
+        var toDate = '@toDate';
+
+        // Encode search query to handle spaces and special characters
+        window.location.href = `/Inventory/DailyStockReport?searchTerm=${encodeURIComponent(searchQuery)}&pageNumber=1&pageSize=${pageSize}&fromDate=${fromDate}&toDate=${toDate}`;
+    }
+
+    function updateRowQuantity() {
+        var pageSize = document.getElementById('rowQuantity').value;
+        var searchQuery = document.getElementById('searchQuery').value;
+        var fromDate = '@fromDate';
+        var toDate = '@toDate';
+
+        // Encode search query to handle spaces and special characters
+        window.location.href = `/Inventory/DailyStockReport?searchTerm=${encodeURIComponent(searchQuery)}&pageNumber=1&pageSize=${pageSize}&fromDate=${fromDate}&toDate=${toDate}`;
     }
 </script>

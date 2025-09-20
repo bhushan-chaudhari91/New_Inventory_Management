@@ -210,7 +210,13 @@
                             $.each(data, function (index, item) {
                                 rackSelect.append('<option value="' + item.id + '">' + item.name + '</option>');
                             });
-                            rackSelect.val(data[0].id); 
+
+                            //rackSelect.val(data[0].id); 
+                            if (selectedRackId) {
+                                rackSelect.val(selectedRackId);
+                            } else {
+                                rackSelect.val(data[0].id); // fallback first rack
+                            }
                         } else {
                             rackSelect.append('<option value="">No racks available</option>');
                         }
